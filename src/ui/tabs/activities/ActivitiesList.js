@@ -1,0 +1,123 @@
+import { Fragment } from 'react'
+import { Avatar, List, ListItem, ListItemText, ListItemAvatar, Box, Button, Typography, Divider } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { useGetActivitiesFlatQuery } from '../../../features/activities/activitiesApiSlice';
+import { selectActivityBaseFieldFilter, selectActivityFreeTextFilter, selectActivityParentFieldFilter, 
+      selectEndDateFilter, selectLang, selectSelectedActivityFilterOptions, selectSelectedActivityPlanFilterOptions, selectStartDateFilter } from '../../../features/app/appSlice';
+import ListPager from '../../../components/ui/ListPager';
+import Loading from '../../../components/Loading';
+import ActivityTypeIcon from '../../../icons/ActivityTypeIcon';
+import { useNavigate, useParams } from 'react-router';
+import ActivitiesFilter from '../../../components/filters/ActivitiesFilter';
+import { EXECUTED, PLAN, activityDescription, buildActiviesFilter, daysDiffToday, isArrayEmpty, parseDate, parseISOOrNull } from '../../FarmUtil';
+import { EXECUTE_STATUS_COLOR, PLAN_PASSED_STATUS_COLOR, PLAN_STATUS_COLOR, WHITE } from '../../activity/form/header/ActivityHeaderView';
+import { LocationOn } from '@mui/icons-material';
+import { blue } from '@mui/material/colors';
+
+const getColor = (e) => {
+    const s = e.status;
+    if (PLAN === s) {
+        const daysPassed = daysDiffToday(parseISOOrNull(e.execution));
+
+        return daysPassed > 2 ? PLAN_PASSED_STATUS_COLOR : PLAN_STATUS_COLOR;
+    } else if (EXECUTED === s) {
+        return EXECUTE_STATUS_COLOR;
+    }
+    return WHITE;
+
+}
+
+const gerStatus = (s, text) => {
+    if (s) {
+        return `(${text[s.toLowerCase()]})`;
+    }
+    return null
+}
+
+const ActivitiesList = ({ plans }) => {
+    const { page } = useParams()
+    const navigate = useNavigate();
+
+    const height = window.innerHeight - 190;
+    const maxResult = 40;
+    const isPlan = plans;
+    const orderBy = 'execution';
+    const dir = 'desc';
+
+
+    const startDateFilter = useSelector(selectStartDateFilter);
+    const endDateFilter = useSelector(selectEndDateFilter);
+
+    const activityFreeTextFilter = useSelector(selectActivityFreeTextFilter);
+    const selectedFilters = useSelector(isPlan ? selectSelectedActivityPlanFilterOptions : selectSelectedActivityFilterOptions);
+
+    const filter = buildActiviesFilter(startDateFilter, endDateFilter, activityFreeTextFilter,selectedFilters);
+
+
+    const {
+        data,
+        isLoading,
+        isSuccess,
+        isError,
+        error
+    } = useGetActivitiesFlatQuery({ page, maxResult, isPlan, orderBy, dir, filter })
+
+    const text = useSelector(selectLang)
+
+
+    if (!data || isLoading) {
+        return <Loading />
+    }
+
+
+
+    const renderRows = () => {
+        if (isSuccess) {
+            const activities = data.content;
+            return activities.map(e =>
+                <Fragment key={e.uuid}>
+                    <ListItem sx={{ backgroundColor: getColor(e) }} onClick={() => navigate(`/activity/al/${e.uuid}`)}
+
+                    >
+                        <ListItemAvatar>
+                            <Avatar sx={{ bgcolor: getColor(e) }}>
+                                <ActivityTypeIcon type={e.type} />
+                            </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText primary={
+                            <Box display={'flex'} flexDirection={'row'} flex={1} justifyContent={'space-between'}>
+                                <Typography >
+                                    {`${activityDescription(e, text)} ${e.fieldDesc}`}
+                                </Typography>
+
+                                <Typography whiteSpace={'nowrap'}  >
+                                    {!isArrayEmpty(e.points) && <LocationOn sx={{ color: blue[800] }} fontSize={'small'} />}
+                                    {`${e.reference}`}
+                                    {e.status && <Box component={'span'} padding={0.5}></Box>}
+                                    {e.status && <Box borderRadius={1} backgroundColor={getColor(e)} component={'span'}>{gerStatus(e.status, text)}</Box>}
+                                </Typography>
+                            </Box>
+
+                        } secondary={parseDate(e.execution)}
+
+                        />
+                    </ListItem>
+                    <Divider />
+                </Fragment>
+            )
+        }
+    }
+
+    return (
+        <Box display={'flex'} flexDirection={'column'} flex={1}>
+            <List sx={{ height, overflow: 'auto', width: '100%', bgcolor: 'background.paper' }}>
+                {renderRows()}
+            </List>
+            <Divider />
+            <ListPager bottom={0} dir={dir} page={Number(page)} totalPages={data.totalPages} setPage={(value) => navigate(`/tabs/${isPlan ? 'plans' : 'activities'}/${value}`)} />
+            <ActivitiesFilter />
+        </Box>
+    )
+}
+
+export default ActivitiesList
