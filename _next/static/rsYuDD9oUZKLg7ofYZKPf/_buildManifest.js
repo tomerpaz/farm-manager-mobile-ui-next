@@ -1,7 +1,12 @@
 self.__BUILD_MANIFEST = {
   "__rewrites": {
     "afterFiles": [],
-    "beforeFiles": [],
+    "beforeFiles": [
+      {
+        "source": "/farm-manager-mobile-ui-next//_next/:path+",
+        "destination": "/farm-manager-mobile-ui-next/_next/:path+"
+      }
+    ],
     "fallback": []
   },
   "sortedPages": [
