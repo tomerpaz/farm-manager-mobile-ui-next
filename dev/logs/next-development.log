@@ -1,7 +1,0 @@
-[00:00:00.582] Server  LOG     ✓ Ready in 427ms
-[00:00:31.055] Server  LOG     ○ Compiling /[[...slug]] ...
-[00:00:32.274] Server  ERROR   ⨯ Failed to generate static paths for /[[...slug]]:
-[00:00:32.287] Server  ERROR   Error: Page "/[[...slug]]/page" is missing param "/[[...slug]]" in "generateStaticParams()", which is required with "output: export" config.
-[00:00:47.471] Browser ERROR   Each child in a list should have a unique "key" prop.%s%s See https://react.dev/link/warning-keys for more information. 
-
-Check the render method of `MuiTableRowRoot`.  It was passed a child from Row.
