@@ -4,6 +4,7 @@ import '../index.css'
 export const metadata: Metadata = {
   title: 'Farm Manager',
   description: 'Farm Manager',
+  manifest: '/manifest.json',
 }
 
 export default function RootLayout({

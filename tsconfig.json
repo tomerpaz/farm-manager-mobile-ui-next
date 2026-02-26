@@ -29,8 +29,10 @@
     "build/dev/types/**/*.ts",
     "**/*.mts",
     "**/*.ts",
-    "**/*.tsx"
-  ],
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+, "src/app/manifest.ts.txtx"  ],
   "exclude": [
     "node_modules"
   ]

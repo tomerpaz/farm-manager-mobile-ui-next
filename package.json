@@ -9,8 +9,8 @@
     "@mui/material": "^7.3.8",
     "@mui/x-date-pickers": "7.29.4",
     "@reduxjs/toolkit": "2.6.1",
+    "@serwist/next": "^9.5.6",
     "date-fns": "2.30.0",
-    "gh-pages": "^6.3.0",
     "leaflet": "1.9.4",
     "leaflet.locatecontrol": "0.84.2",
     "next": "^16.1.6",
@@ -30,7 +30,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npx serve@latest ./build"
+    "start": "npx serve@latest ./build",
+    "deploy": "gh-pages -d build -t"
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +53,8 @@
   },
   "devDependencies": {
     "@types/node": "25.3.0",
+    "gh-pages": "^6.3.0",
+    "serwist": "^9.5.6",
     "typescript": "^5.9.3"
   }
 }
