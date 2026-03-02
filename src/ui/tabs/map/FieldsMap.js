@@ -8,7 +8,7 @@ import { useGetUserDataQuery } from '../../../features/auth/authApiSlice'
 import { selectActiveGPS, selectCurrentYear, selectEditLayer, selectFieldFreeTextFilter, selectFieldsViewStatus, selectLang, selectLatitude, selectLongitude, selectMapCenter, selectMapZoom, selectSelectedFieldFilterOptions, selectShowFieldAlias, selectShowFieldName, selectShowLayers, selectShowOfficialFieldId, selectVisibilLayes, setEditLayer, setMapCenter, setMapZoom } from "../../../features/app/appSlice";
 import { useDispatch, useSelector } from "react-redux";
 import FieldsFilter from "../../../components/filters/FieldsFilter";
-import { displayFieldName, filterFields, getFillColor, getOpacity, isArrayEmpty, isStringEmpty, mapDisplayFieldName, MapToolTip, MAX_PER_MAP, stopMapEventPropagation, trap } from "../../FarmUtil";
+import { displayFieldName, filterFields, getFillColor, getOpacity, isArrayEmpty, isStringEmpty, mapDisplayFieldName, MapTextArr, MapToolTip, MAX_PER_MAP, stopMapEventPropagation, trap } from "../../FarmUtil";
 import SatelliteMapProvider from "../../../components/map/SatelliteMapProvider";
 import { useGetLayersQuery, useGetPointsQuery } from "../../../features/points/pointsApiSlice";
 import { Close } from "@mui/icons-material";
@@ -209,7 +209,7 @@ const FieldsMap = (props) => {
                             {showMapToolTip && index < MAX_PER_MAP && <Tooltip
                                 className={'empty-tooltip'}
                                 direction="center" opacity={1} permanent>
-                                <MapToolTip textArr={[mapDisplayFieldName(f, showFieldName, showFieldAlias, showOfficialFieldId)]} />
+                                <MapTextArr textArr={[mapDisplayFieldName(f, showFieldName, showFieldAlias, showOfficialFieldId)]} />
                             </Tooltip>}
                         </Polygon>
                     )}

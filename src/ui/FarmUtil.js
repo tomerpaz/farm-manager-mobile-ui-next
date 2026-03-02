@@ -164,14 +164,25 @@ export const MAX_PER_MAP = 600;
 
 export const MapToolTip = ({ textArr, large }) => {
     const variant = large ? 'h6' : 'subtitle1';
-
+    
     return <Tooltip
-        className={'empty-tooltip'}
+       className={'empty-tooltip'}
         direction="center" opacity={0.8} permanent>
         {textArr.map((e, index) =>
             <Typography key={index} variant={variant} style={mapTextStyle} >{e}</Typography>
         )}
     </Tooltip>
+}
+
+export const MapTextArr = ({ textArr, large }) => {
+    const variant = large ? 'h6' : 'subtitle1';
+    return <Box
+
+        direction="center" >
+        {textArr.map((e, index) =>
+            <Typography key={index} variant={variant}  style={mapTextStyle} >{e}</Typography>
+        )}
+    </Box>
 }
 
 export const displayFieldArea = (field, areaUnit, text) => {
