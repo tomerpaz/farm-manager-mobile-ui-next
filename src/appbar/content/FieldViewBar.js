@@ -9,7 +9,7 @@ import SelectYearMenu from '../components/SelectYearMenu'
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice'
 import SeasonData from '../../ui/forms/season/SeasonData'
 import { useState } from 'react'
-import { getDateYear } from '../../ui/FarmUtil'
+import { getDateYear, getFieldPolygonCenter } from '../../ui/FarmUtil'
 
 const FieldViewBar = ({ layers, share, years }) => {
 
@@ -35,9 +35,13 @@ const FieldViewBar = ({ layers, share, years }) => {
         setOpenSeason(false);
     }
 
-    const lat = field ? field.lat : null;
-    const lng = field ? field.lng : null;
 
+  //  console.log('lat/lng',lat, lng)
+    const center = getFieldPolygonCenter(field);
+
+    const lat = center ? center.lat : null;
+    const lng = center ? center.lng : null;
+//    console.log('center',center)
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar sx={{ justifyContent: 'space-between' }}>

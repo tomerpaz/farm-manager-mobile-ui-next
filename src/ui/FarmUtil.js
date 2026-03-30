@@ -164,9 +164,9 @@ export const MAX_PER_MAP = 600;
 
 export const MapToolTip = ({ textArr, large }) => {
     const variant = large ? 'h6' : 'subtitle1';
-    
+
     return <Tooltip
-       className={'empty-tooltip'}
+        className={'empty-tooltip'}
         direction="center" opacity={0.8} permanent>
         {textArr.map((e, index) =>
             <Typography key={index} variant={variant} style={mapTextStyle} >{e}</Typography>
@@ -180,7 +180,7 @@ export const MapTextArr = ({ textArr, large }) => {
 
         direction="center" >
         {textArr.map((e, index) =>
-            <Typography key={index} variant={variant}  style={mapTextStyle} >{e}</Typography>
+            <Typography key={index} variant={variant} style={mapTextStyle} >{e}</Typography>
         )}
     </Box>
 }
@@ -524,8 +524,8 @@ export const formatNumber = (value) => {
 const thisYear = newDate().getFullYear();
 const yearOptions = [thisYear + 2, thisYear + 1, thisYear, thisYear - 1, thisYear - 2, thisYear - 3];
 export const getYearArray = (minYear) => {
-    if(minYear){
-        return yearOptions.filter(e=> e >= minYear);
+    if (minYear) {
+        return yearOptions.filter(e => e >= minYear);
     }
     return yearOptions;
 }
@@ -771,6 +771,28 @@ const fieldDisplayText = (f) => {
     }
 }
 
+
+export const getFieldPolygonCenter = (field) => {
+    if (field) {
+        if (!isArrayEmpty(field.geoPoints)) {
+            const points = field.geoPoints;
+            let area = 0, x = 0, y = 0, i, j, point1, point2, f;
+
+            for (i = 0, j = points.length - 1; i < points.length; j = i, i++) {
+                point1 = points[i]; point2 = points[j];
+                f = point1[0] * point2[1] - point2[0] * point1[1];
+                area += f;
+                x += (point1[0] + point2[0]) * f;
+                y += (point1[1] + point2[1]) * f;
+            }
+            f = area * 3; // Equivalent to area * 6 / 2
+            return { 'lat': (x / f).toFixed(5), 'lng': (y / f).toFixed(5) };
+
+        } else if (field.lat && field.lng) {
+            return { 'lat': field.lat, 'lng': field.lng };
+        }
+    }
+}
 
 
 /*
