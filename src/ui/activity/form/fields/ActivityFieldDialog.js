@@ -25,7 +25,7 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
     const [actualExecution, setActualExecution] = useState(selectedRow.actualExecution);
     const [qty, setQty] = useState(selectedRow.qty);
     const [weight, setWeight] = useState(selectedRow.weight);
-    const [container, setContainer] = useState(activityType === HARVEST ? selectedRow.container : null);
+    const [container, setContainer] = useState(activityType === HARVEST && selectedRow.container ? selectedRow.container: '');
     const [duplicateOpen, setDuplicateOpen] = useState(false);
 
     const [quality, setQuality] = useState(isMarket ? selectedRow.fieldMarketParams.marketingQuality : null);
@@ -97,7 +97,22 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
         if (incomePerUnit) {
             setIncome((incomePerUnit * qty).toFixed(0))
         }
+        if (HARVEST === activityType) {
+            if (container?.capacity) {
+                const newWeight = (qty * container.capacity).toFixed(2);
+                setWeight(newWeight);
+            }
+        }
     }, [qty])
+
+    useEffect(() => {
+        if (HARVEST === activityType) {
+            if (container?.capacity) {
+                const newWeight = (qty * container.capacity).toFixed(2);
+                setWeight(newWeight);
+            }
+        }
+    }, [container])
 
 
     return (

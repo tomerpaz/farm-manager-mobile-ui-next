@@ -219,16 +219,16 @@ function Row(props) {
                 {...register(`field.${index}.fieldMarketParams`)}
                 key={index}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell onClick={onClick} sx={cellSxLink} >{row.field.name}</TableCell>
-                <TableCell sx={cellSx}>{row.field.alias}</TableCell>
-                <TableCell sx={cellSx} >{row.field.cropName}</TableCell>
-                <TableCell sx={cellSx}>{row.field.varietyName}</TableCell>
-                {!isHarvest && <TableCell sx={row.activityArea === row.field.area ? cellSx : cellSxChange}>
+                <TableCell key={1} onClick={onClick} sx={cellSxLink} >{row.field.name}</TableCell>
+                <TableCell key={2} sx={cellSx}>{row.field.alias}</TableCell>
+                <TableCell key={3} sx={cellSx} >{row.field.cropName}</TableCell>
+                <TableCell key={4} sx={cellSx}>{row.field.varietyName}</TableCell>
+                {!isHarvest && <TableCell key={5} sx={row.activityArea === row.field.area ? cellSx : cellSxChange}>
                     <Box {...register(`field.${index}.activityArea`)}>
                         {row.activityArea.toFixed(2)}
                     </Box>
                 </TableCell>}
-                {isHarvest && <TableCell sx={cellSx}>{row.qty}</TableCell>}
+                {isHarvest && <TableCell key={6} sx={cellSx}>{row.qty}</TableCell>}
             </TableRow>
         </Fragment>
     );
