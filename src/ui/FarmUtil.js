@@ -135,9 +135,13 @@ export const displayFieldName = (field) => {
 export const mapDisplayFieldName = (field, showName, showAlias, showOfficialFieldId, showCropName) => {
     var tooltipText = [];
     if (showName) {
-        tooltipText.push(field.name)
+        if (showAlias && !isStringEmpty(field.alias)) {
+            tooltipText.push(`${field.name} (${field.alias})`)
+        } else {
+            tooltipText.push(field.name)
+        }
     }
-    if (showAlias && !isStringEmpty(field.alias)) {
+    else if (showAlias && !isStringEmpty(field.alias)) {
         tooltipText.push(field.alias)
     }
     if (showCropName && !isStringEmpty(field.cropName)) {
