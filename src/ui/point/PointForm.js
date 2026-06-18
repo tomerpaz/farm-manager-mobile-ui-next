@@ -4,7 +4,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import { AppBar, Autocomplete, Box, Checkbox, DialogActions, DialogContent, FormControlLabel, IconButton, InputAdornment, MenuItem, TextField, Toolbar, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectCurrentYear, selectLang, selectMapCenter, selectMapZoom, selectShowFieldAlias, selectShowFieldName, setMapCenter, setMapZoom, setSnackbar } from '../../features/app/appSlice';
+import { selectCurrentYear, selectLang, selectMapCenter, selectMapZoom, selectShowCropName, selectShowFieldAlias, selectShowFieldName, setMapCenter, setMapZoom, setSnackbar } from '../../features/app/appSlice';
 import TextFieldBase from '../../components/ui/TextField';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import { useCreateFieldPointMutation, useDeleteFieldPointMutation, useGetPointsQuery, useUpdateFieldPointMutation } from '../../features/points/pointsApiSlice';
@@ -112,7 +112,8 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
 
   const showFieldAlias = useSelector(selectShowFieldAlias);
   const showFieldName = useSelector(selectShowFieldName);
-  const showMapToolTip = showFieldAlias || showFieldName;
+  const showCropName = useSelector(selectShowCropName);
+  const showMapToolTip = showFieldAlias || showFieldName || showCropName;
 
 
   const [map, setMap] = useState(0);
@@ -312,7 +313,7 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
                   {showMapToolTip && index < MAX_PER_MAP && <Tooltip
                     className={'empty-tooltip'}
                     direction="center" opacity={1} permanent>
-                    <MapToolTip textArr={[mapDisplayFieldName(f, showFieldName, showFieldAlias)]} />
+                    <MapToolTip textArr={mapDisplayFieldName(f, showFieldName, showFieldAlias, null, showCropName)} />
                   </Tooltip>}
                 </Polygon>
               )}

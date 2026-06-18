@@ -132,26 +132,21 @@ export const displayFieldName = (field) => {
     }
 }
 
-export const mapDisplayFieldName = (field, showName, showAlias, showOfficialFieldId) => {
+export const mapDisplayFieldName = (field, showName, showAlias, showOfficialFieldId, showCropName) => {
     var tooltipText = [];
     if (showName) {
         tooltipText.push(field.name)
     }
     if (showAlias && !isStringEmpty(field.alias)) {
-        tooltipText.push(field.name)
+        tooltipText.push(field.alias)
+    }
+    if (showCropName && !isStringEmpty(field.cropName)) {
+        tooltipText.push(field.cropName + '/' + field.varietyName)
     }
     if (showOfficialFieldId && !isStringEmpty(field.baseFieldOfficialId)) {
         tooltipText.push(field.baseFieldOfficialId)
     }
-
-    return tooltipText.join(', ')
-    // if (showName && !showAlias) {
-    //     return field.name;
-    // } else if (!showName && showAlias) {
-    //     return field.alias ? field.alias : '';
-    // } else {
-    //     return field.alias ? `${field.name}, ${field.alias}` : field.name;
-    // }
+    return tooltipText;
 }
 
 export const mapTextStyle = {
@@ -177,8 +172,8 @@ export const MapToolTip = ({ textArr, large }) => {
 export const MapTextArr = ({ textArr, large }) => {
     const variant = large ? 'h6' : 'subtitle1';
     return <Box
-
-        direction="center" >
+        display={'flex'} flexDirection={'column'} alignItems={'center'} justifyContent={'center'}
+    >
         {textArr.map((e, index) =>
             <Typography key={index} variant={variant} style={mapTextStyle} >{e}</Typography>
         )}

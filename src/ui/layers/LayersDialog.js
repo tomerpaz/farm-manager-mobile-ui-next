@@ -12,6 +12,8 @@ import {
     setShowFieldAlias,
     selectShowOfficialFieldId,
     setShowOfficialFieldId,
+    selectShowCropName,
+    setShowCropName,
     selectVisibilLayes,
     setVisibleLayers
 } from '../../features/app/appSlice';
@@ -21,7 +23,6 @@ import DialogAppBar from '../dialog/DialogAppBar';
 import { CenterFocusStrong, Opacity } from '@mui/icons-material';
 import PointForm from '../point/PointForm';
 import { useGetLayersQuery } from '../../features/points/pointsApiSlice';
-import { vi } from 'date-fns/locale';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -49,6 +50,7 @@ const LayersDialog = () => {
     const showFieldAlias = useSelector(selectShowFieldAlias);
     const showFieldName = useSelector(selectShowFieldName);
     const showOfficialFieldId = useSelector(selectShowOfficialFieldId);
+    const showCropName = useSelector(selectShowCropName);
     const visibilLayes = useSelector(selectVisibilLayes);
     const { data: layers, isLoading: isLoadingPoints, isFetching: isFetchingPoints } = useGetLayersQuery();
 
@@ -131,6 +133,9 @@ const LayersDialog = () => {
                 </Box>
                 <Box marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
                     <FormControlLabel control={<Checkbox checked={showFieldAlias} onChange={() => dispatch(setShowFieldAlias(!showFieldAlias))} />} label={text.alias} />
+                </Box>
+                <Box marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
+                    <FormControlLabel control={<Checkbox checked={showCropName} onChange={() => dispatch(setShowCropName(!showCropName))} />} label={`${text.crop}/${text.variety}`} />
                 </Box>
                 <Box marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
                     <FormControlLabel control={<Checkbox checked={showOfficialFieldId} onChange={() => dispatch(setShowOfficialFieldId(!showOfficialFieldId))} />} label={text.officialFieldId} />

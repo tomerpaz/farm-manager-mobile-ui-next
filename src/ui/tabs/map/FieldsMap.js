@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { Box, IconButton, Snackbar, Typography } from "@mui/material";
 import { useFields } from "../../../features/fields/fieldsApiSlice";
 import { useGetUserDataQuery } from '../../../features/auth/authApiSlice'
-import { selectActiveGPS, selectCurrentYear, selectEditLayer, selectFieldFreeTextFilter, selectFieldsViewStatus, selectLang, selectLatitude, selectLongitude, selectMapCenter, selectMapZoom, selectSelectedFieldFilterOptions, selectShowFieldAlias, selectShowFieldName, selectShowLayers, selectShowOfficialFieldId, selectVisibilLayes, setEditLayer, setMapCenter, setMapZoom } from "../../../features/app/appSlice";
+import { selectActiveGPS, selectCurrentYear, selectEditLayer, selectFieldFreeTextFilter, selectFieldsViewStatus, selectLang, selectLatitude, selectLongitude, selectMapCenter, selectMapZoom, selectSelectedFieldFilterOptions, selectShowCropName, selectShowFieldAlias, selectShowFieldName, selectShowLayers, selectShowOfficialFieldId, selectVisibilLayes, setEditLayer, setMapCenter, setMapZoom } from "../../../features/app/appSlice";
 import { useDispatch, useSelector } from "react-redux";
 import FieldsFilter from "../../../components/filters/FieldsFilter";
 import { displayFieldName, filterFields, getFillColor, getOpacity, isArrayEmpty, isStringEmpty, mapDisplayFieldName, MapTextArr, MapToolTip, MAX_PER_MAP, stopMapEventPropagation, trap } from "../../FarmUtil";
@@ -50,6 +50,7 @@ const FieldsMap = (props) => {
     const showFieldAlias = useSelector(selectShowFieldAlias);
     const showFieldName = useSelector(selectShowFieldName);
     const showOfficialFieldId = useSelector(selectShowOfficialFieldId);
+    const showCropName = useSelector(selectShowCropName);
 
     const [selectedPoint, setSelectedPoint] = useState(null);
     const selectedOptions = useSelector(selectSelectedFieldFilterOptions)
@@ -182,7 +183,7 @@ const FieldsMap = (props) => {
         }
     }
 
-    const showMapToolTip = showFieldAlias || showFieldName || showOfficialFieldId;
+    const showMapToolTip = showFieldAlias || showFieldName || showOfficialFieldId || showCropName;
 
     return (
         <Box display={'flex'} flex={1} alignItems={'stretch'} flexDirection={'column'} justifyContent={'space-between'}>
@@ -209,7 +210,7 @@ const FieldsMap = (props) => {
                             {showMapToolTip && index < MAX_PER_MAP && <Tooltip
                                 className={'empty-tooltip'}
                                 direction="center" opacity={1} permanent>
-                                <MapTextArr textArr={[mapDisplayFieldName(f, showFieldName, showFieldAlias, showOfficialFieldId)]} />
+                                <MapTextArr textArr={mapDisplayFieldName(f, showFieldName, showFieldAlias, showOfficialFieldId, showCropName)} />
                             </Tooltip>}
                         </Polygon>
                     )}

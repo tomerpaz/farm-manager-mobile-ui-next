@@ -13,6 +13,7 @@ const activeGPS = 'true' === localStorage.getItem('activeGPS');
 const showFieldName = 'true' === localStorage.getItem('showFieldName');
 const showFieldAlias = 'true' === localStorage.getItem('showFieldAlias');
 const showOfficialFieldId = 'true' === localStorage.getItem('showOfficialFieldId');
+const showCropName = 'true' === localStorage.getItem('showCropName');
 
 const scouterId = localStorage.getItem('scouterId');
 const scouterName = localStorage.getItem('scouterName');
@@ -54,6 +55,7 @@ const appSlice = createSlice({
         mapCenter: null,
         mapZoom: null,
         showFieldName,
+        showCropName,
         showFieldAlias,
         showOfficialFieldId,
         newActivityGeo,
@@ -103,20 +105,20 @@ const appSlice = createSlice({
         }, setAppBarDialogOpen: (state, action) => {
             state.appBarDialogOpen = action.payload
         }, setFieldFreeTextFilter: (state, action) => {
-            state.fieldFreeTextFilter = action.payload 
+            state.fieldFreeTextFilter = action.payload
         }, setSelectedFieldFilterOptions: (state, action) => {
-            state.selectedFieldFilterOptions = action.payload 
+            state.selectedFieldFilterOptions = action.payload
         }, setSelectedActivityFilterOptions: (state, action) => {
-            state.selectedActivityFilterOptions = action.payload 
+            state.selectedActivityFilterOptions = action.payload
         }, setSelectedActivityPlanFilterOptions: (state, action) => {
-            state.selectedActivityPlanFilterOptions = action.payload 
+            state.selectedActivityPlanFilterOptions = action.payload
         }, setActivityFreeTextFilter: (state, action) => {
             state.activityFreeTextFilter = action.payload
         }, setStartDateFilter: (state, action) => {
             state.startDateFilter = action.payload
         }, setEndDateFilter: (state, action) => {
             state.endDateFilter = action.payload
-        }, 
+        },
         setFieldDashboardYear: (state, action) => {
             state.fieldDashboardYear = action.payload
         },
@@ -173,6 +175,10 @@ const appSlice = createSlice({
             state.showFieldName = action.payload;
             localStorage.setItem('showFieldName', action.payload);
         },
+        setShowCropName: (state, action) => {
+            state.showCropName = action.payload;
+            localStorage.setItem('showCropName', action.payload);
+        },
         setNewActivityGeo: (state, action) => {
             localStorage.setItem('newActivityGeo', action.payload);
             state.newActivityGeo = action.payload;
@@ -212,12 +218,12 @@ const appSlice = createSlice({
 })
 
 export const { setCredentials, logOut, setLang, setCurrentYear, setAppBarDialogOpen, setFieldFreeTextFilter, setActivityFreeTextFilter,
-    setStartDateFilter, setEndDateFilter, 
+    setStartDateFilter, setEndDateFilter,
     setFieldDashboardYear, setFieldsViewStatus,
     setActivityType, setSnackbar, setOpenSettings, setInventoryFreeTextFilter,
     setInventoryDateFilter, setInventoryWarehouseFilter, setShowInventory, setShowPlans, setOpenLayers, setShowLayers, setEditLayer, setMapCenter, setMapZoom,
-    setShowFieldAlias, setShowFieldName, setNewActivityGeo, setAccuracy, setActiveGPS, setLongitude, setLatitude, setActivityParentFieldFilter, setActivityBaseFieldFilter, setActivitySiteFilter,
-    setShowOfficialFieldId, setVisibleLayers, setDefaultScouter,setSelectedFieldFilterOptions, setSelectedActivityFilterOptions, setSelectedActivityPlanFilterOptions
+    setShowFieldAlias, setShowFieldName, setShowCropName, setNewActivityGeo, setAccuracy, setActiveGPS, setLongitude, setLatitude, setActivityParentFieldFilter, setActivityBaseFieldFilter, setActivitySiteFilter,
+    setShowOfficialFieldId, setVisibleLayers, setDefaultScouter, setSelectedFieldFilterOptions, setSelectedActivityFilterOptions, setSelectedActivityPlanFilterOptions
 } = appSlice.actions
 
 export default appSlice.reducer
@@ -247,6 +253,7 @@ export const selectEditLayer = (state) => state.app.editLayer
 export const selectMapCenter = (state) => state.app.mapCenter
 export const selectMapZoom = (state) => state.app.mapZoom
 export const selectShowFieldName = (state) => state.app.showFieldName
+export const selectShowCropName = (state) => state.app.showCropName
 export const selectShowFieldAlias = (state) => state.app.showFieldAlias
 export const selectNewActivityGeo = (state) => state.app.newActivityGeo
 export const selectAccuracy = (state) => state.app.accuracy
