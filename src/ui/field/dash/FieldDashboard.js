@@ -80,7 +80,7 @@ const FieldDashboard = () => {
           <Card elevation={elevation}>
             <CardHeader sx={{ padding: cardHeaderPadding }}
               avatar={<Avatar sx={{ bgcolor: 'inherit', color: blue[700], fontWeight: 'bolder' }} aria-label="recipe">K</Avatar>}
-              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.kperAreaUnit} /`}</Typography>}
+              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.kperAreaUnit?.toFixed(2) || 0} /`}</Typography>}
               subheader={text[user.areaUnit]}
             />
           </Card>
@@ -89,7 +89,7 @@ const FieldDashboard = () => {
           <Card elevation={elevation}>
             <CardHeader sx={{ padding: cardHeaderPadding }}
               avatar={<Avatar sx={{ bgcolor: 'inherit', color: green[700], fontWeight: 'bolder' }} aria-label="recipe">P</Avatar>}
-              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.pperAreaUnit} /`}</Typography>}
+              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.pperAreaUnit?.toFixed(2) || 0} /`}</Typography>}
               subheader={text[user.areaUnit]}
             />
           </Card>
@@ -98,7 +98,7 @@ const FieldDashboard = () => {
           <Card elevation={elevation} >
             <CardHeader sx={{ padding: cardHeaderPadding }}
               avatar={<Avatar sx={{ bgcolor: 'inherit', color: red[700], fontWeight: 'bolder' }} aria-label="recipe">N</Avatar>}
-              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.nperAreaUnit} /`}</Typography>}
+              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.nperAreaUnit?.toFixed(2) || 0 } /`}</Typography>}
               subheader={text[user.areaUnit]}
             />
           </Card>
