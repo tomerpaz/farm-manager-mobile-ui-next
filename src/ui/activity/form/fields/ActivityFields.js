@@ -162,7 +162,7 @@ const ActivityFields = ({ activity, getValues, control, register, errors, activi
                 </Box>
                 <Box>
                     {[HARVEST].includes(activity.type) && <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={_ => setOpenBulkUpdateFields(true)}><MoreVert fontSize='large' /></IconButton>}
-                    {[SCOUT, GENERAL].includes(activity.type) && <IconButton size='large' disabled={isWaypointsDisabled(fields)} onClick={() => setOpenWaypointSelection(true)}><AddLocation sx={LocationIconSx()} fontSize='large' /></IconButton>}
+                    {[GENERAL].includes(activity.type) && <IconButton size='large' disabled={isWaypointsDisabled(fields)} onClick={() => setOpenWaypointSelection(true)}><AddLocation sx={LocationIconSx()} fontSize='large' /></IconButton>}
                     {![MARKET].includes(activity.type) && <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={_ => setOpenBulkUpdateFieldsArea(true)}><Percent fontSize='large' /></IconButton>}
                     <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={e => remove()}><Delete fontSize='large' /></IconButton>
                 </Box>

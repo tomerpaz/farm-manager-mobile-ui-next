@@ -6,13 +6,14 @@ import { Fragment, useEffect, useState } from "react"
 import { ACTIVITY_RESOURCES, AREA_UNIT, ENERGY, EQUIPMENT, FERTILIZER, HOUR, IRRIGARION_TYPES, IRRIGATION, IRRIGATION_PLAN, PESTICIDE, SCOUT, SPRAY, SPRAYER, SPRAY_TYPES, WAREHOUSE_RESOURCE_TYPE, WATER, WORKER, getResourceTypeText, getResourceUsageUnit, getUnitText, isArrayEmpty } from "../../../FarmUtil"
 import { useGetUserDataQuery } from "../../../../features/auth/authApiSlice"
 import { Controller, useFieldArray } from "react-hook-form"
-import { Agriculture, Delete, DragHandle, Error, Menu, MoreVert } from "@mui/icons-material"
+import { AddLocation, Agriculture, Delete, DragHandle, Error, Menu, MoreVert } from "@mui/icons-material"
 import PestSelectionDialog from "../../../dialog/PestSelectionDialog"
 import { infectionLevels } from "../../../scout/ScoutingUtil"
 import ActivityScoutDialog from "./ActivityScoutDialog"
 import { useGetPestStagesQuery } from "../../../../features/pests/pestsApiSlice"
 import TextFieldBase from "../../../../components/ui/TextField"
 import { useGetResourcesQuery } from "../../../../features/resources/resourcesApiSlice"
+import { blue, orange } from '@mui/material/colors';
 
 
 const TRASHHOLD = 3;
@@ -22,7 +23,7 @@ const UNITS = [AREA_UNIT.toUpperCase(), HOUR.toUpperCase()]
 
 const ELEMENT_ID = 'scoutParams.scouts'
 
-const ActivityScouts = ({ activity, control, errors, register, setValue, trigger }) => {
+const ActivityScouts = ({ activity, control, errors, register, setValue, trigger, scoutParams, setOpenWaypointSelection,pointsCount }) => {
     const text = useSelector(selectLang)
     const { data: user } = useGetUserDataQuery()
     const [open, setOpen] = useState(false);
@@ -85,7 +86,19 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
         }
     }
 
+    const isWaypointsDisabled =  isArrayEmpty(scoutParams?.scouts) ||isArrayEmpty(fields);
 
+    const LocationIconSx = () => {
+        if (pointsCount && pointsCount > 0) {
+            return { color: blue[800] };
+        }
+        else if (isWaypointsDisabled) {
+            return null;
+        } else {
+            return { color: orange[800] };
+
+        }
+    }
 
 
 
@@ -102,12 +115,12 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
         <Box margin={1} paddingTop={2} display={'flex'} flexDirection={'column'}>
 
             <Box display={'flex'} flex={1} justifyContent={'space-between'} alignItems={'center'}>
-                <Box display={'flex'}  flexDirection={'row'} alignItems={'center'}>
+                <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
                     <Box>
                         <Button id={ELEMENT_ID} size='large' disableElevation={true} variant="contained" onClick={handleClickOpen}>{text.pests} </Button>
                     </Box>
                     {fields.length > TRASHHOLD &&
-                        <IconButton  onClick={() => setExpendFields(!expendFields)}>
+                        <IconButton onClick={() => setExpendFields(!expendFields)}>
                             <Badge badgeContent={fields.length} color="info">
                                 {expendFields && <Menu fontSize='large' />}
                                 {!expendFields && <DragHandle fontSize='large' />}
@@ -115,7 +128,7 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
                         </IconButton>
                     }
                 </Box>
-                 <Box margin={1} ></Box>
+                <Box margin={1} ></Box>
                 <Box flex={1} >
                     {!isArrayEmpty(scouters) && <Controller
                         name="scoutParams.scouter"
@@ -131,15 +144,17 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
                             getOptionLabel={(option) => option ? option.name : ''}
                             isOptionEqualToValue={(option, value) => (value === undefined) || option?.id?.toString() === (value?.id ?? value)?.toString()}
                             renderInput={(params) => <TextFieldBase
-                                 error={errors?.scoutParams?.scouter ? true : false}
+                                error={errors?.scoutParams?.scouter ? true : false}
                                 sx={{ marginTop: 0.5 }} {...params} label={text.executor} />}
                             {...field} />}
 
                     />}
                 </Box>
+                
                 <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
-
+                    <IconButton size='large' disabled={isWaypointsDisabled} onClick={() => setOpenWaypointSelection(true)}><AddLocation sx={LocationIconSx()} fontSize='large' /></IconButton>
                     <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={() => remove()}><Delete fontSize='large' /></IconButton>
+
                 </Box>
             </Box>
 

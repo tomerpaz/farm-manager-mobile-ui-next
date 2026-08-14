@@ -181,9 +181,11 @@ const ActivityForm = ({ activity }) => {
           {openWaypointSelection && <ActivityWaypoints
             control={control} register={register} activity={activity} activityDef={activityDef} getValues={getValues} errors={errors} crop={crop}
             openWaypointSelection={openWaypointSelection} setOpenWaypointSelection={setOpenWaypointSelection} setPointsCount={setPointsCount}
+            
 
           />}
-          {activity.type === SCOUT && <ActivityScouts control={control} register={register} activity={activity} getValues={getValues} errors={errors} />}
+          {activity.type === SCOUT && <ActivityScouts control={control} register={register} 
+          activity={activity} getValues={getValues} errors={errors} scoutParams={scoutParams} setOpenWaypointSelection={setOpenWaypointSelection} pointsCount={pointsCount} />}
 
           <ActivityResources control={control} register={register} activity={activity} activityDef={activityDef}
             errors={errors} tariffs={tariffs} activityArea={activityArea} days={days}
