@@ -56,9 +56,7 @@ const MainTabs = () => {
 
     const { data: { userConf, usePlans } } = useGetUserDataQuery()
 
-    console.log('MainTabs userConf', userConf)
     const isIda = userConf.filter(e => e.type === 'IDA').length > 0;
-    console.log('MainTabs isIda', isIda)
     const paths = isIda ? ['/tabs/ida/dash', '/tabs/ida/sites', '/tabs/ida/resources'] : ['/tabs/map', '/tabs/fields', `/tabs/activities/${page}`/*, `/tabs/plans/${page}`*/];
 
     const showInventory = useSelector(selectShowInventory);
@@ -83,10 +81,6 @@ const MainTabs = () => {
     const value = paths.findIndex(getIndex) > 0 ? paths.findIndex(getIndex) : 0;
 
     const addScroll = paths.length > 4;
-
-
-
-    console.log('value', value);
 
     return (
         <Box

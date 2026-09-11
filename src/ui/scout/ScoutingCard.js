@@ -14,7 +14,7 @@ import { selectLang } from '../../features/app/appSlice';
 
 
 
-export default function RecipeReviewCard({ scout, onEdit, index }) {
+export default function ScoutingCard({ scout, onEdit, index }) {
 
     const text = useSelector(selectLang)
 

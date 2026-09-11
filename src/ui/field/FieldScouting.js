@@ -48,7 +48,6 @@ const FieldScouting = ({ field }) => {
     }
 
     const onScoutMapClick = (event, element, type) => {
-        console.log('onScoutMapClick', type, event);
         if (type === 'map') {
             const p = { id: null, lat: event.latlng.lat, lng: event.latlng.lng, fieldId, 
                 name: `${displayFieldName(field)} ${text.scouting} - ${points.length} `, 

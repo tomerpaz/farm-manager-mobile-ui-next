@@ -45,8 +45,6 @@ const FieldInfo = ({ field }) => {
     }
 
     const handleCloseEditPoint = (action, e) => {
-       // setEditPoint(false);
-      // console.log(action)
         if (action === 'delete') {
           //handleClose(null);
         } else if ((action === 'save')) {

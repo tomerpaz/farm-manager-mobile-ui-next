@@ -41,7 +41,6 @@ const UpdateAllFieldsDialog = ({ open, text, handleClose, areaUnit, activityArea
 
             });
             replace(newFields);
-            console.log('save..')
         }
         handleClose();
     }

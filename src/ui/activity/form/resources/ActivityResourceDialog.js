@@ -62,9 +62,6 @@ const ActivityResourceDialog = ({ selectedRow, selectedIndex, handleClose, updat
     const isWater = WATER === selectedRow.resource.type;
     const isDosage = selectedRow?.pesticideListItem;
 
-
-
-    console.log(selectedRow)
     const autoCalc = SPRAY_TYPES.concat(IRRIGARION_TYPES).includes(activityType) && [WATER, PESTICIDE, FERTILIZER].includes(selectedRow.resource.type) || AREA_UNIT.toUpperCase() === selectedRow.resource.usageUnit;
     const onAction = (save) => {
         if (save) {

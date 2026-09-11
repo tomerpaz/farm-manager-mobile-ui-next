@@ -70,7 +70,6 @@ const ResourcseSelectionDialog = ({ open, handleClose, resourceTypes, cropId }) 
 
     const handleChangePage = (newPage) => {
         setPage(newPage);
-        console.log(tableContainerRef)
         if (tableContainerRef.current) {
             tableContainerRef.current.scrollIntoView();
         }

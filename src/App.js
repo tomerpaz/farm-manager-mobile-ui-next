@@ -75,10 +75,9 @@ function App() {
   document.body.dir = dir;
   theme.direction = dir;
   const { data: user } = useGetUserDataQuery()
-  console.log('App user', user);
 
   const isIda = user?.userConf?.filter(e => e.type === 'IDA').length > 0;
-  const DEFAULT_ROUTE =  isIda ? "/tabs/ida/dash" : "/tabs/map";
+  const DEFAULT_ROUTE = isIda ? "/tabs/ida/dash" : "/tabs/map";
 
   return (
     <ThemeProvider theme={theme}>

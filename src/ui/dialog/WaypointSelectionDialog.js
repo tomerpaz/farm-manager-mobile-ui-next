@@ -165,12 +165,10 @@ const WaypointSelectionDialog = ({ open, handleClose, fields, waypoints, activit
         }
         setSelectedPoint(point);
         setOpenWaypointDialog(true);
-      //  setSelectedIndex(index);
     }
 
 
     const mapCliecked = (e, element, type, index) => {
-//          console.log('mapCliecked', type, index)
         if (type === 'point') {
             stopMapEventPropagation(e);
             setSelectedPoint(element);
@@ -200,10 +198,7 @@ const WaypointSelectionDialog = ({ open, handleClose, fields, waypoints, activit
 
 
     const handleCloseWaypointDialog = (val, note, lat, lng) => {
-       // console.log('val',val)
        if(val){
-           //const  updatedPoint = {not}
-
             selectedPoint.note = note;
             selectedPoint.point.lat = lat;
             selectedPoint.point.lng = lng;

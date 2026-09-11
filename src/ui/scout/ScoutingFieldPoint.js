@@ -31,7 +31,6 @@ const ScoutingFieldPoint = ({ open, point, scouts, handleClose, stages, setPoint
   }
 
   const emptyScouts = isArrayEmpty(scouts);
-  console.log('emptyScouts', emptyScouts, scouts)
   return (
     <Box >
       <Dialog fullScreen={isMobile()} fullWidth={!isMobile()} open={open}>

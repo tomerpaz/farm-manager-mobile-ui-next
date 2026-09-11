@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
-import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import { AppBar, Autocomplete, Box, Checkbox, DialogActions, DialogContent, FormControlLabel, IconButton, InputAdornment, MenuItem, TextField, Toolbar, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -45,13 +44,9 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
     formState: { isDirty, dirtyFields }, reset, setValue, trigger
   } = useForm({ defaultValues });
 
-  //const type = useWatch({ control, name: "type" })
-  // const [type, setType] = useState(defaultValues.type);
-
   const lng = useWatch({ control, name: "lng" })
   const lat = useWatch({ control, name: "lat" })
 
-  //  console.log(type);
   const saveFieldPoint = (data) => {
     if (data.id === null) {
       return createFieldPoint(data).unwrap();
@@ -62,13 +57,6 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
 
   const mapCliecked = (e, f, type) => {
 
-    //                name: `${text[editLayer]} - ${displayFieldName(f)}: ${points.length + 1} `,
-
-
-    // console.log('mapCliecked', type)
-
-
-    // console.log(e);
     setValue('lng', e.latlng.lng.toFixed(5));
     setValue('lat', e.latlng.lat.toFixed(5));
     if (f) {

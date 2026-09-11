@@ -47,9 +47,7 @@ const SiteFormHook = ({ site }) => {
 
   const onSubmit = async (data) => {
     try {
-      console.log('onSubmit data', data)
       const result = await saveSite(data);
-      console.log('onSubmit result', result)
       dispatch(setSnackbar({ msg: data.id ? text.recordUpdated : text.recordCreated, severity: 'success' }))
       navigate(-1)
     } catch (err) {
@@ -116,7 +114,6 @@ const SiteFormHook = ({ site }) => {
   const lat = useWatch({ control, name: "lat" })
 
 
-  // console.log('isMobile()', isMobile());
   console.log('isNaN(Number(lat))', isNaN(Number(lat), Number(lat)))
 
   const siteLonLat = isNaN(Number(lat)) || isNaN(Number(lng)) ? null : [lat, lng];

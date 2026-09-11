@@ -1,6 +1,5 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment } from 'react';
 import Button from '@mui/material/Button';
-import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import { AppBar, Autocomplete, Box, Checkbox, DialogActions, DialogContent, FormControlLabel, IconButton, InputAdornment, MenuItem, TextField, Toolbar, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,10 +31,6 @@ const FieldPointDialog = ({ defaultValues, open, handleClose, deletable,/*, type
     formState: { isDirty, dirtyFields }, reset, setValue, trigger
   } = useForm({ defaultValues });
 
-  //const type = useWatch({ control, name: "type" })
-  // const [type, setType] = useState(defaultValues.type);
-
-  //  console.log(type);
   const saveFieldPoint = (data) => {
     if (data.id === null) {
       return createFieldPoint(data).unwrap();

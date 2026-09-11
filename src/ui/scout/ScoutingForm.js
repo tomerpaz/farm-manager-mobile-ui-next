@@ -43,7 +43,6 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
 
 
   const saveFieldScout = (data) => {
-    console.log('saveFieldScout', data)
     if (data.id === null) {
       return createFieldScout(data).unwrap();
     } else {

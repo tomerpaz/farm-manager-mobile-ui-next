@@ -112,7 +112,6 @@ const FieldsMap = (props) => {
     }, [activeGPS, longitude, latitude])
 
     const mapCliecked = (e, f, type) => {
-        // console.log('mapCliecked', type)
         if (editLayer !== null) {
             if (type === 'polygon') {
                 const p = {
@@ -145,8 +144,6 @@ const FieldsMap = (props) => {
             stopMapEventPropagation(e);
 
         } else if (type === 'point') {
-            // console.log('point lng', e.latlng.lng.toFixed(5), ' lat', e.latlng.lat.toFixed(5));
-            // console.log(f);
             setSelectedPoint(f);
             stopMapEventPropagation(e);
         }
@@ -169,8 +166,6 @@ const FieldsMap = (props) => {
     let navigate = useNavigate();
 
     const height = window.innerHeight - 115;
-
-    // console.log(points)
 
     const getDisplayPoints = () => {
         if (isArrayEmpty(showLayers) || !points || isLoadingPoints || isFetchingPoints) {

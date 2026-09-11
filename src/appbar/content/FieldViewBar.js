@@ -36,12 +36,10 @@ const FieldViewBar = ({ layers, share, years }) => {
     }
 
 
-  //  console.log('lat/lng',lat, lng)
     const center = getFieldPolygonCenter(field);
 
     const lat = center ? center.lat : null;
     const lng = center ? center.lng : null;
-//    console.log('center',center)
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar sx={{ justifyContent: 'space-between' }}>

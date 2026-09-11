@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronLeftOutlined, ChevronRight, ChevronRightOutlined, Cloud, CloudOutlined, MoreVert, Streetview, WbSunnyOutlined } from '@mui/icons-material'
 import { Box, Button, MenuItem, Select, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import ColorPalette from './ColorPalette'
 import FieldMap from './FieldMap'
@@ -69,8 +69,6 @@ const FieldImagery = ({ field }) => {
     useEffect(() => {
         setRealod(false)
     }, [reload])
-
-    // console.log('tile', tile)
 
     const height = (window.innerHeight - 350);
     const dir = text.dir

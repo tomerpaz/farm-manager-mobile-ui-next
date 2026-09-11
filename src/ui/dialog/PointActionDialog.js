@@ -37,7 +37,6 @@ const PointActionDialog = ({ open, handleClose, selectedPoint }) => {
     }
 
     const shareClick = (app) => {
-        console.log('selectedPoint', selectedPoint)
         const msg = shareMsg(selectedPoint.lat, selectedPoint.lng, selectedPoint?.name);
         if (app === Whatsapp) {
             msgWhatsapp(msg)
@@ -54,12 +53,8 @@ const PointActionDialog = ({ open, handleClose, selectedPoint }) => {
 
     const onPointFormClose = () => {
         onAction();
-        // setEditPoint(null)
     }
 
-    console.log(selectedPoint)
-    //   const { data: user } = useGetUserDataQuery()
-    //   const actionTypes = user.userConf.filter(e => e.write).map(e => e.type);
     const newActivity = (type, pointId, fieldId) => {
 
         const searchParams = createSearchParams({ pid: pointId, fid: fieldId }).toString()
