@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { logOut, setCredentials } from '../../features/app/appSlice'
+import { Sites_TAG } from '../../features/auth/authApiSlice';
 
 export const Field_TAG = 'Field';
 export const Activities_TAG = 'Activities';
@@ -27,9 +28,9 @@ export const PlantParts_TAG = 'PlantParts';
 export const Layers_TAG = 'Layers';
 
 
-// export const FARM_MANAGER = 'http://localhost:8080'
+export const FARM_MANAGER = 'http://localhost:8080'
 
-export const FARM_MANAGER = 'https://api.manager.farm'
+// export const FARM_MANAGER = 'https://api.manager.farm'
 
 
 const baseQuery = fetchBaseQuery({
@@ -84,10 +85,10 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
     reducerPath: 'api', // optional
     baseQuery: baseQueryWithReauth,
-    tagTypes: [Field_TAG, Activities_TAG, User_TAG, FieldActivities_TAG,
+    tagTypes: [Field_TAG, Activities_TAG, User_TAG, FieldActivities_TAG, Sites_TAG,
         Dashboard_TAG, ActivityDefs_TAG, Crops_TAG, SelectedActivity_TAG, Warehouses_TAG, Containers_TAG,
         Resources_TAG, CropPesticides_TAG, Qualities_TAG, Sizes_TAG, Inventory_TAG, Season_TAG, FieldPoints_TAG, Points_TAG, FieldScouts_TAG,
-        Pests_TAG, PestsStages_TAG, InfectionLevels_TAG, PlantParts_TAG,Layers_TAG
+        Pests_TAG, PestsStages_TAG, InfectionLevels_TAG, PlantParts_TAG,Layers_TAG, Sites_TAG
 
     ],
 

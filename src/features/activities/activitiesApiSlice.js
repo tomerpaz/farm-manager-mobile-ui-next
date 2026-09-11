@@ -21,7 +21,7 @@ export const activityApiSlice = apiSlice.injectEndpoints({
             //     return activitiesAdapter.setAll(initialState, responseData.content)
             // },
 
-            
+
             providesTags: ['Activities']
         }),
         getActivitiesField: builder.query({
@@ -30,7 +30,7 @@ export const activityApiSlice = apiSlice.injectEndpoints({
 
             //     return fieldActivitiesAdapter.setAll(fieldActivityinitialState, responseData)
             // },
-            
+
             providesTags: ['FieldActivities'],
 
             // providesTags: (result, error, arg) => {
@@ -41,7 +41,7 @@ export const activityApiSlice = apiSlice.injectEndpoints({
             //         ...result.content.map(e => ({ type: 'FieldActivities', id: e.id }))
             //     ]
             // }
-            
+
         }),
         getActivityById: builder.query({
             query: (uuid) => `/api/farm/activity/${uuid}`,
@@ -50,26 +50,26 @@ export const activityApiSlice = apiSlice.injectEndpoints({
             //     act.execution = parseISOOrNull(responseData.execution);
             //     return act;
             // },
-           providesTags: ['SelectedActivity'],
+            providesTags: ['SelectedActivity'],
 
         }),
 
         createActivity: builder.mutation({
             query: args => ({
                 url: '/api/farm/activity',
-                method: 'POST' ,
+                method: 'POST',
                 body: { ...args },
-                
+
             }),
             invalidatesTags: [Activities_TAG, SelectedActivity_TAG, FieldActivities_TAG, Inventory_TAG, Points_TAG]
-               
+
         }),
         updateActivity: builder.mutation({
             query: args => ({
                 url: '/api/farm/activity',
-                method: 'PUT' ,
+                method: 'PUT',
                 body: { ...args },
-                
+
             }),
             invalidatesTags: [Activities_TAG, SelectedActivity_TAG, FieldActivities_TAG, Inventory_TAG, Points_TAG]
 
@@ -77,13 +77,13 @@ export const activityApiSlice = apiSlice.injectEndpoints({
 
         deleteActivity: builder.mutation({
             query(uuid) {
-              return {
-                url: `/api/farm/activity/${uuid}`,
-                method: 'DELETE',
-              }
+                return {
+                    url: `/api/farm/activity/${uuid}`,
+                    method: 'DELETE',
+                }
             },
-           invalidatesTags: [Activities_TAG, SelectedActivity_TAG, FieldActivities_TAG, Inventory_TAG, Points_TAG]
-          }),
+            invalidatesTags: [Activities_TAG, SelectedActivity_TAG, FieldActivities_TAG, Inventory_TAG, Points_TAG]
+        }),
 
     })
 })

@@ -629,6 +629,10 @@ export const getFieldCenter = (center, field) => {
     }
 }
 
+export const DEFAULT_COORDINATES = [ 50.94491 , 6.93901]
+
+
+
 export const countLines = (text) => {
     if (text) {
         const lines = text.split('\n').length;

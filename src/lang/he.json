@@ -203,5 +203,7 @@
     "officialFieldId": "מס משרד חקלאות",
     "executor": "מבצע",
     "seedpod": "תרמיל",
-    "freetext": "טקסט חופשי"
+    "freetext": "טקסט חופשי",
+    "sites": "אתרים",
+    "ida": "IDA"
 }

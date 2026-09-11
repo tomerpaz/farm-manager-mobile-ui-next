@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Button, InputAdornment, TextField, Typography } from "@mui/material"
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PasswordOutlined from '@mui/icons-material/PasswordOutlined';
@@ -8,7 +8,6 @@ import LoginOutlined from '@mui/icons-material/LoginOutlined';
 
 import LogoLeaf from "../../icons/LogoLeaf";
 import { useLoginMutation } from "./authApiSlice";
-import { DEFAULT_ROUTE } from "../../App";
 import { selectLang, setCredentials, setLang } from "../app/appSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserLang } from '../../router/UserRoutes';
@@ -20,7 +19,7 @@ const Login = (props) => {
 
     const dispatch = useDispatch()
 
-    const navigate = useNavigate()
+    // const navigate = useNavigate()
 
     const [login] = useLoginMutation()
 
@@ -37,7 +36,7 @@ const Login = (props) => {
         try {
             const loginData = await login(e).unwrap()
             dispatch(setCredentials(loginData))
-            navigate(DEFAULT_ROUTE)
+            // navigate("/")
         } catch (err) {
 
             dispatch(setLang(getUserLang(text.lang)));

@@ -41,7 +41,7 @@ const GeoLocation = () => {
 
 
   map.on('locatedeactivate', function (evt) {
-    console.log('locatedeactivate', evt)
+    // console.log('locatedeactivate', evt)
     if (!activeGPS) {
       dispatch(setLatitude(null));
       dispatch(setLongitude(null));

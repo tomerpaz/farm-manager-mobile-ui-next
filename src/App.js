@@ -15,8 +15,10 @@ import { selectLang, selectSnackbarMsg, selectSnackbarSeverity, setSnackbar } fr
 import { useDispatch, useSelector } from 'react-redux';
 import ActivityView from './ui/activity/view/ActivityView';
 import NewActivity from './ui/activity/view/NewActivity';
+import SiteForm from './ui/site/SiteForm';
 import { Alert, Snackbar } from '@mui/material';
 import { isStringEmpty } from './ui/FarmUtil';
+import { useGetUserDataQuery } from './features/auth/authApiSlice';
 
 
 
@@ -46,7 +48,18 @@ const theme = createTheme({
   },
 });
 
-export const DEFAULT_ROUTE = "/tabs/map";
+
+
+
+
+// (user) =>  {
+//   const { userConf, usePlans } = user;
+//   const isIda = userConf.filter(e => e.type === 'IDA').length > 0;
+//   if(isIda){
+//     return "/tabs/ida";
+//   }
+//    return "/tabs/map";
+// }
 
 
 function App() {
@@ -57,9 +70,16 @@ function App() {
   const sevirity = useSelector(selectSnackbarSeverity)
 
   const dispatch = useDispatch()
-  
+
+
   document.body.dir = dir;
   theme.direction = dir;
+  const { data: user } = useGetUserDataQuery()
+  console.log('App user', user);
+
+  const isIda = user?.userConf?.filter(e => e.type === 'IDA').length > 0;
+  const DEFAULT_ROUTE =  isIda ? "/tabs/ida/dash" : "/tabs/map";
+
   return (
     <ThemeProvider theme={theme}>
       <LocaleApplication>
@@ -76,6 +96,7 @@ function App() {
                   <Route path='/field/:src/:fieldId/*' element={<Field />} />
                   <Route path='/activity/:src/:activityId' element={<ActivityView />} />
                   <Route path='/activity/new/:type' element={<NewActivity />} />
+                  <Route path='/site/:siteId' element={<SiteForm />} />
 
                 </Route>
               </Route>
@@ -87,7 +108,7 @@ function App() {
           <Route path="*" element={<Navigate to={DEFAULT_ROUTE} replace />} />
         </Routes>
         <Snackbar open={!isStringEmpty(snackbar)} autoHideDuration={1000} onClose={() => dispatch(setSnackbar('', ''))}>
-          <Alert variant='filled' onClose={() => dispatch(setSnackbar('', ''))} severity={isStringEmpty(sevirity)? 'success' : 'success'} sx={{ width: '100%' }}>
+          <Alert variant='filled' onClose={() => dispatch(setSnackbar('', ''))} severity={isStringEmpty(sevirity) ? 'success' : 'success'} sx={{ width: '100%' }}>
             {snackbar}
           </Alert>
         </Snackbar>
