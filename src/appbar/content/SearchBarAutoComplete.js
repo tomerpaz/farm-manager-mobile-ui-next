@@ -93,7 +93,12 @@ const ListboxComponent = React.forwardRef(function ListboxComponent(props, ref) 
   const gridRef = useResetCache(itemCount);
 
   return (
-    <Box display={'flex'} flex={1} ref={ref}>
+    <Box
+      ref={ref}
+      sx={{
+        display: 'flex',
+        flex: 1
+      }}>
       <OuterElementContext.Provider value={other}>
         <VariableSizeList
           itemData={itemData}
@@ -131,17 +136,18 @@ export default function SearchBarAutoComplete({ options, onChenge, value }) {
   const theme = useTheme();
   const { dir } = useSelector(selectLang)
   return (
-    <Box display={'flex'} flex={1}
-
-      borderRadius={1}
+    <Box
       style={{
         backgroundColor: alpha(theme.palette.common.white, 0.15),
         '&:hover': {
           backgroundColor: alpha(theme.palette.common.white, 0.25),
         },
       }}
-
-    >
+      sx={{
+        display: 'flex',
+        flex: 1,
+        borderRadius: 1
+      }}>
       <Autocomplete
         size='small'
         sx={{

@@ -1,11 +1,11 @@
-import { AppBar, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, InputAdornment, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, InputAdornment, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Toolbar, Typography } from "@mui/material";
 import TextFieldBase from "../../components/ui/TextField";
 import { useSelector } from "react-redux";
 import { selectLang } from "../../features/app/appSlice";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { cellSx, headerSx, Transition } from "../Util";
 import { useGetUserDataQuery } from "../../features/auth/authApiSlice";
-import { Close, Search } from "@mui/icons-material";
+import { Search } from "@mui/icons-material";
 import { EQUIPMENT, FERTILIZER, LIST_PESTICIDE, PESTICIDE, SPRAYER, VARIETY, WATER, getResourceTypeText, getUnitText, isMobile, isStringEmpty } from "../FarmUtil";
 import { useGetResourcesQuery } from "../../features/resources/resourcesApiSlice";
 import ListPager from "../../components/ui/ListPager";
@@ -185,8 +185,14 @@ const ResourcseSelectionDialog = ({ open, handleClose, resourceTypes, cropId }) 
                         sx={{ margin: 1 }}
                         id="outlined-filter-resource-type"
                         onChange={(e) => handleSetFilter(e.target.value)}
-                        InputProps={{
-                            startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search />
+                                    </InputAdornment>
+                                ),
+                            },
                         }}
                     />
                 </Box>
@@ -207,9 +213,6 @@ const ResourcseSelectionDialog = ({ open, handleClose, resourceTypes, cropId }) 
                                         indeterminate={numSelected > 0 && numSelected < rowCount}
                                         checked={rowCount > 0 && numSelected === rowCount}
                                         onChange={onSelectAllClick}
-                                        inputProps={{
-                                            'aria-label': 'select all desserts',
-                                        }}
                                     />
                                 </TableCell>
                                 <TableCell sx={headerSx} >{text.name}</TableCell>
@@ -244,11 +247,21 @@ const ResourcseSelectionDialog = ({ open, handleClose, resourceTypes, cropId }) 
                 </TableContainer>
             </DialogContent>
             <DialogActions>
-                <Box display={'flex'} flex={1} flexDirection={'column'} justifyContent={'center'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
                     {showPegination && <Divider />}
                     {showPegination && <ListPager bottom={50} page={Number(page)}
                         totalPages={Math.ceil(visableResources.length / ROWS_PER_PAGE)} setPage={handleChangePage} />}
-                    <Box display={'flex'} justifyContent={'center'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}>
                         <Button size='large' disableElevation={true} variant='contained' onClick={() => onAction(true)} autoFocus>
                             {text.save}
                         </Button>
@@ -256,7 +269,7 @@ const ResourcseSelectionDialog = ({ open, handleClose, resourceTypes, cropId }) 
                 </Box>
             </DialogActions>
         </Dialog >
-    )
+    );
 
 }
 function Row(props) {
@@ -273,9 +286,6 @@ function Row(props) {
                     <Checkbox
                         color="primary"
                         checked={isItemSelected}
-                        inputProps={{
-                            'aria-labelledby': index,
-                        }}
                     />
                 </TableCell>
                 <TableCell sx={cellSx} >{resource.name}</TableCell>

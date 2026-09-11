@@ -35,7 +35,16 @@ function renderRow(props) {
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary={
-                        <Box sx={{backgroundColor: field.statusColor, borderRadius: 1, paddingLeft: 1,paddingRight: 1}}  display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                backgroundColor: field.statusColor,
+                                borderRadius: 1,
+                                paddingLeft: 1,
+                                paddingRight: 1
+                            }}>
                             <Typography sx={{backgroundColor: field.statusColor, borderRadius: 1, paddingLeft: 1,paddingRight: 1}} >
                                 {displayFieldName(field)}
                             </Typography>
@@ -45,7 +54,13 @@ function renderRow(props) {
                         </Box>
                     }
                         secondary={
-                            <Box component={"span"} display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+                            <Box
+                                component={"span"}
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between'
+                                }}>
                                 <Typography component={"span"}>
                                     {`${field.cropName},${field.varietyName}`}
                                 </Typography>

@@ -85,16 +85,31 @@ const ActivitiesList = ({ plans }) => {
                             </Avatar>
                         </ListItemAvatar>
                         <ListItemText primary={
-                            <Box display={'flex'} flexDirection={'row'} flex={1} justifyContent={'space-between'}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    flex: 1,
+                                    justifyContent: 'space-between'
+                                }}>
                                 <Typography >
                                     {`${activityDescription(e, text)} ${e.fieldDesc}`}
                                 </Typography>
 
-                                <Typography whiteSpace={'nowrap'}  >
+                                <Typography sx={{
+                                    whiteSpace: 'nowrap'
+                                }}  >
                                     {!isArrayEmpty(e.points) && <LocationOn sx={{ color: blue[800] }} fontSize={'small'} />}
                                     {`${e.reference}`}
-                                    {e.status && <Box component={'span'} padding={0.5}></Box>}
-                                    {e.status && <Box borderRadius={1} backgroundColor={getColor(e)} component={'span'}>{gerStatus(e.status, text)}</Box>}
+                                    {e.status && <Box component={'span'} sx={{
+                                        padding: 0.5
+                                    }}></Box>}
+                                    {e.status && <Box
+                                        component={'span'}
+                                        sx={{
+                                            borderRadius: 1,
+                                            backgroundColor: getColor(e)
+                                        }}>{gerStatus(e.status, text)}</Box>}
                                 </Typography>
                             </Box>
 
@@ -104,12 +119,17 @@ const ActivitiesList = ({ plans }) => {
                     </ListItem>
                     <Divider />
                 </Fragment>
-            )
+            );
         }
     }
 
     return (
-        <Box display={'flex'} flexDirection={'column'} flex={1}>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1
+            }}>
             <List sx={{ height, overflow: 'auto', width: '100%', bgcolor: 'background.paper' }}>
                 {renderRows()}
             </List>
@@ -117,7 +137,7 @@ const ActivitiesList = ({ plans }) => {
             <ListPager bottom={0} dir={dir} page={Number(page)} totalPages={data.totalPages} setPage={(value) => navigate(`/tabs/${isPlan ? 'plans' : 'activities'}/${value}`)} />
             <ActivitiesFilter />
         </Box>
-    )
+    );
 }
 
 export default ActivitiesList

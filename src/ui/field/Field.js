@@ -72,7 +72,16 @@ const Field = () => {
           //   </IconButton>
           // }
           title={
-            <Box sx={{backgroundColor: field.statusColor, borderRadius: 1, paddingLeft: 1,paddingRight: 1}} display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                backgroundColor: field.statusColor,
+                borderRadius: 1,
+                paddingLeft: 1,
+                paddingRight: 1
+              }}>
               <Typography noWrap variant='h6'>
                 {maxLenghtStr(displayFieldName(field), 20)}
               </Typography>
@@ -82,7 +91,13 @@ const Field = () => {
             </Box>
           }
           subheader={
-            <Box component={"span"} display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+            <Box
+              component={"span"}
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between'
+              }}>
               <Typography noWrap color='secondary' variant='subtitle1' component={"span"}>
                 {maxLenghtStr(`${field.cropName},${field.varietyName}`, 22)}
               </Typography>

@@ -57,10 +57,12 @@ const ActivityView = () => {
     }
 
    return (
-      <Box margin={1}>
-        {activity.type}
-      </Box>
-    )
+     <Box sx={{
+       margin: 1
+     }}>
+       {activity.type}
+     </Box>
+   );
   }
 }
 

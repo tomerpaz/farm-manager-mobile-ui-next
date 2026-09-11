@@ -1,13 +1,12 @@
-import { AppBar, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControlLabel, IconButton, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControlLabel, IconButton, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Toolbar, Typography } from "@mui/material";
 import TextFieldBase from "../../components/ui/TextField";
 import { useSelector } from "react-redux";
 import { selectLang } from "../../features/app/appSlice";
 import { Fragment, useState } from "react";
 import { cellSx, headerSx, Transition } from "../Util";
-import { Close, Search } from "@mui/icons-material";
+import { Search } from "@mui/icons-material";
 import { isMobile, isStringEmpty } from "../FarmUtil";
 import ListPager from "../../components/ui/ListPager";
-import { fi } from "date-fns/locale";
 import DialogAppBar from "./DialogAppBar";
 
 const filterActive = (field, active) => {
@@ -88,7 +87,15 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
         setPage(0);
     }
 
-
+  const handleDialogClose = (event, reason) => {
+    // If the user hit Escape, block the close action by doing nothing
+    if (reason === 'escapeKeyDown') {
+      return; 
+    }
+    
+    // Otherwise, close the dialog normally (e.g., backdrop clicks or close buttons)
+    setOpen(false);
+  };
 
     return (
         <Dialog
@@ -96,7 +103,6 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
             fullScreen={isMobile()} fullWidth={!isMobile()}
-            disableEscapeKeyDown={false}
             disableRestoreFocus={true}
             slots={{ transition: Transition }}
         >
@@ -104,12 +110,22 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
                 title={`${text.fields}`} />
 
             <DialogTitle id="alert-dialog-title">
-                <Box display={'flex'} flexDirection={'row'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row'
+                    }}>
 
                     <TextFieldBase fullWidth={true} label={text.filter} value={filter}
                         onChange={(e) => handleSetFilter(e.target.value)}
-                        InputProps={{
-                            startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search />
+                                    </InputAdornment>
+                                ),
+                            },
                         }}
                     />
                     <FormControlLabel control={<Checkbox checked={active} onChange={() => setActive(!active)} />} labelPlacement="top" label={text.active} />
@@ -129,9 +145,7 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
                                         indeterminate={numSelected > 0 && numSelected < rowCount}
                                         checked={rowCount > 0 && numSelected === rowCount}
                                         onChange={onSelectAllClick}
-                                        inputProps={{
-                                            'aria-label': 'select all desserts',
-                                        }}
+                                    
                                     />
                                 </TableCell>
                                 <TableCell sx={headerSx} >{text.field}</TableCell>
@@ -150,11 +164,21 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
                 </TableContainer>
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-                <Box display={'flex'} flex={1} flexDirection={'column'} justifyContent={'center'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
                     {showPegination && <Divider />}
                     {showPegination && <ListPager bottom={50} page={Number(page)}
                         totalPages={Math.ceil(rowCount / ROWS_PER_PAGE)} setPage={setPage} />}
-                    <Box display={'flex'} justifyContent={'center'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}>
                         <Button size='large' disableElevation={true} variant='contained' onClick={() => onAction(true)} autoFocus>
                             {text.save}
                         </Button>
@@ -162,7 +186,7 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
                 </Box>
             </DialogActions>
         </Dialog>
-    )
+    );
 
 }
 function Row(props) {
@@ -178,9 +202,6 @@ function Row(props) {
                     <Checkbox
                         color="primary"
                         checked={isItemSelected}
-                        inputProps={{
-                            'aria-labelledby': index,
-                        }}
                     />
                 </TableCell>
                 <TableCell sx={cellSx} >{row.name}</TableCell>

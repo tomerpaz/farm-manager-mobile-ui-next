@@ -115,7 +115,9 @@ const ActivitiesFilter = () => {
                             actionBar: { actions: ["cancel", "clear"] }
                         }}
                     />
-                    <Box marginLeft={1} />
+                    <Box sx={{
+                        marginLeft: 1
+                    }} />
                     <MobileDatePicker
                         label={text.toDate}
                         closeOnSelect
@@ -146,7 +148,7 @@ const ActivitiesFilter = () => {
 
             </List>
         </Dialog>
-    )
+    );
 }
 
 export default ActivitiesFilter

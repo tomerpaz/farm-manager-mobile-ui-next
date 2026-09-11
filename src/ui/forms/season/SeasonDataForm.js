@@ -2,7 +2,7 @@ import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
 import TextFieldBase from "../../../components/ui/TextField";
 import { useDispatch, useSelector } from "react-redux";
 import { selectLang, setSnackbar } from "../../../features/app/appSlice";
-import { Cancel, Close, Save } from "@mui/icons-material";
+import { Close, Save } from "@mui/icons-material";
 import { UI_SIZE, asLocalDate } from "../../FarmUtil";
 
 import { DatePicker } from "@mui/x-date-pickers";
@@ -63,7 +63,12 @@ const SeasonDataForm = ({ defaultValues, open, handleClose, plantation }) => {
 
             <AppBar sx={{ position: 'relative' }} elevation={0}>
                 <Toolbar>
-                    <Box display={'flex'} flex={1} justifyContent={'space-between'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            justifyContent: 'space-between'
+                        }}>
                         <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
                             {text.season}
                         </Typography>
@@ -85,7 +90,12 @@ const SeasonDataForm = ({ defaultValues, open, handleClose, plantation }) => {
             <form onSubmit={handleSubmit(onSubmit)} >
 
                 <DialogContent>
-                    <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center'
+                        }}>
                         <Controller
                             control={control}
                             name="estimateProducePerAreaUnit"
@@ -97,19 +107,28 @@ const SeasonDataForm = ({ defaultValues, open, handleClose, plantation }) => {
                                     type="number"
                                     id="activity-estimateProducePerAreaUnit"
                                     label={text.estimatedProduce}  {...field}
-                                    InputProps={{
-                                        endAdornment: <InputAdornment position="end">{
-                                            `${text[user.weightUnit]}/${text[user.areaUnit]}`
-                                        }
-                                        </InputAdornment>,
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    {`${text[user.weightUnit]}/${text[user.areaUnit]}`}
+                                                </InputAdornment>
+                                            ),
+                                        },
                                     }}
 
                                 />
                             )}
                         />
                     </Box>
-                    <Box margin={1} />
-                    <Box display={'flex'} flex={1} >
+                    <Box sx={{
+                        margin: 1
+                    }} />
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1
+                        }}>
                         {plantation && <Controller
                             name="ripe"
                             control={control}
@@ -147,8 +166,15 @@ const SeasonDataForm = ({ defaultValues, open, handleClose, plantation }) => {
                                     {...field} />}
                         />}
                     </Box>
-                    <Box margin={1} />
-                    <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                    <Box sx={{
+                        margin: 1
+                    }} />
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center'
+                        }}>
                         <Controller
                             control={control}
                             name="note"
@@ -170,7 +196,7 @@ const SeasonDataForm = ({ defaultValues, open, handleClose, plantation }) => {
             </form >
 
         </Dialog >
-    )
+    );
 }
 
 export default SeasonDataForm;

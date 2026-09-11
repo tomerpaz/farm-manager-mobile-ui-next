@@ -229,25 +229,31 @@ const WaypointSelectionDialog = ({ open, handleClose, fields, waypoints, activit
             slots={{ transition: Transition }}
                     >
             <DialogAppBar onClose={() => onAction(false)}
-                title={<Box display={'flex'} flexDirection={'row'} justifyContent={'space-between'} alignItems={'center'}><Typography variant="h6">{`${text.map}`}</Typography><Box padding={2}><Accuracy /></Box></Box>} />
+                title={<Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}><Typography variant="h6">{`${text.map}`}</Typography><Box sx={{
+                    padding: 2
+                }}><Accuracy /></Box></Box>} />
 
             <DialogTitle id="alert-dialog-title" sx={{ margin: 0, padding: 0 }}>
-                {/* {title} */}
-                {/* <Box display={'flex'} flexDirection={'row'}>
-
-                    <TextFieldBase fullWidth={true} label={text.filter} value={filter}
-                        onChange={(e) => handleSetFilter(e.target.value)}
-                        InputProps={{
-                            startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
-                        }}
-                    />
-
-                </Box> */}
             </DialogTitle>
             <DialogContent sx={{ margin: 0, padding: 0 }}>
-                <Box display={'flex'} flex={1} alignItems={'stretch'} flexDirection={'column'} justifyContent={'space-between'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        alignItems: 'stretch',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                    }}>
 
-                    <Box flex={1} style={{ height: '100%' }} id="map" dir='ltr' >
+                    <Box style={{ height: '100%' }} id="map" dir='ltr' sx={{
+                        flex: 1
+                    }} >
                         <MapContainer style={{ height: height, width: '100%' }} center={center} zoom={zoom} scrollWheelZoom={false}
                             ref={setSetMap}
                         >
@@ -319,7 +325,7 @@ const WaypointSelectionDialog = ({ open, handleClose, fields, waypoints, activit
 
             </DialogActions>
         </Dialog>
-    )
+    );
 
 }
 

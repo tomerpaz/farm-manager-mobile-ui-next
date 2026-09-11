@@ -93,7 +93,9 @@ const FieldsFilter = ({ fields, }) => {
                             </MenuItem>
                         ))}
                     </TextField>
-                    <Box paddingLeft={1} />
+                    <Box sx={{
+                        paddingLeft: 1
+                    }} />
                     <TextField
                         id="outlined-select-status"
                         select
@@ -128,7 +130,7 @@ const FieldsFilter = ({ fields, }) => {
                 </ListItem>
             </List>
         </Dialog>
-    )
+    );
 }
 
 export default FieldsFilter

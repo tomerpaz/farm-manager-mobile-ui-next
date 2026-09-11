@@ -107,7 +107,9 @@ const InventoryFilter = () => {
                             actionBar: { actions: ["cancel", "clear"] }
                         }}
                     />
-                    <Box marginLeft={1} />
+                    <Box sx={{
+                        marginLeft: 1
+                    }} />
                     {isWarehousesSuccess &&
                         <TextField
                             id="outlined-select-site"
@@ -163,7 +165,7 @@ const InventoryFilter = () => {
 
             </List>
         </Dialog>
-    )
+    );
 }
 
 export default InventoryFilter

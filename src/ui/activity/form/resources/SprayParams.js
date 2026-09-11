@@ -24,23 +24,42 @@ const SprayParams = ({ open, units, text, handleClose, areaUnit, activityArea, d
             <DialogAppBar onClose={() => onAction(false)} title={""} />
 
             <DialogContent>
-                <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <TextFieldBase sx={{ flex: 1 }}
                         value={speed} onChange={e => setSpeed(Number(e.target.value))}
                         type='number' label={`${text.speed}`}
                         fullWidth
                     />
                 </Box>
-                <Box margin={2} />
-                <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                <Box sx={{
+                    margin: 2
+                }} />
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <TextFieldBase sx={{ flex: 1 }}
                         value={pto} onChange={e => setPto(Number(e.target.value))}
                         type='number' label={`PTO`}
                         fullWidth
                     />
                 </Box>
-                <Box margin={2} />
-                <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                <Box sx={{
+                    margin: 2
+                }} />
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <TextFieldBase sx={{ flex: 1 }}
                         value={psi} onChange={e => setPsi(Number(e.target.value))}
                         type='number' label={`PSI`}
@@ -56,6 +75,6 @@ const SprayParams = ({ open, units, text, handleClose, areaUnit, activityArea, d
                 </Button>
             </DialogActions>
         </Dialog>
-    )
+    );
 }
 export default SprayParams;

@@ -13,7 +13,7 @@
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -31,8 +31,9 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-, "src/app/manifest.ts.txtx"  ],
+    ".next/dev/types/**/*.ts",
+    "src/app/manifest.ts.txtx"
+  ],
   "exclude": [
     "node_modules"
   ]

@@ -76,19 +76,30 @@ const IrrigationConfigDialog = ({ open, units, text, handleClose, areaUnit, acti
                 </TextField>
 
                 {PER_AREA_UNIT_PER_IRREGATION_DAY === irrigationMethod &&
-                    <Box margin={2} />}
+                    <Box sx={{
+                        margin: 2
+                    }} />}
                 {PER_AREA_UNIT_PER_IRREGATION_DAY === irrigationMethod &&
-                    <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center'
+                        }}>
                         <TextFieldBase sx={{ flex: 1 }}
                             value={PER_AREA_UNIT_PER_IRREGATION_DAY !== irrigationMethod ? '' : frequency} onChange={e => handleSetFrequency(Number(e.target.value))}
                             type='number' label={`${text.frequency}, ${text.every}`}
                             fullWidth
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">{
-                                    text.days
-                                }
-                                </InputAdornment>,
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            {text.days}
+                                        </InputAdornment>
+                                    ),
+                                },
                             }}
+
                         />
                         <Box >
                             <DecoratedBox value={`${text.irrigationDays}: ${calcIrrigationDays(days, frequency)}`} />
@@ -97,7 +108,9 @@ const IrrigationConfigDialog = ({ open, units, text, handleClose, areaUnit, acti
                     </Box>
 
                 }
-                <Box margin={2} />
+                <Box sx={{
+                    margin: 2
+                }} />
                 <TextField
                     value={fertilizeMethod}
                     id="outlined-select-fertilize-unit"
@@ -121,6 +134,6 @@ const IrrigationConfigDialog = ({ open, units, text, handleClose, areaUnit, acti
                 </Button>
             </DialogActions>
         </Dialog>
-    )
+    );
 }
 export default IrrigationConfigDialog;

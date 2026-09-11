@@ -63,7 +63,13 @@ const FieldHistory = () => {
               </Avatar>
             </ListItemAvatar>
             <ListItemText primary={
-              < Box display={'flex'} flexDirection={'row'} flex={1} justifyContent={'space-between'}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flex: 1,
+                  justifyContent: 'space-between'
+                }}>
                 <Typography >
                   {`${activityDescription(e, text)}`}
                 </Typography>
@@ -75,7 +81,7 @@ const FieldHistory = () => {
           </ListItem>
           <Divider />
         </Fragment>
-      )
+      );
     }
   }
 

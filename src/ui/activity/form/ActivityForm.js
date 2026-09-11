@@ -1,11 +1,16 @@
 import { BottomNavigation, BottomNavigationAction, Box, TextField, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectLang, setDefaultScouter, setSnackbar } from '../../../features/app/appSlice'
 import { PESTICIDE, PLAN, SCOUT, asLocalDate, asLocalTime, countLines, daysDif, daysDiff, isArrayEmpty } from '../../FarmUtil'
 import ActivityHeaderView from './header/ActivityHeaderView'
 import { useForm, Controller, useWatch } from "react-hook-form";
-import { Cancel, CheckCircleOutline, ControlPointDuplicate, Delete, Save } from '@mui/icons-material'
+import SaveIcon from '@mui/icons-material/Save';
+import CheckCircleOutlineIcon from '@mui/icons-material/ControlPointDuplicate';
+import ControlPointDuplicateIcon from '@mui/icons-material/ControlPointDuplicate';
+import Delete from '@mui/icons-material/Delete';
+
+
 import { useNavigate } from 'react-router'
 import ActivityFields from './fields/ActivityFields'
 import ActivityWaypoints from './waypoints/ActivityWaypoints'
@@ -165,7 +170,9 @@ const ActivityForm = ({ activity }) => {
 
   return (
     <Box sx={{ maxHeight: window.innerHeight - 130, overflow: 'auto' }}>
-      <Box margin={1}>
+      <Box sx={{
+        margin: 1
+      }}>
         <form onSubmit={handleSubmit(onSubmit)} >
           {/* <Box
             {...register(`uuid`)}
@@ -192,7 +199,9 @@ const ActivityForm = ({ activity }) => {
             irrigationParams={irrigationParams} setValue={setValue} trigger={trigger}
             fieldsCount={fields.length} sprayParams={sprayParams}
           />
-          <Box padding={1}>
+          <Box sx={{
+            padding: 1
+          }}>
             <Controller
               control={control}
               name="note"
@@ -219,18 +228,18 @@ const ActivityForm = ({ activity }) => {
             {uuid && <BottomNavigationAction
               label={<Typography>{text.duplicate}</Typography>}
               onClick={duplicate}
-              icon={<ControlPointDuplicate fontSize='large' />}
+              icon={<ControlPointDuplicateIcon fontSize='large' />}
             />}
             {uuid && activity.status === PLAN && <BottomNavigationAction
 
               label={<Typography >{text.execute}</Typography>}
               onClick={executePlan}
-              icon={<CheckCircleOutline fontSize='large' />}
+              icon={<CheckCircleOutlineIcon fontSize='large' />}
             />}
             {editable && <BottomNavigationAction disabled={saveDisabled} sx={{ color: saveDisabled ? 'lightGray' : null }}
               type="submit"
               label={<Typography >{text.save}</Typography>}
-              icon={<Save fontSize='large' />}
+              icon={<SaveIcon fontSize='large' />}
             />}
           </BottomNavigation>
           <ActionApprovalDialog open={deleteOpen} handleClose={handleDelete}
@@ -238,7 +247,6 @@ const ActivityForm = ({ activity }) => {
         </form>
       </Box>
     </Box>
-
   );
 };
 export default ActivityForm

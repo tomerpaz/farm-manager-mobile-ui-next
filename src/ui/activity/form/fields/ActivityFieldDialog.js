@@ -131,7 +131,12 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
 
 
                 <DialogTitle id="alert-dialog-title">
-                    <Box display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between'
+                        }}>
                         <Box>
                             <Typography component={'div'} > {selectedRow.field.cropName} / {selectedRow.field.varietyName} - {selectedRow.field.area} {text[user.areaUnit]}
 
@@ -146,9 +151,17 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                     </Box>
                 </DialogTitle>
                 <DialogContent>
-                    {!isMarket && <Box display={'flex'} flex={1} flexDirection={'row'} alignItems={'center'}>
+                    {!isMarket && <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center'
+                        }}>
                         <TextFieldBase sx={{ flex: 1 }} value={activityArea} onChange={e => handleSetActivityArea(Number(e.target.value))} type='number' label={text[user.areaUnit]} />
-                        <Box margin={1}></Box>
+                        <Box sx={{
+                            margin: 1
+                        }}></Box>
                         <DatePicker
                             label={text.executedDate}
                             closeOnSelect
@@ -167,9 +180,17 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                     </Box>}
 
 
-                    {isMarket && <Box display={'flex'} flex={1} flexDirection={'row'} alignItems={'center'}>
+                    {isMarket && <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center'
+                        }}>
                         <TextFieldBase sx={{ flex: 1 }} value={waybill} onChange={e => setWaybill(e.target.value)} label={text.waybill} />
-                        <Box margin={1}></Box>
+                        <Box sx={{
+                            margin: 1
+                        }}></Box>
                         <TextFieldBase
                             id="outlined-select-destination"
                             select
@@ -188,9 +209,16 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
 
                     </Box>}
                     {[HARVEST, MARKET].includes(activityType) &&
-                        <Box display={'flex'} flexDirection={'row'} flex={1}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                flex: 1
+                            }}>
                             <TextFieldBase sx={{ flex: 1 }} value={qty} onChange={e => setQty(Number(e.target.value))} type='number' label={text.qty} />
-                            <Box margin={1}></Box>
+                            <Box sx={{
+                                margin: 1
+                            }}></Box>
                             <TextFieldBase sx={{ flex: 1 }} value={weight} onChange={e => setWeight(Number(e.target.value))} type='number' label={text[user.weightUnit]} />
                         </Box>
                     }
@@ -207,7 +235,13 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                         />
                     }
                     {isMarket &&
-                        <Box display={'flex'} flex={1} flexDirection={'row'} alignItems={'center'}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flex: 1,
+                                flexDirection: 'row',
+                                alignItems: 'center'
+                            }}>
                             <Autocomplete
                                 blurOnSelect={true}
                                 value={size}
@@ -218,7 +252,9 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                                 isOptionEqualToValue={(option, value) => (value === undefined) || option?.id?.toString() === (value?.id ?? value)?.toString()}
                                 renderInput={(params) => <TextFieldBase {...params} label={text.size} />}
                             />
-                            <Box margin={1}></Box>
+                            <Box sx={{
+                                margin: 1
+                            }}></Box>
 
                             <Autocomplete
                                 blurOnSelect={true}
@@ -233,9 +269,16 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                         </Box>
                     }
                     {isMarket &&
-                        <Box display={'flex'} flexDirection={'row'} flex={1}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                flex: 1
+                            }}>
                             <TextFieldBase sx={{ flex: 1 }} value={incomePerUnit} onChange={e => onIncomePerUnitChange(Number(e.target.value))} type='number' label={`${text.unitCost}`} />
-                            <Box margin={1}></Box>
+                            <Box sx={{
+                                margin: 1
+                            }}></Box>
                             <TextFieldBase sx={{ flex: 1 }} value={income} onChange={e => onIncomeChange(Number(e.target.value))} type='number' label={`${text.income}`} />
                         </Box>
                     }
@@ -253,7 +296,7 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                 title={`${text.duplicate} ${text.field}?`} okText={text.duplicate} cancelText={text.cancel} />
 
         </Box >
-    )
+    );
 
 }
 

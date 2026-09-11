@@ -99,7 +99,11 @@ export function getFruitIcon(cropName, unit) {
     }
 
     if(FRUITS[name]){
-        return <Box fontSize={30}> {FRUITS[name]}</Box>;
+        return (
+            <Box sx={{
+                fontSize: 30
+            }}> {FRUITS[name]}</Box>
+        );
     }
     
     
@@ -214,5 +218,9 @@ export function getFruitIcon(cropName, unit) {
         return <Blackberry />;
     }
     
-    return <Box fontSize={30}> {FRUITS['general']}</Box>;
+    return (
+        <Box sx={{
+            fontSize: 30
+        }}> {FRUITS['general']}</Box>
+    );
 }

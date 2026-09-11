@@ -68,7 +68,6 @@ const FieldPointDialog = ({ defaultValues, open, handleClose, deletable,/*, type
   }
 
   return (
-
     <Dialog fullWidth open={open}>
       <AppBar sx={{ position: 'relative' }} elevation={0}>
         <Toolbar>
@@ -88,7 +87,12 @@ const FieldPointDialog = ({ defaultValues, open, handleClose, deletable,/*, type
       <form onSubmit={handleSubmit(onSubmit)} >
 
         <DialogContent>
-          <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
             <Controller
               control={control}
               name="name"
@@ -147,7 +151,12 @@ const FieldPointDialog = ({ defaultValues, open, handleClose, deletable,/*, type
                   {...field} />}
               />
               <FormSpacer/>
-              <Box display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between'
+                }}>
 
                 <Controller
                   name="expiry"
@@ -171,7 +180,12 @@ const FieldPointDialog = ({ defaultValues, open, handleClose, deletable,/*, type
             </Fragment>
           }
 
-          {defaultValues.id !== null && <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          {defaultValues.id !== null && <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
             <Controller
               control={control}
               name="active"

@@ -163,15 +163,24 @@ const ActivityResourceDialog = ({ selectedRow, selectedIndex, handleClose, updat
                 {`${getResourceTypeText(selectedRow.resource.type, text)}:  ${selectedRow.resource.name}`}
             />
             <DialogContent /*sx={{ minHeight: isWarehouse ? height : null }}*/>
-                <Box display={'flex'} flex={1} flexDirection={'column'}  >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        flexDirection: 'column'
+                    }}>
                     <TextFieldBase value={qty} onChange={e => onQtyChange(Number(e.target.value))}
                         type='number' label={text.qty}
-                        InputProps={{
-                            endAdornment: <InputAdornment position="end">{
-                                getUnitText(resourceUnit, user.areaUnit, text)
-                            }
-                            </InputAdornment>,
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        {getUnitText(resourceUnit, user.areaUnit, text)}
+                                    </InputAdornment>
+                                ),
+                            },
                         }}
+
                         fullWidth={true}
                     />
 
@@ -179,12 +188,16 @@ const ActivityResourceDialog = ({ selectedRow, selectedIndex, handleClose, updat
                         <TextFieldBase value={dosage} onChange={e => onDosageChange(Number(e.target.value))}
                             type='number' label={`${text.dosage}`}
                             fullWidth
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">{
-                                    getUnitText(selectedRow.pesticideListItem.unit, user.areaUnit, text)
-                                }
-                                </InputAdornment>,
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            {getUnitText(selectedRow.pesticideListItem.unit, user.areaUnit, text)}
+                                        </InputAdornment>
+                                    ),
+                                },
                             }}
+
                         />}
                     {isQtyPerAreaUnit &&
                         <TextFieldBase value={qtyPerAreaUnit} onChange={e => onQtyPerAreUnitChange(Number(e.target.value))}
@@ -197,12 +210,19 @@ const ActivityResourceDialog = ({ selectedRow, selectedIndex, handleClose, updat
                             type='number' label={`${text[secondaryQtyConfig.label]}`}
                             fullWidth
                         />}
-                    {isWorkerGropup && <Box display={'flex'} flex={1} flexDirection={'row'}>
+                    {isWorkerGropup && <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            flexDirection: 'row'
+                        }}>
                         <TextFieldBase value={secondaryQty ? secondaryQty : 0} onChange={e => onWorkerCountChange(Number(e.target.value))}
                             type='number' label={`${text.workerCount}`}
                             fullWidth
                         />
-                        <Box margin={1} />
+                        <Box sx={{
+                            margin: 1
+                        }} />
                         <TextFieldBase value={qtyPerWorker} onChange={e => onQtyPerWorkerChange(Number(e.target.value))}
                             type='number' label={`${text.qtyPerWorker}`}
                             fullWidth
@@ -211,11 +231,14 @@ const ActivityResourceDialog = ({ selectedRow, selectedIndex, handleClose, updat
                     {user.financial && <TextFieldBase value={tariff} onChange={e => onTariffChange(Number(e.target.value))}
                         type='number' label={text.unitCost}
                         fullWidth
-                        InputProps={{
-                            endAdornment: <InputAdornment position="end">{
-                                user.currency
-                            }
-                            </InputAdornment>,
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        {user.currency}
+                                    </InputAdornment>
+                                ),
+                            },
                         }}
                     />}
                     {isWarehouse &&
@@ -260,7 +283,7 @@ const ActivityResourceDialog = ({ selectedRow, selectedIndex, handleClose, updat
                 </DialogActions>
             </DialogContent>
         </Dialog>
-    )
+    );
 }
 
 

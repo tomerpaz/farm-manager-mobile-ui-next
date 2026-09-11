@@ -104,18 +104,34 @@ const LayersDialog = () => {
         >
             <DialogAppBar onClose={handleClose} title={text.layers} />
 
-
             <DialogContent>
 
-                <Box marginTop={1} display={'flex'} flexDirection={'row'} >
+                <Box
+                    sx={{
+                        marginTop: 1,
+                        display: 'flex',
+                        flexDirection: 'row'
+                    }}>
                     <FormControlLabel control={<Checkbox checked={showLayers.includes(SCOUT)} onChange={() => handleChange(SCOUT)} />} label={text.pests} />
                 </Box>
                 <Divider />
-                <Box marginTop={1} display={'flex'} flexDirection={'row'} >
+                <Box
+                    sx={{
+                        marginTop: 1,
+                        display: 'flex',
+                        flexDirection: 'row'
+                    }}>
                     <FormControlLabel control={<Checkbox checked={showLayers.includes(ACTIVITY)} onChange={() => handleChange(ACTIVITY)} />} label={text.activities} />
                 </Box>
                 <Divider />
-                <Box marginTop={1} marginBottom={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
+                <Box
+                    sx={{
+                        marginTop: 1,
+                        marginBottom: 1,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                    }}>
                     <FormControlLabel control={<Checkbox checked={showLayers.includes(trap)} onChange={() => handleChange(trap)} />} label={text.traps} />
                     {/* <IconButton onClick={() => handleEditLayer(trap)}><EditLocationAlt /></IconButton> */}
                     <Button disableElevation variant='outlined' color='secondary' onClick={() => addPoint(trap)} startIcon={<CenterFocusStrong />}>{text.add}</Button>
@@ -128,23 +144,56 @@ const LayersDialog = () => {
                     <Button disableElevation variant='outlined' color='secondary' onClick={() => addPoint(irrigationHead)} startIcon={<Opacity />}>{text.add}</Button>
 
                 </Box> */}
-                <Box marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
+                <Box
+                    sx={{
+                        marginTop: 1,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                    }}>
                     <FormControlLabel control={<Checkbox checked={showFieldName} onChange={() => dispatch(setShowFieldName(!showFieldName))} />} label={text.field} />
                 </Box>
-                <Box marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
+                <Box
+                    sx={{
+                        marginTop: 1,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                    }}>
                     <FormControlLabel control={<Checkbox checked={showFieldAlias} onChange={() => dispatch(setShowFieldAlias(!showFieldAlias))} />} label={text.alias} />
                 </Box>
-                <Box marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
+                <Box
+                    sx={{
+                        marginTop: 1,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                    }}>
                     <FormControlLabel control={<Checkbox checked={showCropName} onChange={() => dispatch(setShowCropName(!showCropName))} />} label={`${text.crop}/${text.variety}`} />
                 </Box>
-                <Box marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
+                <Box
+                    sx={{
+                        marginTop: 1,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                    }}>
                     <FormControlLabel control={<Checkbox checked={showOfficialFieldId} onChange={() => dispatch(setShowOfficialFieldId(!showOfficialFieldId))} />} label={text.officialFieldId} />
                 </Box>
                 <Divider />
                 {getLayers().map(e => {
-                    return < Box key={e.id} marginTop={1} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} >
-                        <FormControlLabel control={<Checkbox checked={visibilLayes.find(id => e.id === id) ? true : false} onChange={() => dispatch(setVisibleLayers(e.id))} />} label={e.name} />
-                    </Box>
+                    return (
+                        <Box
+                            key={e.id}
+                            sx={{
+                                marginTop: 1,
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between'
+                            }}>
+                            <FormControlLabel control={<Checkbox checked={visibilLayes.find(id => e.id === id) ? true : false} onChange={() => dispatch(setVisibleLayers(e.id))} />} label={e.name} />
+                        </Box>
+                    );
                 }
 
                 )
@@ -158,6 +207,6 @@ const LayersDialog = () => {
                 />
             }
         </Dialog >
-    )
+    );
 }
 export default LayersDialog

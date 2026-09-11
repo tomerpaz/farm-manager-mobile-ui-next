@@ -60,8 +60,12 @@ const FieldDashboard = () => {
               avatar={<Avatar sx={{ bgcolor: orange[500] }}>
                 <NaturePeople />
               </Avatar>}
-              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${formatNumber(data.weightTotal)} ${text[user.weightUnit]}`}</Typography>}
-              subheader={<Typography whiteSpace={'nowrap'} variant='body2'>{`${formatNumber(data.weightPerAreaUnit)}   ${text[user.weightUnit]}/${text[user.areaUnit]}`}</Typography>}
+              title={<Typography variant='body2' sx={{
+                whiteSpace: 'nowrap'
+              }}>{`${formatNumber(data.weightTotal)} ${text[user.weightUnit]}`}</Typography>}
+              subheader={<Typography variant='body2' sx={{
+                whiteSpace: 'nowrap'
+              }}>{`${formatNumber(data.weightPerAreaUnit)}   ${text[user.weightUnit]}/${text[user.areaUnit]}`}</Typography>}
             />
           </Card>
         </Grid>
@@ -72,7 +76,9 @@ const FieldDashboard = () => {
                 {user.currency}
               </Avatar>}
               title={`${formatNumber(data.expenseTotal)}`}
-              subheader={<Typography whiteSpace={'nowrap'} variant='body2'>{`${formatNumber(data.expensePerAreaUnit)}/${text[user.areaUnit]}`}</Typography>}
+              subheader={<Typography variant='body2' sx={{
+                whiteSpace: 'nowrap'
+              }}>{`${formatNumber(data.expensePerAreaUnit)}/${text[user.areaUnit]}`}</Typography>}
             />
           </Card>
         </Grid>
@@ -80,7 +86,9 @@ const FieldDashboard = () => {
           <Card elevation={elevation}>
             <CardHeader sx={{ padding: cardHeaderPadding }}
               avatar={<Avatar sx={{ bgcolor: 'inherit', color: blue[700], fontWeight: 'bolder' }} aria-label="recipe">K</Avatar>}
-              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.kperAreaUnit?.toFixed(2) || 0} /`}</Typography>}
+              title={<Typography variant='body2' sx={{
+                whiteSpace: 'nowrap'
+              }}>{`${data.kperAreaUnit?.toFixed(2) || 0} /`}</Typography>}
               subheader={text[user.areaUnit]}
             />
           </Card>
@@ -89,7 +97,9 @@ const FieldDashboard = () => {
           <Card elevation={elevation}>
             <CardHeader sx={{ padding: cardHeaderPadding }}
               avatar={<Avatar sx={{ bgcolor: 'inherit', color: green[700], fontWeight: 'bolder' }} aria-label="recipe">P</Avatar>}
-              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.pperAreaUnit?.toFixed(2) || 0} /`}</Typography>}
+              title={<Typography variant='body2' sx={{
+                whiteSpace: 'nowrap'
+              }}>{`${data.pperAreaUnit?.toFixed(2) || 0} /`}</Typography>}
               subheader={text[user.areaUnit]}
             />
           </Card>
@@ -98,7 +108,9 @@ const FieldDashboard = () => {
           <Card elevation={elevation} >
             <CardHeader sx={{ padding: cardHeaderPadding }}
               avatar={<Avatar sx={{ bgcolor: 'inherit', color: red[700], fontWeight: 'bolder' }} aria-label="recipe">N</Avatar>}
-              title={<Typography whiteSpace={'nowrap'} variant='body2'>{`${data.nperAreaUnit?.toFixed(2) || 0 } /`}</Typography>}
+              title={<Typography variant='body2' sx={{
+                whiteSpace: 'nowrap'
+              }}>{`${data.nperAreaUnit?.toFixed(2) || 0 } /`}</Typography>}
               subheader={text[user.areaUnit]}
             />
           </Card>

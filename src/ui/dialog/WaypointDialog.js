@@ -93,20 +93,34 @@ const WaypointDialog = ({ open, handleClose, selectedPoint, handleDelete, title,
         >
             <DialogAppBar onClose={() => onAction(false)}
                 title={
-                    <Box display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between'
+                        }}>
                         <Typography variant="h6">
                             {title}
                         </Typography>
-                        <Typography marginLeft={3} marginRight={3} variant="h6">
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                marginLeft: 3,
+                                marginRight: 3
+                            }}>
                             {asShortStringDateTime(parseISOOrNull(selectedPoint.createTime ? selectedPoint.createTime : selectedPoint.date))}
                         </Typography>
                     </Box>
                 } />
             <DialogContent sx={{ margin: 0, padding: 0 }}>
-                <Box padding={1}>
+                <Box sx={{
+                    padding: 1
+                }}>
                     <TextFieldBase value={note} onChange={e => handleSetNote(e.target.value)} fullWidth={true} label={`${text.note}`} />
                 </Box>
-                <Box flex={1} id="map" dir='ltr' >
+                <Box id="map" dir='ltr' sx={{
+                    flex: 1
+                }} >
                     <MapContainer style={{ height: height, width: '100%' }} center={center} zoom={zoom} scrollWheelZoom={false}
                         ref={setSetMap}
                     >
@@ -183,6 +197,6 @@ const WaypointDialog = ({ open, handleClose, selectedPoint, handleDelete, title,
                 </Button>
             </DialogActions>
         </Dialog>
-    )
+    );
 }
 export default WaypointDialog;

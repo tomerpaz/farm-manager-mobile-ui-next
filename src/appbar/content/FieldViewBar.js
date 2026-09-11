@@ -45,7 +45,11 @@ const FieldViewBar = ({ layers, share, years }) => {
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar sx={{ justifyContent: 'space-between' }}>
-                <Box display={'flex'} flexDirection={'row'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row'
+                    }}>
                     {share && lat && lng && <ShareLocationMenu lat={lat} lng={lng} />}
                     {years && field && <SelectYearMenu minYear={getDateYear(field?.startDate)}/>}
 
@@ -79,7 +83,7 @@ const FieldViewBar = ({ layers, share, years }) => {
             </Toolbar>
             {openSeason && <SeasonData open={openSeason} handleClose={closeSeasonData} fieldId={fieldId} year={years ? currentDashboardYear : currentYear} />}
         </AppBar>
-    )
+    );
 }
 
 export default FieldViewBar

@@ -57,9 +57,15 @@ const UpdateAllFieldsDialog = ({ open, text, handleClose, areaUnit, activityArea
             <DialogAppBar onClose={() => onAction(false)}
                 title={text.updateFields}/>
             <DialogContent>
-                <Box display={'flex'} flexDirection={'row'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row'
+                    }}>
                     <TextFieldBase type='number' value={_totalQty} onChange={e => handleTotalQty(Number(e.target.value))} fullWidth={true} label={`${text.total} ${text.qty}`} />
-                    <Box margin={1} />
+                    <Box sx={{
+                        margin: 1
+                    }} />
                     <TextFieldBase type='number' value={_totalWeight} onChange={e => handleTotalWeight(Number(e.target.value))} fullWidth={true} label={`${text.total} ${text[weightUnit]}`} />
                 </Box>
 
@@ -70,6 +76,6 @@ const UpdateAllFieldsDialog = ({ open, text, handleClose, areaUnit, activityArea
                 </Button>
             </DialogActions>
         </Dialog>
-    )
+    );
 }
 export default UpdateAllFieldsDialog;

@@ -112,10 +112,27 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
     }
 
     return (
-        <Box margin={1} paddingTop={2} display={'flex'} flexDirection={'column'}>
+        <Box
+            sx={{
+                margin: 1,
+                paddingTop: 2,
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
 
-            <Box display={'flex'} flex={1} justifyContent={'space-between'} alignItems={'center'}>
-                <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flex: 1,
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <Box>
                         <Button id={ELEMENT_ID} size='large' disableElevation={true} variant="contained" onClick={handleClickOpen}>{text.pests} </Button>
                     </Box>
@@ -128,8 +145,12 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
                         </IconButton>
                     }
                 </Box>
-                <Box margin={1} ></Box>
-                <Box flex={1} >
+                <Box sx={{
+                    margin: 1
+                }} ></Box>
+                <Box sx={{
+                    flex: 1
+                }} >
                     {!isArrayEmpty(scouters) && <Controller
                         name="scoutParams.scouter"
                         rules={{ required: true }}
@@ -151,13 +172,17 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
                     />}
                 </Box>
                 
-                <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <IconButton size='large' disabled={isWaypointsDisabled} onClick={() => setOpenWaypointSelection(true)}><AddLocation sx={LocationIconSx()} fontSize='large' /></IconButton>
                     <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={() => remove()}><Delete fontSize='large' /></IconButton>
 
                 </Box>
             </Box>
-
 
             <RenderTable
                 register={register} remove={remove} user={user} activity={activity}
@@ -166,12 +191,10 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
             />
             <PestSelectionDialog open={open} handleClose={handleClose} />
 
-
             {selectedRow && <ActivityScoutDialog selectedIndex={selectedIndex} selectedRow={selectedRow} handleClose={handleCloseEditRow} update={update} remove={() => handleRemoveRow(selectedIndex)} stages={isLoadingStages ? [] : stages} />}
 
-
         </Box>
-    )
+    );
 }
 
 const RenderTable = ({ register, remove, user, activity, handleOpenEditRow, text, getFields, activityDef, irrigationParams, calcIrrigation, activityArea, daysInPeriod, fieldsCount, totalWaterQty }) => {

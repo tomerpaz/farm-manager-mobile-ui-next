@@ -148,8 +148,19 @@ const ActivityFields = ({ activity, getValues, control, register, errors, activi
     }
 
     return (
-        <Box margin={1} display={'flex'} flexDirection={'column'}>
-            <Box display={'flex'} flex={1} justifyContent={'space-between'} alignItems={'center'}>
+        <Box
+            sx={{
+                margin: 1,
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flex: 1,
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
                 <Box>
                     <Button disabled={disabledSelections} size='large' color={errors.fields ? 'error' : 'primary'} disableElevation={true} variant="contained" onClick={handleClickOpen}>{text.fields} </Button>
                     {fields.length > TRASHHOLD &&
@@ -206,7 +217,7 @@ const ActivityFields = ({ activity, getValues, control, register, errors, activi
                 handleClose={handleCloseBulkUpdateFieldsArea}
                 replace={replace} />}
         </Box>
-    )
+    );
 }
 function Row(props) {
     const { row, index, text, onClick, register, remove, isHarvest } = props;

@@ -62,33 +62,29 @@ const Login = (props) => {
 
 
     return (
-
-
         <Box
             component="form"
-            sx={{
-                '& .MuiTextField-root': { m: 1, width: '25ch' },
-                '& .MuiButton-root': { m: 1, width: '26ch' },
-            }}
-
             noValidate
             autoComplete="off"
-            display={'flex'}
-            flexDirection={'column'}
-            justifyContent={'space-around'}
-            alignContent={'space-around'}
-            alignItems={'center'}
-
-            flex={1}
             onSubmit={handleSubmit(onSubmit)}
-
-        >
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-around',
+                alignContent: 'space-around',
+                alignItems: 'center',
+                flex: 1,
+                '& .MuiTextField-root': { m: 1, width: '25ch' },
+                '& .MuiButton-root': { m: 1, width: '26ch' }
+            }}>
             <Box
-                marginTop={15}
-                flex={1}
-                alignItems={'center'}
-                display={'flex'}
-                flexDirection={'column'}>
+                sx={{
+                    marginTop: 15,
+                    flex: 1,
+                    alignItems: 'center',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
                 <LogoLeaf color='primary' fontSize={'large'} />
                 {errorMsg && <Typography color='error'>{text[errorMsg] ? text[errorMsg] : errorMsg}</Typography>}
                 <Controller
@@ -131,12 +127,14 @@ const Login = (props) => {
                             //  helperText={error ? error.message : null}
                             type="password"
                             autoComplete="current-password"
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <PasswordOutlined />
-                                    </InputAdornment>
-                                ),
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <PasswordOutlined />
+                                        </InputAdornment>
+                                    ),
+                                },
                             }}
                         />
 
@@ -150,8 +148,6 @@ const Login = (props) => {
                 <Button type="submit" size='large' fullWidth disableElevation variant="contained"><LoginOutlined /></Button>
             </Box>
         </Box>
-
-
-    )
+    );
 }
 export default Login;

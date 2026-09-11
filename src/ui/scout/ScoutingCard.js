@@ -42,16 +42,24 @@ export default function RecipeReviewCard({ scout, onEdit, index }) {
         alt="Paella dish"
       />
             <CardContent>
-                <Typography variant="body1" color="text.secondary" >
+                <Typography variant="body1" sx={{
+                    color: "text.secondary"
+                }} >
                     {` ${text.location}:  ${text[scout.location]}`}
                 </Typography>
-                <Typography variant="body1" color="text.secondary" >
+                <Typography variant="body1" sx={{
+                    color: "text.secondary"
+                }} >
                     {` ${text.infectionLevel}:  ${text[scout.infectionLevel]}`}
                 </Typography>
-                <Typography variant="body1" color="text.secondary"  >
+                <Typography variant="body1" sx={{
+                    color: "text.secondary"
+                }}  >
                     {` ${text.phenologicalStage}:  ${scout.stage.name}`}
                 </Typography>
-                <Typography variant="body1" color="text.secondary" >
+                <Typography variant="body1" sx={{
+                    color: "text.secondary"
+                }} >
                     {` ${text.note}:  ${scout.note}`}
                 </Typography>
                 {/* <Typography variant="body2" color="text.secondary">

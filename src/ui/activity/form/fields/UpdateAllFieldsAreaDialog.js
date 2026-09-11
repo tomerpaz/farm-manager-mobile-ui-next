@@ -39,12 +39,17 @@ const UpdateAllFieldsAreaDialog = ({ open, text, handleClose, areaUnit, fields, 
             aria-describedby="alert-dialog-description"
             fullWidth
         >
-            <DialogAppBar onClose={() => onAction(false)} title={`% ${text.of} ${getTotalFieldArea(fields.map(e => e.field))} ${text[areaUnit]}`}/>
+            <DialogAppBar onClose={() => onAction(false)} title={`% ${text.of} ${getTotalFieldArea(fields.map(e => e.field))} ${text[areaUnit]}`} />
             <DialogContent>
                 <TextFieldBase type='number' value={_percent} onChange={e => handlePercent(Number(e.target.value))} fullWidth={true}
-                    InputProps={{
-                        endAdornment: <InputAdornment position="end">{'%'}
-                        </InputAdornment>,
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    {'%'}
+                                </InputAdornment>
+                            ),
+                        },
                     }}
                 />
             </DialogContent>

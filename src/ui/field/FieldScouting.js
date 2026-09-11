@@ -72,12 +72,19 @@ const FieldScouting = ({ field }) => {
     const pointScouts = point ? scouts.filter(e => e.point.id === point.id) : [];
 
     return (
-        <Box display={'flex'} flex={1} alignItems={'stretch'} justifyContent={'space-between'} flexDirection={'column'}>
+        <Box
+            sx={{
+                display: 'flex',
+                flex: 1,
+                alignItems: 'stretch',
+                justifyContent: 'space-between',
+                flexDirection: 'column'
+            }}>
             {field.polygon && <FieldMap field={field} height={height} onClick={onScoutMapClick} points={buildScoutPoints(points, scouts)} setMap={setMap} center={center} setCenter={setCenter} zoom={zoom} setZoom={setZoom} />}
             {point && <FieldPointDialog open={dialog === 'point'} deletable={isArrayEmpty(pointScouts)} defaultValues={point} handleClose={clear} types={SCOUT_TYPES}/>}
             {point && <ScoutingFieldPoint stages={stages} open={dialog === 'pointScouting'} point={point} scouts={pointScouts} handleClose={() => clear(null)} setPoint={setPoint} />}
         </Box>
-    )
+    );
 }
 
 export default FieldScouting

@@ -76,28 +76,54 @@ const FieldImagery = ({ field }) => {
     const dir = text.dir
 
     return (
-        <Box display={'flex'} flex={1} alignItems={'stretch'} justifyContent={'space-between'} flexDirection={'column'}>
+        <Box
+            sx={{
+                display: 'flex',
+                flex: 1,
+                alignItems: 'stretch',
+                justifyContent: 'space-between',
+                flexDirection: 'column'
+            }}>
             {field.polygon && <FieldMap field={field} height={height} tile={reload ? null : tile} setMap={setMap} />}
             <ColorPalette type={palette}></ColorPalette>
             {isArrayEmpty(data) && message &&
-                <Box marginTop={2}
-                    display={'flex'} flex={1} alignItems={'center'} justifyContent={'center'}>
+                <Box
+                    sx={{
+                        marginTop: 2,
+                        display: 'flex',
+                        flex: 1,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
                     <Typography>{message}</Typography>
                 </Box>}
             {isArrayEmpty(data) && !message && <Loading marginTop={3} />}
             {!isArrayEmpty(data) &&
                 <Box>
-                    <Box marginTop={1}
-                        display={'flex'} flex={1} alignItems={'center'} justifyContent={'space-between'}
-                    >
+                    <Box
+                        sx={{
+                            marginTop: 1,
+                            display: 'flex',
+                            flex: 1,
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
                         <Button disabled={isArrayEmpty(data) || selectedView === 0} onClick={() => setSelectedView(selectedView - 1)} color='secondary' variant="outlined" disableElevation>
                             {dir === 'rtl' ? <ChevronRightOutlined /> : <ChevronLeftOutlined />}
                         </Button>
                         <Typography>
                             {viewDate}
                         </Typography>
-                        <Box display={'flex'} flexDirection={'row'}>
-                            <Typography marginLeft={1} marginRight={1}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row'
+                            }}>
+                            <Typography
+                                sx={{
+                                    marginLeft: 1,
+                                    marginRight: 1
+                                }}>
                                 {`${viewClouds.toFixed(1)}%`}
                             </Typography>
 
@@ -112,8 +138,14 @@ const FieldImagery = ({ field }) => {
                             {dir === 'rtl' ? <ChevronLeft /> : <ChevronRight />}
                         </Button>
                     </Box>
-                    <Box marginTop={3}
-                        display={'flex'} flex={1} alignItems={'stretch'} justifyContent={'space-between'}>
+                    <Box
+                        sx={{
+                            marginTop: 3,
+                            display: 'flex',
+                            flex: 1,
+                            alignItems: 'stretch',
+                            justifyContent: 'space-between'
+                        }}>
 
                         {/* <FormControl sx={{  minWidth: 120 }} size="small"> */}
 
@@ -157,7 +189,7 @@ const FieldImagery = ({ field }) => {
                     </Box>
                 </Box>}
         </Box>
-    )
+    );
 }
 
 

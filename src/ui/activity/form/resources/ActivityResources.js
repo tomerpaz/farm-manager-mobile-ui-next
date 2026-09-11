@@ -323,8 +323,22 @@ const ActivityResources = ({ activity, control, errors, register, tariffs, activ
     const totalWaterQty = caclTotalWater();
 
     return (
-        <Box margin={1} paddingTop={2} display={'flex'} flexDirection={'column'}>
-            {SPRAY_TYPES.includes(activity.type) && <Box marginTop={1} marginBottom={1} display={'flex'} flex={1} justifyContent={'space-between'} alignItems={'center'}>
+        <Box
+            sx={{
+                margin: 1,
+                paddingTop: 2,
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+            {SPRAY_TYPES.includes(activity.type) && <Box
+                sx={{
+                    marginTop: 1,
+                    marginBottom: 1,
+                    display: 'flex',
+                    flex: 1,
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
                 <Controller
                     control={control}
                     name="sprayParams.volumePerAreaUnit"
@@ -338,7 +352,9 @@ const ActivityResources = ({ activity, control, errors, register, tariffs, activ
                             label={text[`sprayVolume${user.areaUnit}`]}  {...field} />
                     )}
                 />
-                <Box margin={1} />
+                <Box sx={{
+                    margin: 1
+                }} />
                 <Controller
                     control={control}
                     name="sprayParams.volume"
@@ -351,8 +367,20 @@ const ActivityResources = ({ activity, control, errors, register, tariffs, activ
                     )}
                 />
             </Box>}
-            <Box display={'flex'} flex={1} justifyContent={'space-between'} alignItems={'center'}>
-                <Box display={'flex'} flex={1} flexDirection={'row'} alignItems={'center'}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flex: 1,
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <Box>
                         <Button disabled={disabledSelections} id={ELEMENT_ID} size='large' color={errors.resources ? 'error' : 'primary'} disableElevation={true} variant="contained" onClick={handleClickOpen}>{text.resources} </Button>
                     </Box>
@@ -379,13 +407,19 @@ const ActivityResources = ({ activity, control, errors, register, tariffs, activ
                         </IconButton>
                     }
                 </Box>
-                <Box flex={1} />
-                <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+                <Box sx={{
+                    flex: 1
+                }} />
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <IconButton size='large' disabled={isArrayEmpty(resourceBulkUnits)} onClick={() => setOpenEditBulkQty(true)}><MoreVert fontSize='large' /></IconButton>
                     <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={() => remove()}><Delete fontSize='large' /></IconButton>
                 </Box>
             </Box>
-
 
             <RenderTable
                 register={register} remove={remove} user={user} activity={activity}
@@ -413,7 +447,15 @@ const ActivityResources = ({ activity, control, errors, register, tariffs, activ
                 sprayParams={sprayParams}
             />}
             <AlertDialog open={showAlert} title={'requiredFieldsMissing'} message={errorMsg} varieant={'error'} handleClose={_ => setShowAlert(false)} buttonText={text.close} />
-            {SCOUT !== activity.type && <Box marginTop={2} marginBottom={0} display={'flex'} flex={1} justifyContent={'space-between'} alignItems={'center'}>
+            {SCOUT !== activity.type && <Box
+                sx={{
+                    marginTop: 2,
+                    marginBottom: 0,
+                    display: 'flex',
+                    flex: 1,
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
                 <Controller
                     control={control}
                     name="invoice"
@@ -426,7 +468,7 @@ const ActivityResources = ({ activity, control, errors, register, tariffs, activ
                 />
             </Box>}
         </Box>
-    )
+    );
 }
 
 const RenderTable = ({ register, remove, user, activity, handleOpenEditRow, text, getFields, activityDef, irrigationParams, calcIrrigation, activityArea, daysInPeriod, fieldsCount, totalWaterQty }) => {
@@ -506,12 +548,12 @@ function Row(props) {
 
                 key={index}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell onClick={onClick} sx={cellSxLink} >{row.resource.name}</TableCell>
-                <TableCell /*onClick={onClick}*/ sx={cellSx} >{getResourceTypeText(resourceType, text)}</TableCell>
-                <TableCell /*onClick={onClick}*/ sx={row.manualQty ? cellSxChange : cellSx}>{row.qty}</TableCell>
-                {calcIrrigation && <TableCell /*onClick={onClick}*/ sx={cellSx}>{calc ? calc : ''}</TableCell>}
-                <TableCell /*onClick={onClick}*/ sx={cellSx}>{getUnitText(getResourceUsageUnit(row.resource, activityDef), areaUnit, text)}</TableCell>
-                {financial && <TableCell /*onClick={onClick}*/ sx={row.manualTariff ? cellSxChange : cellSx}>{totalCost}</TableCell>}
+                <TableCell key={1} onClick={onClick} sx={cellSxLink} >{row.resource.name}</TableCell>
+                <TableCell key={2}/*onClick={onClick}*/ sx={cellSx} >{getResourceTypeText(resourceType, text)}</TableCell>
+                <TableCell key={3} /*onClick={onClick}*/ sx={row.manualQty ? cellSxChange : cellSx}>{row.qty}</TableCell>
+                {calcIrrigation && <TableCell key={4} /*onClick={onClick}*/ sx={cellSx}>{calc ? calc : ''}</TableCell>}
+                <TableCell key={5} /*onClick={onClick}*/ sx={cellSx}>{getUnitText(getResourceUsageUnit(row.resource, activityDef), areaUnit, text)}</TableCell>
+                {financial && <TableCell key={6} /*onClick={onClick}*/ sx={row.manualTariff ? cellSxChange : cellSx}>{totalCost}</TableCell>}
                 {/* <TableCell width={1} sx={{ padding: 0, margin: 0 }}><IconButton margin={0} padding={0} onClick={e => remove(index)}><Delete fontSize='large' /></IconButton></TableCell> */}
             </TableRow>
         </Fragment>

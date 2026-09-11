@@ -89,8 +89,21 @@ const MainTabs = () => {
     console.log('value', value);
 
     return (
-        <Box display={'flex'} flex={1} flexDirection={'column'}>
-            <Box alignItems={'stretch'} display={'flex'} flex={1} flexDirection={'column'} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Box
+            sx={{
+                display: 'flex',
+                flex: 1,
+                flexDirection: 'column'
+            }}>
+            <Box
+                sx={{
+                    alignItems: 'stretch',
+                    display: 'flex',
+                    flex: 1,
+                    flexDirection: 'column',
+                    borderBottom: 1,
+                    borderColor: 'divider'
+                }}>
                 <Tabs value={value} aria-label="basic tabs example"
                     // indicatorColor="secondary"
                     textColor="inherit"
@@ -120,7 +133,13 @@ const MainTabs = () => {
             <TabPanel component={'div'} value={value} index={0}>
                 {isIda && <IdaDash />}
                 {!isIda &&
-                    <Box display={'flex'} flex={1} flexDirection={'column'} alignItems={'stretch'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            flexDirection: 'column',
+                            alignItems: 'stretch'
+                        }}>
                         <FieldsMap />
                         {editLayer === null && <ActionFab map={true} plan={false} />}
                     </Box>}
@@ -128,7 +147,13 @@ const MainTabs = () => {
             <TabPanel component={'div'} value={value} index={1}>
                 {isIda && <IdaSites />}
                 {!isIda &&
-                    <Box display={'flex'} flex={1} flexDirection={'column'} alignItems={'stretch'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            flexDirection: 'column',
+                            alignItems: 'stretch'
+                        }}>
                         <FieldList />
                         <ActionFab plan={false} />
                     </Box>}
@@ -137,7 +162,13 @@ const MainTabs = () => {
             <TabPanel component={'div'} value={value} index={2}>
                 {isIda && <IdaResources />}
                 {!isIda &&
-                    <Box display={'flex'} flex={1} flexDirection={'column'} alignItems={'stretch'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            flexDirection: 'column',
+                            alignItems: 'stretch'
+                        }}>
                         <ActivitiesList plans={false} />
                         <ActionFab bottom={80} plan={false} />
                     </Box>}

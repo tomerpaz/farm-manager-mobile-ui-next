@@ -77,10 +77,15 @@ const ActionSpeedDial = ({ role, plan, map, bottom, fieldId }) => {
           <SpeedDialAction
             key={action.name}
             icon={action.icon}
-            tooltipTitle={action.name}
-            tooltipOpen
             onClick={() => handleAction(action)}
+            slotProps={{
+              tooltip: {
+                title: action.name,
+                open: true,
+              },
+            }}
           />
+
         ))}
       </SpeedDial>
     </Box>

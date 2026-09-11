@@ -39,7 +39,9 @@ const FieldMap = ({ field, height, tile, setMap, onClick, points, setCenter, cen
 
 
     return (
-        <Box flex={1} id="map" dir='ltr'>
+        <Box id="map" dir='ltr' sx={{
+            flex: 1
+        }}>
             <MapContainer style={{ height: height, width: '100%' }} center={getFieldCenter(center,field)} zoom={zoom ? zoom : field.zoom} scrollWheelZoom={false}
                 ref={setMap}
             >
@@ -96,6 +98,6 @@ const FieldMap = ({ field, height, tile, setMap, onClick, points, setCenter, cen
 
             </MapContainer>
         </Box>
-    )
+    );
 }
 export default FieldMap

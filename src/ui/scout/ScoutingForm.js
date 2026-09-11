@@ -71,7 +71,6 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
     }
   }
   return (
-
     <Dialog fullScreen={isMobile()} fullWidth={!isMobile()} open={open} /*TransitionComponent={Transition}*/ >
       <AppBar sx={{ position: 'relative' }} elevation={0}>
         <Toolbar>
@@ -94,7 +93,12 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
           {/* <DialogContentText>
           {`${text.field} ${fieldName}`}
         </DialogContentText> */}
-          <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
 
 
             <Controller
@@ -117,7 +121,9 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
                   {...field} />}
             />
 
-            <Box margin={1} />
+            <Box sx={{
+              margin: 1
+            }} />
             <Controller
               control={control}
               name="year"
@@ -141,7 +147,13 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
               )}
             />
           </Box>
-          <Box marginTop={2} display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          <Box
+            sx={{
+              marginTop: 2,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
 
             <Controller
               name="finding"
@@ -179,7 +191,13 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
               {...field} />}
           /> */}
 
-          <Box marginTop={2} display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          <Box
+            sx={{
+              marginTop: 2,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
             <Controller
               control={control}
               name="location"
@@ -200,7 +218,9 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
                 </TextField>
               )}
             />
-            <Box margin={1} />
+            <Box sx={{
+              margin: 1
+            }} />
 
             <Controller
               control={control}
@@ -223,7 +243,13 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
               )}
             />
           </Box>
-          <Box marginTop={1} display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          <Box
+            sx={{
+              marginTop: 1,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
             <Controller
               control={control}
               name="stage.id"
@@ -244,7 +270,9 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
                 </TextField>
               )}
             />
-            <Box margin={1} />
+            <Box sx={{
+              margin: 1
+            }} />
 
             <Controller
               control={control}
@@ -258,7 +286,13 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
               )}
             />
           </Box>
-          <Box marginTop={1} display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          <Box
+            sx={{
+              marginTop: 1,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
             <Controller
               control={control}
               name="note"

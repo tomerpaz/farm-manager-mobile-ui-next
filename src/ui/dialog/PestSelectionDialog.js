@@ -79,18 +79,28 @@ const PestSelectionDialog = ({ open, handleClose }) => {
             fullScreen={isMobile()} fullWidth={!isMobile()}
             disableRestoreFocus={true}
             slots={{ transition: Transition }}
-            
+
         >
             <DialogAppBar onClose={() => onAction(false)}
                 title={`${text.pests}`} />
 
             <DialogTitle id="alert-dialog-title">
-                <Box display={'flex'} flexDirection={'row'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row'
+                    }}>
 
                     <TextFieldBase fullWidth={true} label={text.filter} value={filter}
                         onChange={(e) => handleSetFilter(e.target.value)}
-                        InputProps={{
-                            startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search />
+                                    </InputAdornment>
+                                ),
+                            },
                         }}
                     />
 
@@ -120,11 +130,21 @@ const PestSelectionDialog = ({ open, handleClose }) => {
                 </TableContainer>
             </DialogContent>
             <DialogActions>
-                <Box display={'flex'} flex={1} flexDirection={'column'} justifyContent={'center'}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
                     {showPegination && <Divider />}
                     {showPegination && <ListPager bottom={50} page={Number(page)}
                         totalPages={Math.ceil(visableDataElements.length / ROWS_PER_PAGE)} setPage={setPage} />}
-                    <Box display={'flex'} justifyContent={'center'}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}>
                         <Button size='large' disableElevation={true} variant='contained' onClick={() => onAction(true)} autoFocus>
                             {text.save}
                         </Button>
@@ -132,7 +152,7 @@ const PestSelectionDialog = ({ open, handleClose }) => {
                 </Box>
             </DialogActions>
         </Dialog>
-    )
+    );
 
 }
 function Row(props) {
@@ -148,9 +168,6 @@ function Row(props) {
                     <Checkbox
                         color="primary"
                         checked={isItemSelected}
-                        inputProps={{
-                            'aria-labelledby': index,
-                        }}
                     />
                 </TableCell>
                 <TableCell sx={cellSx} >{row.name}</TableCell>

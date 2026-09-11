@@ -51,8 +51,11 @@ const AppBarMenu = () => {
     };
 
     return (
-
-        <Box display={'flex'} justifyContent={'end'} /*sx={{ display: { xs: 'flex', md: 'none' } }}*/>
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'end'
+            }}>
             <IconButton
                 size="large"
                 aria-label="account of current user"
@@ -111,7 +114,8 @@ const AppBarMenu = () => {
             </Menu>
             <SettingsDialog/>
             <LayersDialog/>
-        </Box>)
+        </Box>
+    );
 }
 
 export default AppBarMenu

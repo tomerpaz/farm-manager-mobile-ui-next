@@ -175,13 +175,19 @@ export const MapToolTip = ({ textArr, large }) => {
 
 export const MapTextArr = ({ textArr, large }) => {
     const variant = large ? 'h6' : 'subtitle1';
-    return <Box
-        display={'flex'} flexDirection={'column'} alignItems={'center'} justifyContent={'center'}
-    >
-        {textArr.map((e, index) =>
-            <Typography key={index} variant={variant} style={mapTextStyle} >{e}</Typography>
-        )}
-    </Box>
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+            {textArr.map((e, index) =>
+                <Typography key={index} variant={variant} style={mapTextStyle} >{e}</Typography>
+            )}
+        </Box>
+    );
 }
 
 export const displayFieldArea = (field, areaUnit, text) => {
@@ -616,7 +622,11 @@ export function stopMapEventPropagation(e) {
 }
 
 export const FormSpacer = () => {
-    return <Box margin={1} />
+    return (
+        <Box sx={{
+            margin: 1
+        }} />
+    );
 }
 
 export const getFieldCenter = (center, field) => {

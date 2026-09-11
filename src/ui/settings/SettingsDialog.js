@@ -77,36 +77,65 @@ const SettingsDialog = () => {
                     {flagMap.map(e =>
 
                         <MenuItem key={e.id} value={e.id}  >
-                            <Box display={'flex'} flexDirection={'row'} alignItems={'center'} alignContent={'center'}>
-                                <Box fontSize={25}> {e.emoji}</Box>
-                                <Box marginLeft={1} marginRight={1}>{`${e.label}`} </Box>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    alignContent: 'center'
+                                }}>
+                                <Box sx={{
+                                    fontSize: 25
+                                }}> {e.emoji}</Box>
+                                <Box
+                                    sx={{
+                                        marginLeft: 1,
+                                        marginRight: 1
+                                    }}>{`${e.label}`} </Box>
                             </Box>
                         </MenuItem>
                     )}
                 </Select>
                 {isPlans &&
-                    <Box marginTop={2} display={'flex'} flexDirection={'row'} >
+                    <Box
+                        sx={{
+                            marginTop: 2,
+                            display: 'flex',
+                            flexDirection: 'row'
+                        }}>
                         <FormControlLabel control={<Checkbox checked={showPlans} onChange={handlePlansChange} />} label={text.plans} />
                     </Box>
                 }
                 {isInventory &&
-                    <Box marginTop={2} display={'flex'} flexDirection={'row'} >
+                    <Box
+                        sx={{
+                            marginTop: 2,
+                            display: 'flex',
+                            flexDirection: 'row'
+                        }}>
                         <FormControlLabel control={<Checkbox checked={showInventory} onChange={handleInvenotryChange} />} label={text.inventory} />
 
 
                     </Box>
                 }
-                <Box marginTop={2} display={'flex'} flexDirection={'row'} >
+                <Box
+                    sx={{
+                        marginTop: 2,
+                        display: 'flex',
+                        flexDirection: 'row'
+                    }}>
                     <Box>
                         <IconButton sx={{ padding: 0 }} onClick={_ => setShowAgent(!showAgent)} >
                             {isMobile() ? <MobileFriendlyOutlined /> : <DesktopWindowsOutlined />}
                         </IconButton>
                     </Box>
-                    <Box margin={1} />
+                    <Box sx={{
+                        margin: 1
+                    }} />
                     {showAgent && <Box>{navigator.userAgent}</Box>}
                 </Box>
             </DialogContent>
         </Dialog>
-    )
+    );
 }
 export default SettingsDialog

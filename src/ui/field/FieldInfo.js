@@ -69,13 +69,20 @@ const buildFieldPoints = (arr)=> {
 
     const src = 'map'
     return (
-        <Box display={'flex'} flex={1} alignItems={'stretch'} justifyContent={'space-between'} flexDirection={'column'}>
+        <Box
+            sx={{
+                display: 'flex',
+                flex: 1,
+                alignItems: 'stretch',
+                justifyContent: 'space-between',
+                flexDirection: 'column'
+            }}>
             {field.polygon && <FieldMap field={field} height={height} onClick={onFieldMapClick}  points={[]/*buildFieldPoints(points)*/} />}
             {!field.plantation && !field.endDate && <InfoLine value={daysDiffToday(new Date(field.startDate))} title={text.daysSinceSeedling} />}
             <InfoLine value={field.siteName} title={text.site} />
             <InfoLine value={field.parentFieldName} title={text.parentField} />
             <InfoLine value={field.season} title={text.season} />
-           {field.endDate && <InfoLine value={`${parseDate(field.endDate)}`} title={text.end} />}
+            {field.endDate && <InfoLine value={`${parseDate(field.endDate)}`} title={text.end} />}
             <InfoLine value={field.tag1Name} title={field.tag1Type} />
             <InfoLine value={field.tag2Name} title={field.tag2Type} />
             {field.maturity &&  <InfoLine value={`${parseDate(field.maturity)}`} title={text.maturity} />}
@@ -83,13 +90,15 @@ const buildFieldPoints = (arr)=> {
             <InfoLine value={field.plantSpacing} title={text.plantSpacing} />
             <InfoLine value={field.rowSpacing} title={text.rowSpacing} />
             <InfoLine value={field.note} title={text.note} />
-            <Box height={150}/>
+            <Box sx={{
+                height: 150
+            }}/>
             {point && <FieldPointDialog open={point !== null} deletable={true} defaultValues={point} handleClose={handleCloseEditPoint} types={getPointTypes()} />}
 
             <ActionSpeedDial bottom={100} map={true} plan={false} fieldId={fieldId} />
             {/* <LayersDialog/> */}
         </Box>
-    )
+    );
 }
 
 export default FieldInfo

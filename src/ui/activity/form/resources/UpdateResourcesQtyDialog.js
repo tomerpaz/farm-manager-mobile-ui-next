@@ -36,7 +36,12 @@ const UpdateResourcesQtyDialog = ({ open, units, text, handleClose, areaUnit, ac
                 {text.bulkQtyUpdate}
             />
             <DialogContent>
-                <Box display={'flex'} flexDirection={'row'} alignItems={'center'} >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}>
                     <TextField
                         sx={{ marginTop: 0.5 }}
                         value={unit}
@@ -53,7 +58,9 @@ const UpdateResourcesQtyDialog = ({ open, units, text, handleClose, areaUnit, ac
                             </MenuItem>
                         ))}
                     </TextField>
-                    <Box margin={1} />
+                    <Box sx={{
+                        margin: 1
+                    }} />
                     <TextFieldBase type='number' value={qty} onChange={e => setQty(Number(e.target.value))} fullWidth={true} label={text.qty} />
                 </Box>
                 <DialogActions  sx={{ paddingTop: 4, justifyContent: 'center' }}>
@@ -64,6 +71,6 @@ const UpdateResourcesQtyDialog = ({ open, units, text, handleClose, areaUnit, ac
             </DialogContent>
 
         </Dialog>
-    )
+    );
 }
 export default UpdateResourcesQtyDialog;

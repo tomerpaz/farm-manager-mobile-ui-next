@@ -152,7 +152,6 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
   const getDisplayPoints = () => {
     return (!isFetchingPoints && !isLoadingPoints) ?  points.filter(e => e.active && e.id !== defaultValues.id) : []  }
   return (
-
     <Dialog fullScreen={isMobile()} fullWidth={!isMobile()}
       open={open}>
       <AppBar sx={{ position: 'relative' }} elevation={0}>
@@ -173,7 +172,12 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
       <form onSubmit={handleSubmit(onSubmit)} >
 
         <DialogContent>
-          <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
             <Controller
               control={control}
               name="name"
@@ -252,7 +256,12 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
                   {...field} />}
               />
               <FormSpacer />
-              <Box display={'flex'} flexDirection={'row'} justifyContent={'space-between'}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between'
+                }}>
 
                 <Controller
                   name="expiry"
@@ -276,7 +285,12 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
             </Fragment>
           }
 
-          {defaultValues.id !== null && <Box display={'flex'} flexDirection={'row'} alignItems={'center'}>
+          {defaultValues.id !== null && <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
             <Controller
               control={control}
               name="active"
@@ -292,7 +306,14 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
 
 
 
-          <Box marginTop={2} flex={1} style={{ height: '100%' }} id="map" dir='ltr' >
+          <Box
+            style={{ height: '100%' }}
+            id="map"
+            dir='ltr'
+            sx={{
+              marginTop: 2,
+              flex: 1
+            }}>
             <MapContainer style={{ height: height, width: '100%' }} center={center} zoom={zoom} scrollWheelZoom={false}
               ref={setMap}
             >
@@ -369,7 +390,12 @@ const PointForm = ({ defaultValues, open, handleClose, deletable,/*, types*/ }) 
               }
               <HandleMapEvents />
             </MapContainer>
-            <Box height={10} display={'flex'} justifyContent={'space-around'}>
+            <Box
+              sx={{
+                height: 10,
+                display: 'flex',
+                justifyContent: 'space-around'
+              }}>
               {lat && <Typography >{`${lat}/${lng}`}</Typography>}
             </Box>
           </Box>

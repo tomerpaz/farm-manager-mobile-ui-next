@@ -135,8 +135,18 @@ const SiteFormHook = ({ site }) => {
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={3}>
 
-          <Box display="flex" flexDirection="row" justifyContent="space-between" gap={2}>
-            <Box display="flex" flex={3}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 2
+            }}>
+            <Box
+              sx={{
+                display: "flex",
+                flex: 3
+              }}>
               <Controller
                 name="name"
                 control={control}
@@ -156,7 +166,11 @@ const SiteFormHook = ({ site }) => {
                 )}
               />
             </Box>
-            <Box display="flex" flex={1}>
+            <Box
+              sx={{
+                display: "flex",
+                flex: 1
+              }}>
               <Controller
                 name="size"
                 control={control}
@@ -178,7 +192,13 @@ const SiteFormHook = ({ site }) => {
               />
             </Box>
           </Box>
-          <Box display="flex" flexDirection="row" justifyContent="space-between" gap={2}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 2
+            }}>
 
             <Controller
               name="lat"
@@ -222,7 +242,9 @@ const SiteFormHook = ({ site }) => {
             />
           </Box>
 
-          <Box flex={1} style={{ height: '100%' }} id="map" dir='ltr' >
+          <Box style={{ height: '100%' }} id="map" dir='ltr' sx={{
+            flex: 1
+          }} >
             <MapContainer style={{ height: height, width: '100%' }} center={siteLonLat ? siteLonLat : DEFAULT_COORDINATES} zoom={zoom} scrollWheelZoom={false}
               ref={setSetMap}
             >
@@ -238,7 +260,13 @@ const SiteFormHook = ({ site }) => {
             </MapContainer>
 
           </Box>
-          <Box display="flex" flexDirection="row" justifyContent="space-between" gap={2}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 2
+            }}>
             <Button type="submit" variant="contained" color="primary" fullWidth>
               {text.save}
             </Button>
@@ -259,7 +287,7 @@ const SiteFormHook = ({ site }) => {
 
       </form>
     </Box>
-  )
+  );
 }
 
 export default SiteFormHook

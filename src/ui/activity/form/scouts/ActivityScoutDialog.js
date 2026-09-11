@@ -50,7 +50,12 @@ const ActivityScoutDialog = ({ selectedRow, selectedIndex, handleClose, update, 
                 {`${selectedRow.finding.name}`}
             />
             <DialogContent /*sx={{ minHeight: isWarehouse ? height : null }}*/>
-                <Box display={'flex'} flex={1} flexDirection={'column'}  >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        flexDirection: 'column'
+                    }}>
                     <TextFieldBase
                         id="scout-location"
                         select
@@ -110,7 +115,7 @@ const ActivityScoutDialog = ({ selectedRow, selectedIndex, handleClose, update, 
                 </Button>
             </DialogActions>
         </Dialog>
-    )
+    );
 }
 
 

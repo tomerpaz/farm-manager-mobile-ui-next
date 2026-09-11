@@ -1,9 +1,16 @@
-import { Box, CircularProgress } from '@mui/material'
-import React from 'react'
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 
-const Loading = ({marginTop}) => {
+const Loading = ({ marginTop }) => {
     return (
-        <Box display={'flex'} flex={1} justifyContent={'space-around'} marginTop={marginTop? marginTop :15}>
+        <Box
+            sx={{
+                display: 'flex',
+                flex: 1,
+                justifyContent: 'space-around',
+                marginTop: marginTop ? marginTop : 15
+            }}
+        >
             <CircularProgress />
         </Box>
     )

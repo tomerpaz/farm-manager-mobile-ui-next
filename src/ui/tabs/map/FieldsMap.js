@@ -186,9 +186,18 @@ const FieldsMap = (props) => {
     const showMapToolTip = showFieldAlias || showFieldName || showOfficialFieldId || showCropName;
 
     return (
-        <Box display={'flex'} flex={1} alignItems={'stretch'} flexDirection={'column'} justifyContent={'space-between'}>
+        <Box
+            sx={{
+                display: 'flex',
+                flex: 1,
+                alignItems: 'stretch',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+            }}>
 
-            <Box flex={1} style={{ height: '100%' }} id="map" dir='ltr' >
+            <Box style={{ height: '100%' }} id="map" dir='ltr' sx={{
+                flex: 1
+            }} >
                 <MapContainer style={{ height: height, width: '100%' }} center={center} zoom={zoom} scrollWheelZoom={false}
                     ref={setSetMap}
                 >
@@ -264,7 +273,7 @@ const FieldsMap = (props) => {
             {selectedPoint && <PointActionDialog open={selectedPoint !== null} deletable={true} selectedPoint={selectedPoint} handleClose={handleCloseEditPoint} />}
 
         </Box >
-    )
+    );
 }
 export default FieldsMap;
 

@@ -33,7 +33,6 @@ const ScoutingFieldPoint = ({ open, point, scouts, handleClose, stages, setPoint
   const emptyScouts = isArrayEmpty(scouts);
   console.log('emptyScouts', emptyScouts, scouts)
   return (
-
     <Box >
       <Dialog fullScreen={isMobile()} fullWidth={!isMobile()} open={open}>
         <AppBar sx={{ position: 'relative' }} elevation={0}>
@@ -49,7 +48,9 @@ const ScoutingFieldPoint = ({ open, point, scouts, handleClose, stages, setPoint
             >
               <Edit />
             </IconButton>
-            <Box margin={1}></Box>
+            <Box sx={{
+              margin: 1
+            }}></Box>
             <IconButton
               edge="start"
               onClick={() => handleClose(null)}
