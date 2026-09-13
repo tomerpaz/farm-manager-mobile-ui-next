@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate, useParams } from 'react-router'
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Stack, TextField, Button, Typography } from '@mui/material';
 import { CircleMarker, MapContainer, useMapEvents } from 'react-leaflet';
 
-// State Tools, API Queries & Global Config Slices
 import { useGetSiteQuery, useCreateSiteMutation, useDeleteSiteMutation, useUpdateSiteMutation } from '../../features/sites/sitesApiSlice';
 import { selectLang, selectMapZoom, setSnackbar } from '../../features/app/appSlice';
 import SatelliteMapProvider from '../../components/map/SatelliteMapProvider';
@@ -14,8 +13,10 @@ import { DEFAULT_COORDINATES, isMobile } from '../FarmUtil';
 import ActionApprovalDialog from '../../components/ui/ActionApprovalDialog';
 import Loading from '../../components/Loading';
 
-const SiteForm = ({ siteId }) => {
-  const router = useRouter();
+const SiteForm = () => {
+  const navigate = useNavigate();
+  const { siteId } = useParams()
+
   const dispatch = useDispatch();
   const text = useSelector(selectLang);
   const zoom = useSelector(selectMapZoom);
@@ -65,7 +66,8 @@ const SiteForm = ({ siteId }) => {
   // Form layout observers mapping
   const lng = useWatch({ control, name: "lng" });
   const lat = useWatch({ control, name: "lat" });
-  const siteLonLat = isNaN(Number(lat)) || isNaN(Number(lng)) ? null : [Number(lat), Number(lng)];
+
+
 
   if (isLoading || !site) {
     return (
@@ -83,7 +85,7 @@ const SiteForm = ({ siteId }) => {
         await createSite(data).unwrap();
       }
       dispatch(setSnackbar({ msg: data.id ? text.recordUpdated : text.recordCreated, severity: 'success' }));
-      router.back();
+      navigate(-1);
     } catch (err) {
       console.error("Failed to commit site form configuration update profiles", err);
     }
@@ -112,6 +114,8 @@ const SiteForm = ({ siteId }) => {
   const sx = isMobile() ? {
     maxWidth: '100%', mx: 'auto', p: 2
   } : { maxWidth: 800, mx: 'auto', mt: 3, p: 3, boxShadow: 2, borderRadius: 2 };
+
+  const siteLonLat = isNaN(Number(lat)) || isNaN(Number(lng)) ? DEFAULT_COORDINATES : [Number(lat), Number(lng)];
 
   return (
     <Box sx={sx}>
@@ -167,7 +171,7 @@ const SiteForm = ({ siteId }) => {
           </Box>
 
           <Box id="map" dir="ltr" sx={{ flex: 1, height: '100%' }}>
-            <MapContainer style={{ height: mapHeight, width: '100%' }} center={siteLonLat ? siteLonLat : DEFAULT_COORDINATES} zoom={zoom} scrollWheelZoom={false} ref={setSetMap}>
+            <MapContainer style={{ height: mapHeight, width: '100%' }} center={siteLonLat} zoom={zoom} scrollWheelZoom={false} ref={setSetMap}>
               <SatelliteMapProvider />
               <GeoLocation />
               {siteLonLat && <CircleMarker color="white" fillColor="blue" fillOpacity={1} center={siteLonLat} />}

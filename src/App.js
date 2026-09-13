@@ -19,7 +19,6 @@ import SiteForm from './ui/site/SiteForm';
 import { Alert, Snackbar } from '@mui/material';
 import { isStringEmpty } from './ui/FarmUtil';
 import { useGetUserDataQuery } from './features/auth/authApiSlice';
-import { useParams } from 'react-router';
 
 
 
@@ -72,11 +71,6 @@ function App() {
 
   const dispatch = useDispatch()
 
-  function SiteFormRouteWrapper() {
-    const { siteId } = useParams();
-    return <SiteForm siteId={siteId} />;
-  }
-
 
   document.body.dir = dir;
   theme.direction = dir;
@@ -101,7 +95,7 @@ function App() {
                   <Route path='/field/:src/:fieldId/*' element={<Field />} />
                   <Route path='/activity/:src/:activityId' element={<ActivityView />} />
                   <Route path='/activity/new/:type' element={<NewActivity />} />
-                  <Route path='/site/:siteId' element={<SiteFormRouteWrapper />} />
+                  <Route path='/site/:siteId' element={<SiteForm />} />
 
                 </Route>
               </Route>
