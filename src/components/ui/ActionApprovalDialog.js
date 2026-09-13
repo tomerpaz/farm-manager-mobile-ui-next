@@ -20,7 +20,7 @@ const ActionApprovalDialog = ({ open, handleClose, title, body, okText }) => {
             </DialogContent>
             <DialogActions>
                 <Button size='large' variant='contained' disableElevation onClick={() => handleClose(true)} autoFocus>
-                    {okText}
+                    {okText || 'OK'}
                 </Button>
             </DialogActions>
         </Dialog>

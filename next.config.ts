@@ -1,10 +1,11 @@
 import type { NextConfig } from 'next'
  
 const nextConfig: NextConfig = {
-  output: 'export', // Outputs a Single-Page Application (SPA)
-  distDir: 'build', // Changes the build output directory to `build`
+  // Only apply 'export' during production builds to fix the development crash
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined, 
+  distDir: 'build', 
   images: {
-    unoptimized: true, // GitHub Pages doesn't support Next.js image optimization
+    unoptimized: true, 
   },
 }
  
