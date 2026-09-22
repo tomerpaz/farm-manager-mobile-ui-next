@@ -88,6 +88,15 @@ const SiteForm = () => {
   const lng = useWatch({ control, name: "lng" });
   const lat = useWatch({ control, name: "lat" });
 
+  // MapContainer's center/zoom props only apply on the map's initial mount
+  // (react-leaflet ignores later prop changes) — once the site's real
+  // coordinates arrive via reset() above, the view has to be moved by hand.
+  useEffect(() => {
+    if (map && lat !== '' && lng !== '') {
+      map.setView([Number(lat), Number(lng)], map.getZoom());
+    }
+  }, [map, lat, lng]);
+
   const handleGoBack = () => navigate(-1);
 
   if (isLoading || (!isNewSite && !site)) {
