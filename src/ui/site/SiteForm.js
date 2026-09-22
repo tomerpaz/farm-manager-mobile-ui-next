@@ -90,10 +90,6 @@ const SiteForm = () => {
 
   const handleGoBack = () => navigate(-1);
 
-  if (!isNewSite && lat === '' && lng === '') {
-    return null;
-  }
-
   if (isLoading || (!isNewSite && !site)) {
     return (
       <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
