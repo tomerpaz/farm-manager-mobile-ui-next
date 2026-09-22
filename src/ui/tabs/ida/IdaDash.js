@@ -17,7 +17,6 @@ import {
   ModeEdit,
   PictureAsPdf,
   RadioButtonUnchecked,
-  CalendarMonth,
   TableChart,
   WarningAmber,
   WaterDrop,
@@ -27,6 +26,7 @@ import {
 } from '@mui/icons-material';
 
 import Loading from '../../../components/Loading';
+import GlobalGapSvg from '../../../icons/gg/GlobalGapSvg';
 import { selectLang, } from '../../../features/app/appSlice';
 import { useGetGGYearDataQuery, useGetIdaSystemDataQuery } from '../../../features/ida/idaApiSlice';
 import { getMonthName } from '../../FarmUtil';
@@ -92,6 +92,7 @@ const IdaDash = () => {
       </Box>
     );
   }
+  console.log(idaSystemData)
 
   // A record with every metric list empty means someone created it and
   // never actually entered anything — checked directly off the record's own
@@ -105,6 +106,7 @@ const IdaDash = () => {
   const isRecordEmpty = (record) =>
     !!record && RECORD_METRIC_KEYS.every((key) => !record[key]?.length);
 
+  
   // Soft, pastel tiles matching getIndicatorStyles' look rather than MUI's
   // raw success/warning/secondary palette colors, which read too saturated
   // side-by-side. Four distinct states: no record at all yet is neutral (an
@@ -197,8 +199,10 @@ const IdaDash = () => {
 
           {/* Header Action Strip Row */}
           <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 1, borderBottom: '1px solid', borderColor: 'rgba(105, 14, 14, 0.08)', pb: { xs: 0.75, sm: 1 }, mb: '4px', px: { xs: 0, md: 0 }, flexShrink: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-              <CalendarMonth color="primary" sx={{ fontSize: { xs: '1.35rem', sm: '1.6rem' }, flexShrink: 0 }} />
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, minWidth: 0 }}>
+              <Box sx={{ flexShrink: 0, display: 'flex', width: { xs: '2.6rem', sm: '3.2rem' }, height: { xs: '2.6rem', sm: '3.2rem' } }}>
+                <GlobalGapSvg width="100%" height="100%" />
+              </Box>
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', letterSpacing: '-0.02em', lineHeight: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   {text?.idaDashboard || "IDA Tracking Dashboard"}
@@ -217,14 +221,23 @@ const IdaDash = () => {
                     color="secondary"
                     disableElevation
                     disabled={!ggYearData}
-                    onClick={() => exportYearToPdf(ggYearData, year, lang).catch((err) => console.error('Failed to export PDF report:', err))}
+                    onClick={() => {
+                      // Opened synchronously in the click handler so it counts as a
+                      // user-gesture popup — exportYearToPdf fills it in once the
+                      // (async) PDF is ready instead of opening a new tab itself.
+                      const reportWindow = window.open('', '_blank');
+                      exportYearToPdf(ggYearData, year, lang, reportWindow).catch((err) => {
+                        console.error('Failed to export PDF report:', err);
+                        reportWindow?.close();
+                      });
+                    }}
                     startIcon={<PictureAsPdf sx={{ fontSize: '1.4rem', color: '#B7261C' }} />}
                     sx={{
                       textTransform: 'none',
                       fontWeight: 700,
                       borderRadius: 1.5,
                       px: 2,
-                      py: 1,
+                      height: 40,
                     }}
                   >
                     PDF
@@ -239,14 +252,17 @@ const IdaDash = () => {
                     color="secondary"
                     disableElevation
                     disabled={!ggYearData}
-                    onClick={() => exportYearToXlsx(ggYearData, year, lang)}
+                    onClick={() => {
+                      const reportWindow = window.open('', '_blank');
+                      exportYearToXlsx(ggYearData, year, lang, reportWindow);
+                    }}
                     startIcon={<TableChart sx={{ fontSize: '1.4rem', color: '#175C35' }} />}
                     sx={{
                       textTransform: 'none',
                       fontWeight: 700,
                       borderRadius: 1.5,
                       px: 2,
-                      py: 1,
+                      height: 40,
                     }}
                   >
                     Excel
@@ -261,7 +277,7 @@ const IdaDash = () => {
                 onChange={(e) => setYear(e.target.value)}
                 size="small"
                 slotProps={{ menu: { PaperProps: { style: { maxHeight: 200 } } } }}
-                sx={{ minWidth: 105, '& .MuiOutlinedInput-root': { borderRadius: 1.5 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } }}
+                sx={{ minWidth: 105, '& .MuiOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } }}
               >
                 {[0, 1, 2, 3, 4, 5].map((offset) => (
                   <MenuItem key={offset} value={currentYear - offset}>

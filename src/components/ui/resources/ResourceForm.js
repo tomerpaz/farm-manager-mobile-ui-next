@@ -97,7 +97,6 @@ const ResourceForm = () => {
         );
     }
     const onSubmit = async (data) => {
-        console.log(data);
         try {
             if (resourceType === 'fertilizer') {
                 data.specificGravity = data.specificGravity !== '' ? Number(data.specificGravity) : null;
@@ -371,7 +370,7 @@ const ResourceForm = () => {
                             gap: 2,
                             pt: 0.5
                         }}>
-                            {!isNewRecord && (
+                            {!isNewRecord && resource?.deletable === true && (
                                 <Button
                                     type="button"
                                     onClick={() => setDeleteOpen(true)}

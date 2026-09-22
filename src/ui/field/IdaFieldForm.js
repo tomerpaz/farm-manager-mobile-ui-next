@@ -365,7 +365,7 @@ const IdaFieldForm = () => {
                             gap: 2,
                             pt: 0.5
                         }}>
-                            {field?.id && (
+                            {field?.id && field?.deletable === true && (
                                 <Button
                                     type="button"
                                     onClick={() => setDeleteOpen(true)}

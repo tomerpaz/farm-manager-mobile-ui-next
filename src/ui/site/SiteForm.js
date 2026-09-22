@@ -107,6 +107,7 @@ const SiteForm = () => {
     );
   }
 
+
   const onSubmit = async (data) => {
     try {
       if (data.id) {
@@ -312,7 +313,7 @@ const SiteForm = () => {
                 gap: 2,
                 pt: 0.5
               }}>
-                {site?.id && (
+                {site?.id && site?.deletable === true && (
                   <Button
                     type="button"
                     onClick={() => setDeleteOpen(true)}

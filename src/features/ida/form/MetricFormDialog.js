@@ -74,11 +74,13 @@ export default function MetricFormDialog({
 
     // A field can declare zeroLinksTo: ["date", "amount"] — e.g. picking the
     // "No Active Ingredient" / "No NPK" option (id 0) for pesticideId /
-    // fertilizer_id means the record is a farmer's explicit declaration that
-    // nothing was applied, so date/amount are forced (last day of the
-    // month / 0) and locked instead of being left editable. Only the
-    // trigger field(s) are watched (not the whole form), so this doesn't
-    // re-run on every keystroke elsewhere in the dialog.
+    // fertilizer_id, or energy source 15 ("renewable") for energySourceId —
+    // means the record is a declaration that nothing external was applied,
+    // so the linked fields are forced (last day of the month / 0) and
+    // locked instead of being left editable. The trigger value defaults to
+    // 0 (linkTriggerValue overrides it). Only the trigger field(s) are
+    // watched (not the whole form), so this doesn't re-run on every
+    // keystroke elsewhere in the dialog.
     const triggerFields = useMemo(() => schema.filter((f) => f.zeroLinksTo), [schema]);
     const triggerNames = useMemo(() => triggerFields.map((f) => f.name), [triggerFields]);
     const triggerValues = useWatch({ control, name: triggerNames });
@@ -86,7 +88,7 @@ export default function MetricFormDialog({
     const disabledByZero = useMemo(() => {
         const disabled = new Set();
         triggerFields.forEach((f, i) => {
-            if (triggerValues[i] === 0) {
+            if (triggerValues[i] === (f.linkTriggerValue ?? 0)) {
                 f.zeroLinksTo.forEach((name) => disabled.add(name));
             }
         });
@@ -94,7 +96,10 @@ export default function MetricFormDialog({
     }, [triggerFields, triggerValues]);
     // Fields any zeroLinksTo points at — these get the stricter "must be
     // positive" rule (not just "0 or greater") once a real resource is
-    // picked instead of the "None" option.
+    // picked instead of the "None"/auto-managed option, but only if they
+    // were already required — a linked field that's normally optional
+    // (e.g. renewableAmount) shouldn't become mandatory just for being
+    // auto-zeroed under the trigger.
     const autoManagedFields = useMemo(
         () => new Set(schema.flatMap((f) => f.zeroLinksTo || [])),
         [schema]
@@ -103,7 +108,7 @@ export default function MetricFormDialog({
     useEffect(() => {
         if (!open) return;
         triggerFields.forEach((f, i) => {
-            if (triggerValues[i] !== 0) return;
+            if (triggerValues[i] !== (f.linkTriggerValue ?? 0)) return;
             f.zeroLinksTo.forEach((linkedName) => {
                 const linked = schema.find((s) => s.name === linkedName);
                 if (!linked) return;
@@ -132,6 +137,14 @@ export default function MetricFormDialog({
                 if (f.type === "number") record[f.name] = raw === "" ? null : Number(raw);
                 else record[f.name] = raw;
             });
+            // computeFrom fields (e.g. waterUse's amount = irrigation +
+            // product handling) are never edited directly — derive them last
+            // so they're summed from the already-converted numeric values.
+            schema.forEach((f) => {
+                if (f.computeFrom) {
+                    record[f.name] = f.computeFrom.reduce((sum, name) => sum + (Number(record[name]) || 0), 0);
+                }
+            });
             onSave(record);
             onClose();
         })(event);
@@ -146,6 +159,7 @@ export default function MetricFormDialog({
                 <DialogContent sx={{ pt: 1, pb: 2 }}>
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 1 }}>
                         {schema.map((f) => {
+                            if (f.hidden) return null;
                             if (f.type === "date") {
                                 return (
                                     <Controller
@@ -248,10 +262,12 @@ export default function MetricFormDialog({
 
                             if (f.type === "number") {
                                 const isDisabled = disabledByZero.has(f.name);
-                                // A field a "None" option zeroLinksTo forces to 0 while
-                                // disabled — once a real resource is picked and it's
-                                // enabled again, 0 itself is no longer a valid amount.
-                                const mustBePositive = autoManagedFields.has(f.name) && !isDisabled;
+                                // A field a "None"/auto-managed trigger forces to 0 while
+                                // disabled — once a real value is picked and it's enabled
+                                // again, 0 itself is no longer valid, but only for fields
+                                // that were already required (an optional linked field like
+                                // renewableAmount stays optional once re-enabled).
+                                const mustBePositive = autoManagedFields.has(f.name) && !isDisabled && f.required;
                                 return (
                                     <Controller
                                         key={f.name}

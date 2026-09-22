@@ -8,7 +8,7 @@ import {
   Fab,
   Typography
 } from '@mui/material';
-import { Add, ChevronRight, SquareFoot, Terrain } from '@mui/icons-material';
+import { Add, ChevronRight, LocationOn, SquareFoot, Terrain } from '@mui/icons-material';
 
 import Loading from '../../../components/Loading';
 import { useGetSitesQuery } from '../../../features/sites/sitesApiSlice';
@@ -146,6 +146,14 @@ const IdaSites = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25, color: 'text.secondary' }}>
                         <SquareFoot sx={{ fontSize: '0.95rem' }} />
                         <Typography variant="body2">{sizeLabel}</Typography>
+                      </Box>
+                    )}
+                    {(value.ggGeoName || value.ggGeoCountry) && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25, color: 'text.secondary', minWidth: 0 }}>
+                        <LocationOn sx={{ fontSize: '0.95rem', flexShrink: 0 }} />
+                        <Typography variant="body2" noWrap>
+                          {[value.ggGeoName, value.ggGeoCountry].filter(Boolean).join(', ')}
+                        </Typography>
                       </Box>
                     )}
                   </Box>

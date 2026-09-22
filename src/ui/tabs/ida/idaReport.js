@@ -207,7 +207,7 @@ function buildReportData(ggYearData, lang) {
 // shows entry counts for all seven metrics, not just the four xOk flags.
 const countHeaders = () => METRIC_SECTIONS.map((s) => `${s.title} #`);
 
-export function exportYearToXlsx(ggYearData, year, lang) {
+export function exportYearToXlsx(ggYearData, year, lang, targetWindow) {
     const { summaryRows, sections } = buildReportData(ggYearData, lang);
     const workbook = XLSX.utils.book_new();
 
@@ -232,7 +232,21 @@ export function exportYearToXlsx(ggYearData, year, lang) {
         XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
     });
 
-    XLSX.writeFile(workbook, `ida-report-${year}.xlsx`);
+    // Browsers have no built-in spreadsheet renderer, so unlike the PDF
+    // export this still ends up downloaded rather than shown inline — but
+    // routing it through the same pre-opened tab keeps both exports
+    // consistent and avoids a second, separate popup-blocked window.
+    const wbArray = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbArray], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const blobUrl = URL.createObjectURL(blob);
+    if (targetWindow && !targetWindow.closed) {
+        targetWindow.location.href = blobUrl;
+    } else {
+        window.open(blobUrl, "_blank");
+    }
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
 }
 
 // A bit darker than a pastel tint (better contrast for white header text)
@@ -325,7 +339,7 @@ async function useHebrewCapableFont(doc) {
     return true;
 }
 
-export async function exportYearToPdf(ggYearData, year, lang) {
+export async function exportYearToPdf(ggYearData, year, lang, targetWindow) {
     const { summaryRows, sections } = buildReportData(ggYearData, lang);
     const doc = new jsPDF({ orientation: "landscape" });
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -415,5 +429,14 @@ export async function exportYearToPdf(ggYearData, year, lang) {
         cursorY = doc.lastAutoTable.finalY + 12;
     });
 
-    doc.save(`ida-report-${year}.pdf`);
+    // Open it (the browser's own PDF viewer renders it inline) instead of
+    // forcing a download. targetWindow is a blank tab the caller opened
+    // synchronously on the click — opening one here instead, after all the
+    // preceding awaits, would get blocked as a non-user-gesture popup.
+    const blobUrl = doc.output("bloburl");
+    if (targetWindow && !targetWindow.closed) {
+        targetWindow.location.href = blobUrl;
+    } else {
+        window.open(blobUrl, "_blank");
+    }
 }

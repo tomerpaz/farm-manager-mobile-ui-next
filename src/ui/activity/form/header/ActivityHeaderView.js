@@ -201,7 +201,206 @@ const ActivityHeaderView = ({ activity, control, errors, customers, activityDefs
               onChange={(v) => field.onChange(toDateOrNull(v))} />}
             rules={{ required: true }}
           />}
+        {config.type === MARKET &&
+          <Controller
+            name="customer"
+            rules={{ required: true }}
+            control={control}
+            render={({ field: { ref, onChange, ...field } }) => <Autocomplete
+              disablePortal
+              blurOnSelect={true}
+              onChange={(_, data) => onChange(data)}
+              options={customers}
+              sx={{ flex: 1 }}
+              size='small'
+              getOptionLabel={(option) => option ? option.name : ''}
+              isOptionEqualToValue={(option, value) => (value === undefined) || option?.id?.toString() === (value?.id ?? value)?.toString()}
+              renderInput={(params) => <TextFieldBase
+                error={errors.customer ? true : false}
+                sx={{ marginTop: 0.5 }} {...params} label={text.customer} />}
+              {...field} />}
+          />}
       </Box>
+
+      {SCOUT === type && crop && !isArrayEmpty(crop.stages) &&
+        <Box sx={{ paddingTop: 1, display: 'flex', flex: 1 }}>
+          <Controller
+            control={control}
+            name="scoutParams.phenologicalStage"
+            render={({ field }) => (
+              <TextField
+                sx={{ flex: 1 }}
+                id="outlined-select-crop-phenologicalStage"
+                select
+                {...field}
+                size='small'
+                label={text.phenologicalStage}
+              >
+                <MenuItem><em></em></MenuItem>
+                {crop.stages?.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+        </Box>
+      }
+
+      {SPRAY_TYPES.includes(type) &&
+        <Box sx={{ display: 'flex', marginTop: 2, flex: 1, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+          <Controller
+            name="sprayParams.crop"
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { ref, onChange, ...field } }) => <Autocomplete
+              blurOnSelect={true}
+              onChange={(_, data) => _onCropChange(onChange, data)}
+              options={crops.filter(e => e.active)}
+              fullWidth
+              size='small'
+              getOptionLabel={(option) => option ? option.name : ''}
+              isOptionEqualToValue={(option, value) => (value === undefined) || option?.id?.toString() === (value?.id ?? value)?.toString()}
+              renderInput={(params) => <TextFieldBase error={errors.sprayParams?.crop ? true : false} sx={{ marginTop: 0.5 }} {...params} label={text.crop} />}
+              {...field} />}
+          />
+          {config.wind && <Box sx={{ margin: 1 }} />}
+          {config.wind && <Controller
+            control={control}
+            name="sprayParams.wind"
+            render={({ field }) => (
+              <TextField
+                id="outlined-select-wind"
+                select
+                {...field}
+                size='small'
+                label={text.windSpeed}
+                fullWidth
+              >
+                {getWinds().map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {text[option]}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />}
+        </Box>
+      }
+
+      {HARVEST === type &&
+        <Box sx={{ marginTop: 2, display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+          <Box sx={{ display: 'flex', flex: 1, flexDirection: 'row', alignContent: 'center', alignItems: 'center' }}>
+            <Controller
+              control={control}
+              name="waybill"
+              render={({ field }) => (
+                <TextField size='small'
+                  sx={{ flex: 1 }}
+                  id="activity-waybill"
+                  label={text.waybill} {...field} />
+              )}
+            />
+            <Box sx={{ margin: 1 }} />
+            <Controller
+              name="customer"
+              rules={{ required: true }}
+              control={control}
+              render={({ field: { ref, onChange, ...field } }) => <Autocomplete
+                disablePortal
+                blurOnSelect={true}
+                onChange={(_, data) => onChange(data)}
+                options={customers}
+                sx={{ flex: 1 }}
+                size='small'
+                getOptionLabel={(option) => option ? option.name : ''}
+                isOptionEqualToValue={(option, value) => (value === undefined) || option?.id?.toString() === (value?.id ?? value)?.toString()}
+                renderInput={(params) => <TextFieldBase
+                  error={errors.customer ? true : false}
+                  sx={{ marginTop: 0.5 }} {...params} label={text.customer} />}
+                {...field} />}
+            />
+          </Box>
+        </Box>
+      }
+
+      {MARKET === type &&
+        <Box sx={{ marginTop: 2, display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+          <Controller
+            control={control}
+            name="invoice"
+            render={({ field }) => (
+              <TextField size='small'
+                sx={{ flex: 1 }}
+                id="activity-invoice"
+                label={text.invoice} {...field} />
+            )}
+          />
+          <Box sx={{ margin: 1 }} />
+          <Controller
+            name="marketParams.sortDate"
+            control={control}
+            render={({ field }) =>
+              <DatePicker label={text.sort}
+                closeOnSelect
+                showToolbar={false}
+                localeText={{
+                  cancelButtonLabel: text.cancel,
+                  clearButtonLabel: text.clear,
+                  okButtonLabel: text.save
+                }}
+                slotProps={{
+                  textField: { size: 'small', variant: 'outlined', sx: { flex: 1 } },
+                  actionBar: { actions: ["cancel", "clear"] }
+                }}
+                {...field}
+                value={toPickerValue(field.value)}
+                onChange={(v) => field.onChange(toDateOrNull(v))} />}
+          />
+        </Box>
+      }
+
+      {MARKET === type &&
+        <Box sx={{ marginTop: 2, display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+          <Controller
+            control={control}
+            name="marketParams.incomeCalc"
+            render={({ field }) => (
+              <TextField
+                id="outlined-select-incomeCalc"
+                select
+                {...field}
+                size='small'
+                label={text.incomeCalc}
+                sx={{ flex: 1 }}
+              >
+                <MenuItem key={''} value={''}>
+                  <em>
+                    {text.none}
+                  </em>
+                </MenuItem>
+                {getMarketingIncomeCalcOptions().map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {text[option]}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+          <Box sx={{ margin: 1 }} />
+          <Controller
+            control={control}
+            name="marketParams.sortReference"
+            render={({ field }) => (
+              <TextField size='small'
+                sx={{ flex: 1 }}
+                id="activity-sortReference"
+                label={text.sortReference} {...field} />
+            )}
+          />
+        </Box>
+      }
     </Box>
   );
 }

@@ -83,9 +83,14 @@ const METRICS = [
         schema: [
             { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
             { name: "site_id", type: "select", label: "Site", optionsFrom: "sites", allOption: true },
-            { name: "amount", type: "number", label: "Total Amount", unit: "m³", required: true },
-            { name: "amountWaterUseIrrigation", type: "number", label: "Irrigation Amount", unit: "m³", column: false },
-            { name: "amountWaterUseProductHandling", type: "number", label: "Product Handling", unit: "m³", column: false },
+            {
+                name: "amount", type: "number", label: "Total Amount", unit: "m³", required: true,
+                // Derived, not user-entered — kept out of the dialog and summed
+                // from the two fields below whenever the record is saved.
+                hidden: true, computeFrom: ["amountWaterUseIrrigation", "amountWaterUseProductHandling"],
+            },
+            { name: "amountWaterUseIrrigation", type: "number", label: "Irrigation Amount", unit: "m³", column: false, required: true },
+            { name: "amountWaterUseProductHandling", type: "number", label: "Product Handling", unit: "m³", column: false, required: true },
             { name: "flowRate", type: "text", label: "Flow Rate", column: false },
         ],
     },
@@ -123,7 +128,14 @@ const METRICS = [
         schema: [
             { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
             { name: "site_id", type: "select", label: "Site", optionsFrom: "sites", allOption: true },
-            { name: "energySourceId", type: "select", label: "Energy Source", required: true, optionsFrom: "energyTypes" },
+            {
+                name: "energySourceId", type: "select", label: "Energy Source", required: true, optionsFrom: "energyTypes",
+                // Energy source 15 is "renewable"/self-generated — no external
+                // amount was drawn, so date/amount/renewableAmount are forced
+                // (last day of the month / 0) and locked, same idea as the
+                // "None" pesticide/fertilizer option below (id 0 there).
+                zeroLinksTo: ["date", "amount", "renewableAmount"], linkTriggerValue: 15,
+            },
             { name: "amount", type: "number", label: "Power Absorbed", unit: "kWh", required: true },
             { name: "renewableAmount", type: "number", label: "Renewable Amount", unit: "kWh", column: false },
         ],
@@ -259,16 +271,19 @@ function IDAForm() {
     // useForm only reads defaultValues once, and ggYearData arrives async —
     // without this the form would stay blank even when the month already has
     // a saved record. Hydrate once so a later refetch (e.g. after saving)
-    // can't clobber edits in progress.
+    // can't clobber edits in progress. A brand-new month has no manager yet,
+    // so default it to the first worker rather than leaving it blank.
     const hydrated = useRef(false);
     useEffect(() => {
-        if (!hydrated.current && !isYearDataLoading) {
+        if (!hydrated.current && !isYearDataLoading && !isWorkersLoading) {
             if (existingRecord) {
                 reset({ ...EMPTY_RECORD, ...fromRecord(existingRecord) });
+            } else if (workers.length > 0) {
+                reset({ ...EMPTY_RECORD, manager: { id: workers[0].id, name: workers[0].name } });
             }
             hydrated.current = true;
         }
-    }, [existingRecord, isYearDataLoading, reset]);
+    }, [existingRecord, isYearDataLoading, isWorkersLoading, workers, reset]);
 
     const metricValues = useWatch({ control, name: METRIC_IDS });
 
@@ -328,7 +343,12 @@ function IDAForm() {
     const dataSources = {
         sites: idaSystemData?.sites,
         waterTypes: idaSystemData?.waterTypes,
-        energyTypes: idaSystemData?.energyTypes,
+        // Id 15 ("renewable") drives the auto-zero/disable behavior below —
+        // surfaced first in the dropdown since it's the option farmers
+        // reach for most often.
+        energyTypes: [...(idaSystemData?.energyTypes || [])].sort((a, b) =>
+            (a.id === 15 ? -1 : b.id === 15 ? 1 : 0)
+        ),
         // id 0 is a real, selectable choice — it's how a farmer declares
         // "nothing was applied to this field" for the month, which still
         // counts toward the per-field coverage required when not a draft.
