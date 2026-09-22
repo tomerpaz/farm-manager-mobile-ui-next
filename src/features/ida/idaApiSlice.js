@@ -1,6 +1,4 @@
-import { apiSlice } from "../../app/api/apiSlice";
-import { Pests_TAG } from "../../app/api/apiSlice"; // Reusing your existing central tag constant
-import { CropGenera_TAG, ProductCategories_TAG } from "../auth/authApiSlice";
+import { apiSlice, Pests_TAG, CropGenera_TAG, ProductCategories_TAG } from "../../app/api/apiSlice";
 
 export const IdaSystem_TAG = 'IdaSystem';
 export const GGYearData_TAG = 'GGYearData';

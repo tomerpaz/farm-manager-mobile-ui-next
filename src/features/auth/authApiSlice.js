@@ -1,5 +1,9 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
-import { Activities_TAG, FieldScouts_TAG, Field_TAG, Inventory_TAG, FieldPoints_TAG, Season_TAG, apiSlice, PestsStages_TAG, PlantParts_TAG, InfectionLevels_TAG, Points_TAG, Pests_TAG, Layers_TAG } from "../../app/api/apiSlice";
+import {
+    Activities_TAG, FieldScouts_TAG, Field_TAG, Inventory_TAG, FieldPoints_TAG, Season_TAG, apiSlice,
+    PestsStages_TAG, PlantParts_TAG, InfectionLevels_TAG, Points_TAG, Pests_TAG, Layers_TAG,
+    Sites_TAG, SiteFields_TAG, CropGenera_TAG, ProductCategories_TAG, Resource_TAG,
+} from "../../app/api/apiSlice";
 
 
 export const FieldActivities_TAG = 'FieldActivities';
@@ -10,18 +14,12 @@ export const Crops_TAG = 'Crops';
 export const SelectedActivity_TAG = 'SelectedActivity';
 export const Warehouses_TAG = 'Warehouses';
 export const Resources_TAG = 'Resources';
-export const Resource_TAG = 'Resource_TAG';
 
 export const Containers_TAG = 'Containers';
 export const CropPesticides_TAG = 'CropPesticides_TAG';
 export const Qualities_TAG = 'Qualities';
 export const Sizes_TAG = 'Sizes';
-export const Sites_TAG = 'Sites_TAG';
 export const Site_TAG = 'Site_TAG';
-export const SiteFields_TAG = 'SiteFields_TAG';
-
-export const CropGenera_TAG = 'CropGenera_TAG';
-export const ProductCategories_TAG = 'ProductCategories_TAG';
 // const _TAG = '';
 // const _TAG = '';
 

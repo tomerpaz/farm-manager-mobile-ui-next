@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { logOut, setCredentials } from '../../features/app/appSlice'
-import { CropGenera_TAG, ProductCategories_TAG, Resource_TAG, SiteFields_TAG, Sites_TAG } from '../../features/auth/authApiSlice';
 
 export const Field_TAG = 'Field';
 export const Activities_TAG = 'Activities';
@@ -26,6 +25,11 @@ export const PestsStages_TAG = 'PestsStages';
 export const InfectionLevels_TAG = 'InfectionLevels';
 export const PlantParts_TAG = 'PlantParts';
 export const Layers_TAG = 'Layers';
+export const Sites_TAG = 'Sites_TAG';
+export const SiteFields_TAG = 'SiteFields_TAG';
+export const CropGenera_TAG = 'CropGenera_TAG';
+export const ProductCategories_TAG = 'ProductCategories_TAG';
+export const Resource_TAG = 'Resource_TAG';
 
 
 // export const FARM_MANAGER = 'http://localhost:8080'

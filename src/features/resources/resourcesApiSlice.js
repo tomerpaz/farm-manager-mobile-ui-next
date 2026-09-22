@@ -1,8 +1,8 @@
 import {
     createEntityAdapter
 } from "@reduxjs/toolkit";
-import { apiSlice } from "../../app/api/apiSlice";
-import { Resource_TAG, Resources_TAG } from "../auth/authApiSlice";
+import { apiSlice, Resource_TAG } from "../../app/api/apiSlice";
+import { Resources_TAG } from "../auth/authApiSlice";
 
 
 export const resourcesAdapter = createEntityAdapter()
