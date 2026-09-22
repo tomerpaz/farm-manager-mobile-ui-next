@@ -21,7 +21,9 @@ const AppBarMenu = () => {
     const [anchorEl, setAnchorEl] = React.useState(null);
 
     const { data: user, isSuccess } = useGetUserDataQuery()
-    
+
+    const isIda = (user?.userConf || []).filter(e => e.type === 'IDA').length > 0;
+
     const activeGPS = useSelector(selectActiveGPS);
 
     const handleMenu = (event) => {
@@ -101,7 +103,7 @@ const AppBarMenu = () => {
                     </IconButton>
                     {isSuccess ? user.displayName: text.settings}
                 </MenuItem>
-                <MenuItem  color={activeGPS ? 'primary' : "inherit"} onClick={handleActiveGPS} >
+                {!isIda && <MenuItem  color={activeGPS ? 'primary' : "inherit"} onClick={handleActiveGPS} >
                     <IconButton
                         size="large"
                         aria-label="settings"
@@ -109,8 +111,8 @@ const AppBarMenu = () => {
                     >
                         <GpsFixed />
                     </IconButton>
-                    <Typography color={activeGPS ? 'primary' : "inherit"} >{'Active GPS'}</Typography>               
-                </MenuItem>
+                    <Typography color={activeGPS ? 'primary' : "inherit"} >{'Active GPS'}</Typography>
+                </MenuItem>}
             </Menu>
             <SettingsDialog/>
             <LayersDialog/>

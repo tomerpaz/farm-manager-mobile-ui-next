@@ -417,7 +417,7 @@ const ActivityResources = ({ activity, control, errors, register, tariffs, activ
                         alignItems: 'center'
                     }}>
                     <IconButton size='large' disabled={isArrayEmpty(resourceBulkUnits)} onClick={() => setOpenEditBulkQty(true)}><MoreVert fontSize='large' /></IconButton>
-                    <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={() => remove()}><Delete fontSize='large' /></IconButton>
+                    <IconButton size='large' color='secondary' disabled={isArrayEmpty(fields)} onClick={() => remove()}><Delete fontSize='large' /></IconButton>
                 </Box>
             </Box>
 

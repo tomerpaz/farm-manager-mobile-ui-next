@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { CacheProvider } from '@emotion/react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import rtlPlugin from 'stylis-plugin-rtl';
 import createCache from '@emotion/cache';
-import heLocale from 'date-fns/locale/he';
-import esLocale from 'date-fns/locale/es';
-import enLocale from 'date-fns/locale/en-GB';
-import ptLocale from 'date-fns/locale/pt';
-// import nlLocale from 'date-fns/locale/nl';
-// import frLocale from 'date-fns/locale/fr';
+import 'dayjs/locale/he';
+import 'dayjs/locale/es';
+import 'dayjs/locale/en-gb';
+import 'dayjs/locale/pt';
+// import 'dayjs/locale/nl';
+// import 'dayjs/locale/fr';
 import { selectLang } from '../features/app/appSlice';
 import { useSelector } from 'react-redux';
 import { prefixer } from 'stylis';
@@ -20,21 +20,24 @@ import { prefixer } from 'stylis';
 //   stylisPlugins: [prefixer, rtlPlugin],
 // });
 
+// AdapterDayjs takes the locale as the registered dayjs locale code (a
+// string), not a locale object like date-fns did — the imports above just
+// register each locale as a side effect, and this map picks the code.
 const localeMap = {
-    en: enLocale,
-    he: heLocale,
-     es: esLocale,
-     pt: ptLocale,
-    // nl: nlLocale,
-    // fr: frLocale,
+    en: 'en-gb',
+    he: 'he',
+     es: 'es',
+     pt: 'pt',
+    // nl: 'nl',
+    // fr: 'fr',
 };
 
-function getFnsLocale(lang) {
+function getDayjsLocale(lang) {
     const result = localeMap[lang];
     if (result) {
         return result;
     }
-    return enLocale; // default
+    return localeMap.en; // default
 }
 
 const LocaleApplication = (props) => {
@@ -42,7 +45,7 @@ const LocaleApplication = (props) => {
     const { lang, dir } = useSelector(selectLang)
 
     const [cacheRtl, setCacheRtl] = useState(null);
-    const [fnsLocaleValue, setFnsLocaleValue] = useState(getFnsLocale(lang));
+    const [dayjsLocaleValue, setDayjsLocaleValue] = useState(getDayjsLocale(lang));
 
     useEffect(() => {
         if (dir === 'rtl') {
@@ -57,15 +60,15 @@ const LocaleApplication = (props) => {
 
 
     useEffect(() => {
-        setFnsLocaleValue(getFnsLocale(lang))
+        setDayjsLocaleValue(getDayjsLocale(lang))
     }, [lang]);
 
 
     return cacheRtl ?
         <CacheProvider value={cacheRtl}>
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fnsLocaleValue}  {...props} />
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dayjsLocaleValue}  {...props} />
         </CacheProvider> :
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fnsLocaleValue}  {...props} />
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dayjsLocaleValue}  {...props} />
 
 }
 export default LocaleApplication;

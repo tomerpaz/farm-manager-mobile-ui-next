@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { selectLang } from "../../../../features/app/appSlice";
 import { useEffect, useState } from "react";
 import { useGetUserDataQuery } from "../../../../features/auth/authApiSlice";
-import { HARVEST, MARKET, UI_SIZE, displayFieldName, getActivityTypeText, getMarketingDestinations, isArrayEmpty, safeDiv } from "../../../FarmUtil";
+import { HARVEST, MARKET, UI_SIZE, displayFieldName, getActivityTypeText, getMarketingDestinations, isArrayEmpty, safeDiv, toDateOrNull, toPickerValue } from "../../../FarmUtil";
 import { DatePicker } from "@mui/x-date-pickers";
 import { Cancel, Close, ControlPointDuplicate, Delete, Save } from "@mui/icons-material";
 import { useGetContainersQuery, useGetQualitiesQuery, useGetSizesQuery } from "../../../../features/utils/containersApiSlice";
@@ -170,8 +170,8 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                                 clearButtonLabel: text.clear
                             }}
                             showToolbar={false}
-                            value={actualExecution}
-                            onChange={(e) => setActualExecution(e)}// asLocalDate(e, true)}
+                            value={toPickerValue(actualExecution)}
+                            onChange={(e) => setActualExecution(toDateOrNull(e))}// asLocalDate(e, true)}
                             slotProps={{
                                 textField: { size: UI_SIZE, variant: 'outlined', sx: { marginTop: 0.5, flex: 1 } },
                                 actionBar: { actions: ["cancel", "clear"] }
@@ -286,7 +286,7 @@ const ActivityFieldDialog = ({ selectedRow, selectedIndex, handleClose, activity
                     <TextFieldBase value={note} onChange={e => setNote(e.target.value)} fullWidth={true} label={`${text.fieldNote}`} />
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center' }}>
-                    <Button size='large' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={remove}>{text.delete}</Button>
+                    <Button size='large' color='secondary' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={remove}>{text.delete}</Button>
                     <Button size='large' endIcon={<Save />} disableElevation={true} variant='contained' onClick={() => onAction(true)} >
                         {text.save}
                     </Button>

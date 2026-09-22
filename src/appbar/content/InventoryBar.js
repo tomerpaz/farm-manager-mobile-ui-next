@@ -3,6 +3,7 @@ import { AppBar, IconButton, Toolbar } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectInventoryDateFilter, selectInventoryFreeTextFilter, selectInventoryWarehouseFilter, setAppBarDialogOpen, setInventoryFreeTextFilter } from '../../features/app/appSlice'
 import AppBarMenu from '../components/AppBarMenu'
+import AppBarLogo from '../components/AppBarLogo'
 import AppBarSearch from '../components/AppBarSearch'
 import { asLocalDate } from '../../ui/FarmUtil'
 
@@ -20,6 +21,7 @@ const InventoryBar = () => {
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar>
+                <AppBarLogo />
                 <IconButton
                     size="large"
                     edge="start"

@@ -6,8 +6,10 @@ import { selectCurrentYear, selectLang } from '../../features/app/appSlice';
 import { Close, Edit } from '@mui/icons-material';
 import { isArrayEmpty, isMobile } from '../FarmUtil';
 import ScoutingForm from './ScoutingForm';
-import { parseISO } from 'date-fns';
+import dayjs from 'dayjs';
 import { newScouting, SCOUT_TYPES } from './ScoutingUtil';
+
+const parseISO = (v) => dayjs(v).toDate()
 import ScoutingCard from './ScoutingCard';
 import { grey } from '@mui/material/colors';
 import AddIcon from '@mui/icons-material/Add';

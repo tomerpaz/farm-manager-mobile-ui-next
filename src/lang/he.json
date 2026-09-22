@@ -205,5 +205,10 @@
     "seedpod": "תרמיל",
     "freetext": "טקסט חופשי",
     "sites": "אתרים",
-    "ida": "IDA"
+    "ida": "IDA",
+    "soilType": "סוג קרקע",
+    "openField": "שדה פתוח",
+    "covered": "מכוסה",
+    "soil": "קרקע",
+    "soilless": "מצע מנותק"
 }

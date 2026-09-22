@@ -3,8 +3,9 @@ import { Avatar, Box, Typography, Autocomplete, MenuItem, TextField } from '@mui
 import { useSelector } from 'react-redux'
 import { selectLang } from '../../../../features/app/appSlice'
 import ActivityTypeIcon from '../../../../icons/ActivityTypeIcon'
-import { GENERAL, GENERAL_PLAN, getActivityTypeText, getMarketingIncomeCalcOptions, getWinds, getYearArray, HARVEST, IRRIGATION, IRRIGATION_PLAN, isArrayEmpty, MARKET, SCOUT, SPRAY, SPRAY_PLAN, SPRAY_TYPES } from '../../../FarmUtil'
+import { GENERAL, GENERAL_PLAN, getActivityTypeText, getMarketingIncomeCalcOptions, getWinds, getYearArray, HARVEST, IRRIGATION, IRRIGATION_PLAN, isArrayEmpty, MARKET, SCOUT, SPRAY, SPRAY_PLAN, SPRAY_TYPES, toDateOrNull, toPickerValue } from '../../../FarmUtil'
 import { DatePicker, TimePicker } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
 import { Controller } from 'react-hook-form'
 import TextFieldBase from '../../../../components/ui/TextField'
 import DecoratedBox from '../../../../components/ui/DecoratedBox'
@@ -112,7 +113,9 @@ const ActivityHeaderView = ({ activity, control, errors, customers, activityDefs
                 textField: { size: 'small', variant: 'outlined', sx: { flex: 1 } },
                 actionBar: { actions: ["cancel" /*, "clear"*/] }
               }}
-              {...field} />}
+              {...field}
+              value={toPickerValue(field.value)}
+              onChange={(v) => field.onChange(toDateOrNull(v))} />}
         />
         <Box sx={{ margin: 1 }} />
         {SCOUT === type &&
@@ -142,7 +145,7 @@ const ActivityHeaderView = ({ activity, control, errors, customers, activityDefs
             render={({ field }) => <DatePicker
               closeOnSelect
               showToolbar={false}
-              minDate={execution}
+              minDate={execution ? dayjs(execution) : undefined}
               label={text.end}
               localeText={{
                 cancelButtonLabel: text.cancel,
@@ -153,7 +156,9 @@ const ActivityHeaderView = ({ activity, control, errors, customers, activityDefs
                 textField: { size: 'small', error: (errors?.executionEnd ? true : false), variant: 'outlined', sx: { flex: 1 } },
                 actionBar: { actions: ["cancel" /*, "clear"*/] }
               }}
-              {...field} />}
+              {...field}
+              value={toPickerValue(field.value)}
+              onChange={(v) => field.onChange(toDateOrNull(v))} />}
             rules={{ required: true, min: execution }}
           />}
         {config.endDate && <Box sx={{ display: 'flex', justifyContent: 'end' }}><DecoratedBox value={`${days} ${text.days}`} error={days < 1} /> </Box>}
@@ -191,7 +196,9 @@ const ActivityHeaderView = ({ activity, control, errors, customers, activityDefs
                 textField: { size: 'small', error: (errors?.endHour ? true : false), variant: 'outlined', sx: { flex: 1 } },
                 actionBar: { actions: [] }
               }}
-              {...field} />}
+              {...field}
+              value={toPickerValue(field.value)}
+              onChange={(v) => field.onChange(toDateOrNull(v))} />}
             rules={{ required: true }}
           />}
       </Box>

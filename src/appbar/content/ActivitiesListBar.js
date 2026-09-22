@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from 'react-router'
 import { selectActivityFreeTextFilter, selectCurrentYear, selectEndDateFilter, selectLang, selectSelectedActivityFilterOptions, selectSelectedActivityPlanFilterOptions, selectStartDateFilter, setAppBarDialogOpen, setSelectedActivityFilterOptions, setSelectedActivityPlanFilterOptions } from '../../features/app/appSlice'
 import { buildActivityOptions, isStringEmpty, removeRedundantSelectedActivityOptions } from '../../ui/FarmUtil'
 import AppBarMenu from '../components/AppBarMenu'
+import AppBarLogo from '../components/AppBarLogo'
 import AppBarSearch from './SearchBarAutoComplete'
 import Accuracy from '../components/Accuracy'
 import { useFields } from '../../features/fields/fieldsApiSlice'
@@ -49,6 +50,7 @@ const ActivitiesListBar = ({ plans }) => {
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar>
+                <AppBarLogo />
                 <IconButton
                     size="large"
                     edge="start"

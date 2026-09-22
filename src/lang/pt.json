@@ -199,5 +199,12 @@
   "officialFieldId": "Ffficial Field Id",
   "executor": "Executor",
   "seedpod": "Seed Pod",
-  "freetext": "Free Text"
+  "freetext": "Free Text",
+  "sites": "Sites",
+  "ida": "IDA",
+  "soilType": "Soil Type",
+  "openField": "Open Field",
+  "covered": "Covered",
+  "soil": "Soil",
+  "soilless": "Soilless"
 }

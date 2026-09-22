@@ -8,8 +8,6 @@ const lang = localStorage.getItem('lang')
 const showInventory = 'true' === localStorage.getItem('showInventory');
 const showPlans = 'true' === localStorage.getItem('showPlans');
 const newActivityGeo = 'true' === localStorage.getItem('newActivityGeo');
-const activeGPS = 'true' === localStorage.getItem('activeGPS');
-
 const showFieldName = 'true' === localStorage.getItem('showFieldName');
 const showFieldAlias = 'true' === localStorage.getItem('showFieldAlias');
 const showOfficialFieldId = 'true' === localStorage.getItem('showOfficialFieldId');
@@ -62,9 +60,10 @@ const appSlice = createSlice({
         accuracy: null,
         longitude: null,
         latitude: null,
-        activeGPS,
+        activeGPS: false,
         visibleLayers: [],
-        defaultScouter: isStringEmpty(scouterId) ? null : { id: scouterId, name: scouterName }
+        defaultScouter: isStringEmpty(scouterId) ? null : { id: scouterId, name: scouterName },
+        idaMonthRecord: null,
         // showPestsLayer: false,
         // showTrapsLayer: false,
         // showIrrigationHeadsLayer: false,
@@ -214,6 +213,9 @@ const appSlice = createSlice({
                 state.visibleLayers = [...state.visibleLayers].concat([action.payload])
             }
         },
+        setIdaMonthRecord: (state, action) => {
+            state.idaMonthRecord = action.payload
+        },
     },
 })
 
@@ -223,7 +225,7 @@ export const { setCredentials, logOut, setLang, setCurrentYear, setAppBarDialogO
     setActivityType, setSnackbar, setOpenSettings, setInventoryFreeTextFilter,
     setInventoryDateFilter, setInventoryWarehouseFilter, setShowInventory, setShowPlans, setOpenLayers, setShowLayers, setEditLayer, setMapCenter, setMapZoom,
     setShowFieldAlias, setShowFieldName, setShowCropName, setNewActivityGeo, setAccuracy, setActiveGPS, setLongitude, setLatitude, setActivityParentFieldFilter, setActivityBaseFieldFilter, setActivitySiteFilter,
-    setShowOfficialFieldId, setVisibleLayers, setDefaultScouter, setSelectedFieldFilterOptions, setSelectedActivityFilterOptions, setSelectedActivityPlanFilterOptions
+    setShowOfficialFieldId, setVisibleLayers, setDefaultScouter, setSelectedFieldFilterOptions, setSelectedActivityFilterOptions, setSelectedActivityPlanFilterOptions,setIdaMonthRecord
 } = appSlice.actions
 
 export default appSlice.reducer
@@ -266,5 +268,5 @@ export const selectDefaultScouter = (state) => state.app.defaultScouter
 export const selectSelectedFieldFilterOptions = (state) => state.app.selectedFieldFilterOptions
 export const selectSelectedActivityFilterOptions = (state) => state.app.selectedActivityFilterOptions
 export const selectSelectedActivityPlanFilterOptions = (state) => state.app.selectedActivityPlanFilterOptions
-
+export const selectIdaMonthRecord = (state) => state.app.idaMonthRecord
 

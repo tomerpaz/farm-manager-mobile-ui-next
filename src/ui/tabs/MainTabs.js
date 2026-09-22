@@ -5,7 +5,7 @@ import FieldsMap from './map/FieldsMap';
 import { Link, useLocation, useParams } from 'react-router';
 import FieldList from './fields/FieldList';
 import IdaDash from './ida/IdaDash';
-import IdaResources from './ida/IdaResources';
+import Resources from './resources/Resources';
 import IdaSites from './ida/IdaSites';
 import ActivitiesList from './activities/ActivitiesList';
 import { selectEditLayer, selectLang, selectShowInventory, selectShowPlans } from '../../features/app/appSlice';
@@ -57,7 +57,7 @@ const MainTabs = () => {
     const { data: { userConf, usePlans } } = useGetUserDataQuery()
 
     const isIda = userConf.filter(e => e.type === 'IDA').length > 0;
-    const paths = isIda ? ['/tabs/ida/dash', '/tabs/ida/sites', '/tabs/ida/resources'] : ['/tabs/map', '/tabs/fields', `/tabs/activities/${page}`/*, `/tabs/plans/${page}`*/];
+    const paths = isIda ? ['/tabs/ida/dash', '/tabs/ida/sites', '/tabs/resources'] : ['/tabs/map', '/tabs/fields', `/tabs/activities/${page}`/*, `/tabs/plans/${page}`*/];
 
     const showInventory = useSelector(selectShowInventory);
     const isInventory = showInventory && isInventoryPossible(userConf);
@@ -114,7 +114,7 @@ const MainTabs = () => {
 
                     {isIda && <Tab label={text.ida} to="/tabs/ida/dash" component={Link}   {...a11yProps(0)} />}
                     {isIda && <Tab label={text.sites} to="/tabs/ida/sites" component={Link}   {...a11yProps(1)} />}
-                    {isIda && <Tab label={text.resources} to="/tabs/ida/resources" component={Link}   {...a11yProps(2)} />}
+                    {isIda && <Tab label={text.resources} to="/tabs/resources" component={Link}   {...a11yProps(2)} />}
 
                     {/* {usePlans && <Tab label={text.plans} to="/tabs/plans/0" component={Link}  {...a11yProps(3)} />}  */}
 
@@ -154,7 +154,7 @@ const MainTabs = () => {
 
             </TabPanel>
             <TabPanel component={'div'} value={value} index={2}>
-                {isIda && <IdaResources />}
+                {isIda && <Resources />}
                 {!isIda &&
                     <Box
                         sx={{

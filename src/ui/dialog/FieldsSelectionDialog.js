@@ -10,7 +10,9 @@ import ListPager from "../../components/ui/ListPager";
 import DialogAppBar from "./DialogAppBar";
 
 const filterActive = (field, active) => {
-    return active ? field.endDate === null : field.endDate !== null;
+    // Loose check on purpose: a still-active field's endDate may come back
+    // as null, undefined, or simply absent depending on the endpoint.
+    return active ? !field.endDate : !!field.endDate;
 }
 
 const filterField = (field, filter, cropId, active) => {

@@ -3,7 +3,6 @@
 // import { sumBy } from 'lodash';
 // import { CONTRACTOR, WORKER, WORKER_GROUP } from "../modules/activity/types";
 
-import { el } from "date-fns/locale";
 import { CONTRACTOR, WORKER, WORKER_GROUP } from "./FarmUtil";
 
 

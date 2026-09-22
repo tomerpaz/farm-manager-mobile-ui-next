@@ -179,7 +179,7 @@ const ActivityScouts = ({ activity, control, errors, register, setValue, trigger
                         alignItems: 'center'
                     }}>
                     <IconButton size='large' disabled={isWaypointsDisabled} onClick={() => setOpenWaypointSelection(true)}><AddLocation sx={LocationIconSx()} fontSize='large' /></IconButton>
-                    <IconButton size='large' disabled={isArrayEmpty(fields)} onClick={() => remove()}><Delete fontSize='large' /></IconButton>
+                    <IconButton size='large' color='secondary' disabled={isArrayEmpty(fields)} onClick={() => remove()}><Delete fontSize='large' /></IconButton>
 
                 </Box>
             </Box>

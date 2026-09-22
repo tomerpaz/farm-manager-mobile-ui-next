@@ -221,6 +221,7 @@ const ActivityForm = ({ activity }) => {
               icon={<Cancel fontSize='large' />}
             /> */}
             {activity.editable && uuid && <BottomNavigationAction
+              sx={{ color: 'secondary.main' }}
               label={<Typography>{text.delete}</Typography>}
               onClick={() => setDeleteOpen(true)}
               icon={<Delete fontSize='large' />}
@@ -243,7 +244,7 @@ const ActivityForm = ({ activity }) => {
             />}
           </BottomNavigation>
           <ActionApprovalDialog open={deleteOpen} handleClose={handleDelete}
-            title={text.deleteFormTitle} body={text.deleteFormBody} okText={text.delete} cancelText={text.cancel} />
+            title={text.deleteFormTitle} body={text.deleteFormBody} okText={text.delete} cancelText={text.cancel} color="secondary" />
         </form>
       </Box>
     </Box>

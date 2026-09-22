@@ -1,5 +1,6 @@
 import { AppBar, Toolbar, IconButton, Box } from '@mui/material'
 import { AddCommentOutlined, Close, Layers, Share } from '@mui/icons-material'
+import AppBarLogo from '../components/AppBarLogo'
 import ShareLocationMenu from '../components/ShareLocationMenu'
 import { useNavigate, useParams } from 'react-router'
 import { selectCurrentYear, selectFieldDashboardYear, setOpenLayers } from '../../features/app/appSlice'
@@ -46,8 +47,10 @@ const FieldViewBar = ({ layers, share, years }) => {
                 <Box
                     sx={{
                         display: 'flex',
-                        flexDirection: 'row'
+                        flexDirection: 'row',
+                        alignItems: 'center'
                     }}>
+                    <AppBarLogo />
                     {share && lat && lng && <ShareLocationMenu lat={lat} lng={lng} />}
                     {years && field && <SelectYearMenu minYear={getDateYear(field?.startDate)}/>}
 

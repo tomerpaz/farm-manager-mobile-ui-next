@@ -7,9 +7,6 @@ import { Site_TAG, Sites_TAG } from "../auth/authApiSlice";
 
 export const sitesAdapter = createEntityAdapter()
 
-const initialState = sitesAdapter.getInitialState()
-
-
 export const sitesApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [Sites_TAG, Site_TAG] }).injectEndpoints({
 
     endpoints: builder => ({
@@ -62,20 +59,5 @@ export const {
 
 // returns the query result object
 export const selectSitesResult = sitesApiSlice.endpoints.getSites.select()
-
-// // Creates memoized selector
-// const selectFieldsData = createSelector(
-//     selectFieldssResult,
-//     fieldsResult => fieldsResult.data // normalized state object with ids & entities
-// )
-
-// //getSelectors creates these selectors and we rename them with aliases using destructuring
-// export const {
-//     selectAll: selectAllFields,
-//     selectById: selectFieldById,
-//     selectIds: selectFieldIds,
-//     //   selectByYear: selectFieldByYear,
-//     // Pass in a selector that returns the fields slice of state
-// } = fieldsAdapter.getSelectors(state => selectFieldsData(state) ?? initialState)
 
 export const getSitesState = (state) => state;

@@ -5,7 +5,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { asLocalDate,  isMobile, parseISOOrNull } from '../../ui/FarmUtil';
+import { asLocalDate,  isMobile, parseISOOrNull, toDateOrNull, toPickerValue } from '../../ui/FarmUtil';
 import { FilterAltOff } from '@mui/icons-material';
 import { useGetWarehousesQuery } from '../../features/warehouses/warehouseApiSlice';
 import { Transition } from '../../ui/Util';
@@ -60,7 +60,7 @@ const InventoryFilter = () => {
             fullScreen={isMobile()} fullWidth={!isMobile()}
             open={open}
             onClose={handleClose}
-            TransitionComponent={Transition}
+            slots={{ transition: Transition }}
         >
             <AppBar sx={{ position: 'relative' }} elevation={0}>
                 <Toolbar>
@@ -100,8 +100,8 @@ const InventoryFilter = () => {
                         // okButtonLabel: text.save
 
                         showToolbar={false}
-                        value={parseISOOrNull(inventoryDate)}
-                        onChange={(e) => dispatch(setInventoryDateFilter(asLocalDate(e, true)))}
+                        value={toPickerValue(parseISOOrNull(inventoryDate))}
+                        onChange={(e) => dispatch(setInventoryDateFilter(asLocalDate(toDateOrNull(e), true)))}
                         slotProps={{
                             textField: { size: 'small', variant: 'outlined' },
                             actionBar: { actions: ["cancel", "clear"] }

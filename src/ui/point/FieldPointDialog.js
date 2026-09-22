@@ -9,7 +9,7 @@ import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import { useCreateFieldPointMutation, useDeleteFieldPointMutation, useUpdateFieldPointMutation } from '../../features/points/pointsApiSlice';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Cancel, Close, Delete, PestControl, Save } from '@mui/icons-material';
-import { FormSpacer, getPointTypes, trap, UI_SIZE } from '../FarmUtil';
+import { FormSpacer, getPointTypes, toDateOrNull, toPickerValue, trap, UI_SIZE } from '../FarmUtil';
 import { useGetPestsQuery } from '../../features/pests/pestsApiSlice';
 import { DatePicker } from '@mui/x-date-pickers';
 
@@ -169,7 +169,9 @@ const FieldPointDialog = ({ defaultValues, open, handleClose, deletable,/*, type
                         textField: { size: UI_SIZE, variant: 'outlined', sx: { marginTop: 0.5, flex: 1 } },
                         actionBar: { actions: ["cancel", "clear"] }
                       }}
-                      {...field} />}
+                      {...field}
+                      value={toPickerValue(field.value)}
+                      onChange={(v) => field.onChange(toDateOrNull(v))} />}
                 />
               </Box>
             </Fragment>
@@ -199,7 +201,7 @@ const FieldPointDialog = ({ defaultValues, open, handleClose, deletable,/*, type
 
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center' }}>
-          {defaultValues.id && deletable && <Button size='large' endIcon={<Delete />} variant='outlined' onClick={() => onAction('delete')}>{text.delete}</Button>}
+          {defaultValues.id && deletable && <Button size='large' color='secondary' endIcon={<Delete />} variant='outlined' onClick={() => onAction('delete')}>{text.delete}</Button>}
 
           <Button size='large' endIcon={<Save />} disableElevation={true} variant='contained' type="submit" >
             {text.save}

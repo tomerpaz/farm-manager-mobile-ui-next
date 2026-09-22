@@ -16,11 +16,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import ActivityView from './ui/activity/view/ActivityView';
 import NewActivity from './ui/activity/view/NewActivity';
 import SiteForm from './ui/site/SiteForm';
+import SiteFieldList from './ui/site/SiteFieldList';
+import IdaFieldForm from './ui/field/IdaFieldForm';
 import { Alert, Snackbar } from '@mui/material';
 import { isStringEmpty } from './ui/FarmUtil';
 import { useGetUserDataQuery } from './features/auth/authApiSlice';
-
-
+import ResourceList from './components/ui/resources/ResourceList'
+import ResourceForm from './components/ui/resources/ResourceForm'
+import IDAForm from './features/ida/form/IDAForm'
 
 export const PRIMARY_MAIN = '#49A05E';
 export const PRIMARY_DARK = '#49A05E';
@@ -90,12 +93,18 @@ function App() {
                   <Route index element={<Navigate to={DEFAULT_ROUTE} replace />} />
                   <Route path='/tabs/activities/:page' element={<MainTabs />} />
                   <Route path='/tabs/plans/:page' element={<MainTabs />} />
+                  <Route path='/tabs/ida/dash' element={<MainTabs />} />
                   <Route path='/tabs/*' element={<MainTabs />} />
                   <Route path='/field/:src/:fieldId/history/:page' element={<Field />} />
                   <Route path='/field/:src/:fieldId/*' element={<Field />} />
                   <Route path='/activity/:src/:activityId' element={<ActivityView />} />
                   <Route path='/activity/new/:type' element={<NewActivity />} />
                   <Route path='/site/:siteId' element={<SiteForm />} />
+                  <Route path='/site/:siteId/fields' element={<SiteFieldList />} />
+                  <Route path='/site/:siteId/field/:fieldId' element={<IdaFieldForm />} />
+                  <Route path='/resources/:resourceType' element={<ResourceList />} />
+                  <Route path='/resource/:resourceType/:resourceId' element={<ResourceForm />} />
+                  <Route path='/ida/:year/:month' element={<IDAForm />} />
 
                 </Route>
               </Route>

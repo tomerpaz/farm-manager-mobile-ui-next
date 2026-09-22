@@ -4,7 +4,9 @@ import Loading from '../../../components/Loading'
 import { useGetActivityByIdQuery } from '../../../features/activities/activitiesApiSlice'
 import { GENERAL, GENERAL_PLAN, HARVEST, IRRIGARION_TYPES, IRRIGATION, IRRIGATION_PLAN, MARKET, SCOUT, SPRAY, SPRAY_PLAN, SPRAY_TYPES, parseISOOrNull } from '../../FarmUtil'
 import ActivityForm from '../form/ActivityForm'
-import { parseISO } from 'date-fns'
+import dayjs from 'dayjs'
+
+const parseISO = (v) => dayjs(v).toDate()
 
 const SUPPORTED_TYPES = [GENERAL, HARVEST, IRRIGATION, SPRAY, MARKET, GENERAL_PLAN,IRRIGATION_PLAN,SPRAY_PLAN, SCOUT]
 

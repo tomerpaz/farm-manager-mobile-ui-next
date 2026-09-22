@@ -270,7 +270,7 @@ const ActivityResourceDialog = ({ selectedRow, selectedIndex, handleClose, updat
                     <TextFieldBase value={note} onChange={e => setNote(e.target.value)} fullWidth={true} label={text.resourceNote} />
                 </Box>
                 <DialogActions sx={{ paddingTop: 4, justifyContent: 'center' }}>
-                    <Button size='large' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={remove}>{text.delete}
+                    <Button size='large' color='secondary' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={remove}>{text.delete}
                     </Button>
                     <Button size='large' disableElevation={true} variant='contained'
                         endIcon={<Save />}

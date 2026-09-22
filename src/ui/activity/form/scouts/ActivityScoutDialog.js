@@ -106,7 +106,7 @@ const ActivityScoutDialog = ({ selectedRow, selectedIndex, handleClose, update, 
                 </Box>
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-                <Button size='large' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={remove}>{text.delete}
+                <Button size='large' color='secondary' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={remove}>{text.delete}
                 </Button>
                 <Button size='large' disableElevation={true} variant='contained'
                     endIcon={<Save />}

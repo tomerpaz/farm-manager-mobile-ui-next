@@ -9,12 +9,11 @@ import ActivitiesListBar from './content/ActivitiesListBar';
 import ActivityViewBar from './content/ActivityViewBar';
 import FieldViewBar from './content/FieldViewBar';
 import InventoryBar from './content/InventoryBar';
-import SiteFormBar from './content/SiteFormBar';
-
+import EmptyBar from './content/EmptyBar'
 const AppBar = () => {
 
   const { pathname } = useLocation();
-  const { fieldId, src, siteId } = useParams()
+  const { fieldId, src, siteId, resourceType } = useParams()
   const token = useSelector(selectCurrentToken);
 
   if (!token) {
@@ -37,10 +36,9 @@ const AppBar = () => {
         {pathname.includes(`/field/${src}/${fieldId}/history`) && <ActivitiesListBar plans={false} />}
         {pathname.includes(`/field/${src}/${fieldId}/scouting`) && <FieldViewBar share={true} layers={true} />}
         {pathname.includes('/tabs/inventory') && <InventoryBar />}
-        {pathname.includes('/tabs/ida/sites') && <FieldsBar />}
-        {pathname.includes('/tabs/ida/resources') && <FieldsBar />}
-        {pathname.includes('/tabs/ida/dash') && <FieldsBar />}
-        {pathname.includes(`/site/${siteId}`) && <SiteFormBar />}
+        {pathname.includes('/tabs/ida/sites') && <EmptyBar />}
+        {pathname.includes('/tabs/resources') && <EmptyBar />}
+        {pathname.includes('/tabs/ida/dash') && <EmptyBar />}
       </>
     )
   }

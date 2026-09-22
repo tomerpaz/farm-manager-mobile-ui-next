@@ -312,7 +312,7 @@ const WaypointSelectionDialog = ({ open, handleClose, fields, waypoints, activit
                 <Button size='large' endIcon={activeGPS ? <GpsFixed/> : <Add />} disableElevation={true} variant='outlined' onClick={() => addNewPoint()} autoFocus>
                     {text.add}
                 </Button>
-                <Button size='large' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={() => setPoints([])}>{`${text.delete} ${text.all}`}</Button>
+                <Button size='large' color='secondary' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={() => setPoints([])}>{`${text.delete} ${text.all}`}</Button>
 
                 <Button size='large' endIcon={<Save />} disableElevation={true} variant='contained' onClick={() => onAction(true)} autoFocus>
                     {text.save}

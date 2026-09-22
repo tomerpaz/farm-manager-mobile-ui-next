@@ -205,5 +205,10 @@
   "seedpod": "Seed Pod",
   "freetext": "Free Text",
   "sites": "Sites",
-  "ida": "IDA"
+  "ida": "IDA",
+  "soilType": "Soil Type",
+  "openField": "Open Field",
+  "covered": "Covered",
+  "soil": "Soil",
+  "soilless": "Soilless"
 }

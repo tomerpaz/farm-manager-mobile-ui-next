@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentYear, setSelectedFieldFilterOptions, selectFieldsViewStatus, setAppBarDialogOpen, selectSelectedFieldFilterOptions, selectFieldFreeTextFilter } from '../../features/app/appSlice'
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice'
 import AppBarMenu from '../components/AppBarMenu'
+import AppBarLogo from '../components/AppBarLogo'
 //import AppBarSearch from '../components/AppBarSearch'
 import Accuracy from '../components/Accuracy'
 import AppBarSearch from './SearchBarAutoComplete'
@@ -29,6 +30,7 @@ const FieldsBar = () => {
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar>
+                <AppBarLogo />
                 <IconButton
                     size="large"
                     edge="start"

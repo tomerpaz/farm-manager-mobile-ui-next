@@ -1,5 +1,6 @@
 import { AppBar, Toolbar, IconButton } from '@mui/material'
 import { Close, PictureAsPdfOutlined } from '@mui/icons-material'
+import AppBarLogo from '../components/AppBarLogo'
 import { isStringEmpty, newDate, SCOUT } from '../../ui/FarmUtil';
 import { useSelector } from 'react-redux';
 import { selectCurrentToken, selectLang } from '../../features/app/appSlice';
@@ -70,6 +71,7 @@ const ActivityViewBar = () => {
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar sx={{justifyContent: 'space-between'}}>
+            <AppBarLogo />
             {showPdf &&     <IconButton
                     size="large"
                     edge="start"

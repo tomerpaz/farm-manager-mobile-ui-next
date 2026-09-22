@@ -2,10 +2,6 @@ import { createEntityAdapter } from "@reduxjs/toolkit";
 import { Activities_TAG, FieldScouts_TAG, Field_TAG, Inventory_TAG, FieldPoints_TAG, Season_TAG, apiSlice, PestsStages_TAG, PlantParts_TAG, InfectionLevels_TAG, Points_TAG, Pests_TAG, Layers_TAG } from "../../app/api/apiSlice";
 
 
-// export const authAdapter = createEntityAdapter()
-// const initialState = authAdapter.getInitialState()
-//export const Field_TAG = 'Field';
-//export const Activities_TAG = 'Activities';
 export const FieldActivities_TAG = 'FieldActivities';
 export const User_TAG = 'User';
 export const Dashboard_TAG = 'Dashboard';
@@ -14,13 +10,18 @@ export const Crops_TAG = 'Crops';
 export const SelectedActivity_TAG = 'SelectedActivity';
 export const Warehouses_TAG = 'Warehouses';
 export const Resources_TAG = 'Resources';
+export const Resource_TAG = 'Resource_TAG';
+
 export const Containers_TAG = 'Containers';
 export const CropPesticides_TAG = 'CropPesticides_TAG';
 export const Qualities_TAG = 'Qualities';
 export const Sizes_TAG = 'Sizes';
 export const Sites_TAG = 'Sites_TAG';
 export const Site_TAG = 'Site_TAG';
+export const SiteFields_TAG = 'SiteFields_TAG';
 
+export const CropGenera_TAG = 'CropGenera_TAG';
+export const ProductCategories_TAG = 'ProductCategories_TAG';
 // const _TAG = '';
 // const _TAG = '';
 
@@ -36,7 +37,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 Dashboard_TAG, ActivityDefs_TAG, Crops_TAG, SelectedActivity_TAG, Warehouses_TAG,
                 Resources_TAG, Containers_TAG, CropPesticides_TAG, Qualities_TAG, Sizes_TAG, Inventory_TAG, Season_TAG,
                 FieldPoints_TAG, FieldScouts_TAG, PestsStages_TAG, InfectionLevels_TAG, PlantParts_TAG, Points_TAG,
-                Pests_TAG,Layers_TAG, Sites_TAG, Site_TAG   
+                Pests_TAG,Layers_TAG, Sites_TAG, Site_TAG, SiteFields_TAG, CropGenera_TAG,ProductCategories_TAG, Resource_TAG
             ]
         }),
         // getUser: builder.mutation({

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentYear, selectFieldFreeTextFilter, selectFieldsViewStatus, selectSelectedFieldFilterOptions, setAppBarDialogOpen, setOpenLayers, setSelectedFieldFilterOptions } from '../../features/app/appSlice'
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice'
 import AppBarMenu from '../components/AppBarMenu'
+import AppBarLogo from '../components/AppBarLogo'
 import AppBarSearch from './SearchBarAutoComplete'
 import Accuracy from '../components/Accuracy'
 import { buildFieldOptions, isStringEmpty } from '../../ui/FarmUtil'
@@ -28,6 +29,7 @@ const MapBar = () => {
     return (
         <AppBar position="static" elevation={0}>
             <Toolbar>
+                <AppBarLogo />
                 <IconButton
                     size="large"
                     edge="start"

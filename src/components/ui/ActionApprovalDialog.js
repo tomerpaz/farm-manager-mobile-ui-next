@@ -1,7 +1,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 import DialogAppBar from "../../ui/dialog/DialogAppBar";
 
-const ActionApprovalDialog = ({ open, handleClose, title, body, okText }) => {
+const ActionApprovalDialog = ({ open, handleClose, title, body, okText, color = 'primary' }) => {
 
     return (
         <Dialog
@@ -19,7 +19,7 @@ const ActionApprovalDialog = ({ open, handleClose, title, body, okText }) => {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button size='large' variant='contained' disableElevation onClick={() => handleClose(true)} autoFocus>
+                <Button size='large' variant='contained' color={color} disableElevation onClick={() => handleClose(true)} autoFocus>
                     {okText || 'OK'}
                 </Button>
             </DialogActions>

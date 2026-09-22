@@ -1,11 +1,8 @@
 import { grey } from "@mui/material/colors";
-import { parseISO } from "date-fns";
-import { selectShowInventory } from "../features/app/appSlice";
-import { useSelector } from "react-redux";
+import dayjs from "dayjs";
 import { Tooltip } from "react-leaflet";
 import { Box, Typography } from "@mui/material";
-import { position } from "stylis";
-import { fi } from "date-fns/locale";
+import { useTheme, useMediaQuery } from '@mui/material';
 
 export const UI_SIZE = 'medium';
 
@@ -386,7 +383,22 @@ export function asLocalDateTime(date, hyphen) {
 }
 
 export function parseISOOrNull(date) {
-    return date ? parseISO(date) : null;
+    return date ? dayjs(date).toDate() : null;
+}
+
+// The app's LocalizationProvider runs on AdapterDayjs (see LocaleApplication.js),
+// so every MUI DatePicker/TimePicker needs a dayjs instance for its value and
+// hands one back through onChange — but everywhere else in the app (form
+// state, submit payloads, FarmUtil's own date helpers) still works in plain
+// Date objects. These two convert at that one boundary so nothing else has
+// to change: bind value={toPickerValue(field.value)} and
+// onChange={(v) => field.onChange(toDateOrNull(v))}.
+export function toPickerValue(date) {
+    return date ? dayjs(date) : null;
+}
+
+export function toDateOrNull(value) {
+    return value && dayjs(value).isValid() ? dayjs(value).toDate() : null;
 }
 
 
@@ -574,6 +586,11 @@ export function isMobile() {
     return regex.test(navigator.userAgent);
 }
 
+export const useIsMobile = () => {
+  const theme = useTheme();
+  return useMediaQuery(theme.breakpoints.down('sm'));
+};
+
 export function getMinDateWidth() {
     return isMobile() ? 115 : 150;
 }
@@ -640,7 +657,6 @@ export const getFieldCenter = (center, field) => {
 }
 
 export const DEFAULT_COORDINATES = [ 50.94491 , 6.93901]
-
 
 
 export const countLines = (text) => {
@@ -805,6 +821,12 @@ export const getFieldPolygonCenter = (field) => {
             return { 'lat': field.lat, 'lng': field.lng };
         }
     }
+}
+
+export const getMonthName = (m, lang) => {
+    const date = new Date();
+    date.setMonth(m - 1);
+    return date.toLocaleString(lang, { month: 'long' });
 }
 
 

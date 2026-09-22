@@ -160,7 +160,7 @@ const WaypointDialog = ({ open, handleClose, selectedPoint, handleDelete, title,
 
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-                <Button size='large' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={handleDelete}>{text.delete}</Button>
+                <Button size='large' color='secondary' endIcon={<Delete />} disableElevation={true} variant='outlined' onClick={handleDelete}>{text.delete}</Button>
                 <Button
                     size='large' endIcon={<Share />}
                     disableElevation={true} variant='outlined'

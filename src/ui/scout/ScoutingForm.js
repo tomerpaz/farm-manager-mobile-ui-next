@@ -8,7 +8,7 @@ import TextFieldBase from '../../components/ui/TextField';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import { Controller, useForm } from 'react-hook-form';
 import { Close, Delete, Save } from '@mui/icons-material';
-import { getYearArray, isMobile, UI_SIZE } from '../FarmUtil';
+import { getYearArray, isMobile, toDateOrNull, toPickerValue, UI_SIZE } from '../FarmUtil';
 import { useGetInfectionLevelsQuery, useGetPestsQuery, useGetPestStagesQuery, useGetPlantLocationsQuery } from '../../features/pests/pestsApiSlice';
 import { DatePicker } from '@mui/x-date-pickers';
 import { useCreateFieldScoutMutation, useDeleteFieldScoutMutation, useUpdateFieldScoutMutation } from '../../features/scout/scoutsApiSlice';
@@ -70,7 +70,7 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
     }
   }
   return (
-    <Dialog fullScreen={isMobile()} fullWidth={!isMobile()} open={open} /*TransitionComponent={Transition}*/ >
+    <Dialog fullScreen={isMobile()} fullWidth={!isMobile()} open={open} slots={{ transition: Transition }} >
       <AppBar sx={{ position: 'relative' }} elevation={0}>
         <Toolbar>
           <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
@@ -117,7 +117,9 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
                     textField: { size: UI_SIZE, variant: 'outlined', sx: { flex: 1 } },
                     actionBar: { actions: ["cancel" /*, "clear"*/] }
                   }}
-                  {...field} />}
+                  {...field}
+                  value={toPickerValue(field.value)}
+                  onChange={(v) => field.onChange(toDateOrNull(v))} />}
             />
 
             <Box sx={{
@@ -311,14 +313,14 @@ const ScoutingForm = ({ defaultValues, open, handleClose }) => {
 
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center' }}>
-          {defaultValues.id && <Button size='large' endIcon={<Delete />} variant='outlined' onClick={() => setDeleteOpen(true)}>{text.delete}</Button>}
+          {defaultValues.id && <Button size='large' color='secondary' endIcon={<Delete />} variant='outlined' onClick={() => setDeleteOpen(true)}>{text.delete}</Button>}
           <Button size='large' disabled={!isDirty} endIcon={<Save />} disableElevation={true} variant='contained' type="submit" >
             {text.save}
           </Button>
         </DialogActions>
       </form >
       <ActionApprovalDialog open={deleteOpen} handleClose={handleDelete}
-        title={text.deleteFormTitle} body={text.deleteFormBody} okText={text.delete} cancelText={text.cancel} />
+        title={text.deleteFormTitle} body={text.deleteFormBody} okText={text.delete} cancelText={text.cancel} color="secondary" />
 
     </Dialog>
   );

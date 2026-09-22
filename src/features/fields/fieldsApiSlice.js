@@ -2,8 +2,8 @@ import {
     createSelector,
     createEntityAdapter
 } from "@reduxjs/toolkit";
-import { apiSlice } from "../../app/api/apiSlice";
-import { User_TAG } from "../auth/authApiSlice";
+import { apiSlice, Field_TAG } from "../../app/api/apiSlice";
+import { SiteFields_TAG, User_TAG } from "../auth/authApiSlice";
 
 
 
@@ -23,7 +23,8 @@ export function safeParseJson(json) {
     return null;
 }
 
-export const fieldsApiSlice = apiSlice.injectEndpoints({
+
+export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG, SiteFields_TAG, Field_TAG] }).injectEndpoints({
 
     endpoints: builder => ({
         getFieldsByYear: builder.query({
@@ -39,12 +40,52 @@ export const fieldsApiSlice = apiSlice.injectEndpoints({
                 { type: User_TAG, id: "LIST" },
                 ...result.ids.map(id => ({ type: User_TAG, id }))
             ]
-        })
+        }),
+        getFieldsBySite: builder.query({
+            query: (siteId) => `/api/farm/site/${siteId}/fields`,
+            providesTags: [SiteFields_TAG]
+        }),
+        getField: builder.query({
+            query: (fieldId) => `/api/farm/field/${fieldId}`,
+            providesTags: [Field_TAG]
+        }),
+        createField: builder.mutation({
+            query: args => ({
+                url: '/api/farm/field',
+                method: 'POST',
+                body: { ...args },
+
+            }),
+            invalidatesTags: [Field_TAG, SiteFields_TAG]
+
+        }),
+        updateField: builder.mutation({
+            query: args => ({
+                url: '/api/farm/field',
+                method: 'PUT',
+                body: { ...args },
+
+            }),
+            invalidatesTags: [Field_TAG, SiteFields_TAG]
+        }),
+        deleteField: builder.mutation({
+            query: (fieldId) => ({
+                url: `/api/farm/field/${fieldId}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: [Field_TAG, SiteFields_TAG]
+        }),
+
     })
 })
 
 export const {
-    useGetFieldsByYearQuery
+    useGetFieldsByYearQuery,
+    useGetFieldsBySiteQuery,
+    useGetFieldQuery,
+    useCreateFieldMutation,
+    useUpdateFieldMutation,
+    useDeleteFieldMutation
 } = fieldsApiSlice
 
 
@@ -79,7 +120,7 @@ export function useFields(year) {
 
 export function useFieldsById(year, id) {
     const { data } = useGetFieldsByYearQuery(year)
-    if(data && data.entities){
+    if (data && data.entities) {
         return data.entities[id]
     } else return null;
 }

@@ -3,7 +3,7 @@ import TextFieldBase from "../../../components/ui/TextField";
 import { useDispatch, useSelector } from "react-redux";
 import { selectLang, setSnackbar } from "../../../features/app/appSlice";
 import { Close, Save } from "@mui/icons-material";
-import { UI_SIZE, asLocalDate } from "../../FarmUtil";
+import { UI_SIZE, asLocalDate, toDateOrNull, toPickerValue } from "../../FarmUtil";
 
 import { DatePicker } from "@mui/x-date-pickers";
 import { Controller, useForm } from "react-hook-form";
@@ -145,7 +145,9 @@ const SeasonDataForm = ({ defaultValues, open, handleClose, plantation }) => {
                                         textField: { size: UI_SIZE, variant: 'outlined', sx: { marginTop: 0.5, flex: 1 } },
                                         actionBar: { actions: ["cancel", "clear"] }
                                     }}
-                                    {...field} />}
+                                    {...field}
+                                    value={toPickerValue(field.value)}
+                                    onChange={(v) => field.onChange(toDateOrNull(v))} />}
                         />}
                         {!plantation && <Controller
                             name="flash"
@@ -163,7 +165,9 @@ const SeasonDataForm = ({ defaultValues, open, handleClose, plantation }) => {
                                         textField: { size: UI_SIZE, variant: 'outlined', sx: { marginTop: 0.5, flex: 1 } },
                                         actionBar: { actions: ["cancel", "clear"] }
                                     }}
-                                    {...field} />}
+                                    {...field}
+                                    value={toPickerValue(field.value)}
+                                    onChange={(v) => field.onChange(toDateOrNull(v))} />}
                         />}
                     </Box>
                     <Box sx={{

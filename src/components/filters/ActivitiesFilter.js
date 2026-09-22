@@ -14,7 +14,7 @@ import { useLocation, useParams } from 'react-router';
 import { MobileDatePicker } from '@mui/x-date-pickers';
 import {
     asLocalDate,
-    isMobile, isStringEmpty, parseISOOrNull
+    isMobile, isStringEmpty, parseISOOrNull, toDateOrNull, toPickerValue
 } from '../../ui/FarmUtil';
 import { FilterAltOff } from '@mui/icons-material';
 import { Transition } from '../../ui/Util';
@@ -108,8 +108,8 @@ const ActivitiesFilter = () => {
                         // okButtonLabel: text.save
 
                         showToolbar={false}
-                        value={parseISOOrNull(startDateFilter)}
-                        onChange={(e) => dispatch(setStartDateFilter(asLocalDate(e, true)))}
+                        value={toPickerValue(parseISOOrNull(startDateFilter))}
+                        onChange={(e) => dispatch(setStartDateFilter(asLocalDate(toDateOrNull(e), true)))}
                         slotProps={{
                             textField: { size: 'small', variant: 'outlined' },
                             actionBar: { actions: ["cancel", "clear"] }
@@ -121,13 +121,13 @@ const ActivitiesFilter = () => {
                     <MobileDatePicker
                         label={text.toDate}
                         closeOnSelect
-                        value={parseISOOrNull((endDateFilter))}
+                        value={toPickerValue(parseISOOrNull((endDateFilter)))}
                         showToolbar={true}
                         localeText={{
                             cancelButtonLabel: text.cancel,
                             clearButtonLabel: text.clear
                         }}
-                        onChange={(e) => dispatch(setEndDateFilter(asLocalDate(e, true)))}
+                        onChange={(e) => dispatch(setEndDateFilter(asLocalDate(toDateOrNull(e), true)))}
                         slotProps={{
                             textField: { size: 'small', variant: 'outlined' },
                             actionBar: { actions: ["cancel", "clear"] }
