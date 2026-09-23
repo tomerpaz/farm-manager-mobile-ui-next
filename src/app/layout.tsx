@@ -37,6 +37,7 @@ export default function RootLayout({
                 <link rel="stylesheet"
                     href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.76.1/dist/L.Control.Locate.min.css" />
                 <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.76.1/dist/L.Control.Locate.min.js"></script>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-geosearch@4.4.0/dist/geosearch.css" />
                 <title>Farm Manager Mobile</title>
             </head>
 

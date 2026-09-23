@@ -31,6 +31,7 @@ import MetricPanel from "./MetricPanel";
 import { fromRecord, getExistingRecord, toRecordPayload } from "../ggRecordMapper";
 
 const WORKER = "WORKER";
+const GENERAL = "GENERAL";
 
 // Every scalar field name below (date, amount, amountWaterUseIrrigation,
 // energySourceId, ...) matches the Java server's GGElement class exactly
@@ -154,7 +155,32 @@ const METRICS = [
             { name: "amountExportedToGrid", type: "number", label: "Power Exported to Grid", unit: "kWh", required: true },
         ],
     },
-];
+    {
+        id: "general",
+        title: "General",
+        dateField: "date",
+        totalField: "amount",
+        // No single unit here (unlike fertilizers' fixed "kg") — general
+        // resources carry their own unit (kg/lit/unit), so the per-row
+        // amount's unit comes from the selected resource via unitFrom below,
+        // and the summary total is left unlabeled since rows can mix units.
+        totalUnit: "",
+        schema: [
+            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
+            // Unlike fertilizers/activeIngredients, there's no id 0 "None"
+            // option here — a general resource application is either logged
+            // or it isn't, there's nothing to explicitly declare.
+            { name: "resource_id", type: "select", label: "Resource", required: true, optionsFrom: "generalResources" },
+            { name: "fieldIds", type: "fields", label: "Fields", required: true },
+            { name: "amount", type: "number", label: "Amount", required: true, unitFrom: "resource_id" },
+        ],
+    },
+].map((m) => ({
+    ...m,
+    // Every metric gets an optional free-text note, kept out of the summary
+    // table (it's a detail you open the row to read, not scan a column for).
+    schema: [...m.schema, { name: "note", type: "text", label: "Note", column: false, multiline: true }],
+}));
 
 const EMPTY_RECORD = METRICS.reduce((acc, m) => ({ ...acc, [m.id]: [] }), {});
 const METRIC_IDS = METRICS.map((m) => m.id);
@@ -221,6 +247,7 @@ function IDAForm() {
 
     const { data: idaSystemData, isLoading: isSystemLoading } = useGetIdaSystemDataQuery();
     const { data: workers = [], isLoading: isWorkersLoading } = useGetResourcesQuery({ type: WORKER });
+    const { data: generalResources = [] } = useGetResourcesQuery({ type: GENERAL });
     const { data: pests, isLoading: isPestsLoading } = useGetPestsQuery();
     const { data: ggYearData, isLoading: isYearDataLoading } = useGetGGYearDataQuery(recordYear);
     const [updateIdaMonthRecord, { isLoading: isUpdating }] = useUpdateIdaMonthRecordMutation();
@@ -362,6 +389,7 @@ function IDAForm() {
             ? idaSystemData.pesticides
             : [{ id: 0, name: "No Active Ingredient" }, ...(idaSystemData?.pesticides || [])],
         pests,
+        generalResources,
     };
 
     const renderPanel = (metric, indexInAll) => {

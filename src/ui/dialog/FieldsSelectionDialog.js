@@ -40,7 +40,7 @@ const isFieldSelected = (field, selectedFields) => {
 
 export const ROWS_PER_PAGE = 100;
 
-const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
+const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFilter, disablePortal }) => {
     const text = useSelector(selectLang);
     // const { data: user } = useGetUserDataQuery()
     const [filter, setFilter] = useState('');
@@ -106,6 +106,7 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
             aria-describedby="alert-dialog-description"
             fullScreen={isMobile()} fullWidth={!isMobile()}
             disableRestoreFocus={true}
+            disablePortal={disablePortal}
             slots={{ transition: Transition }}
         >
             <DialogAppBar onClose={() => onAction(false)}
@@ -130,7 +131,9 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId }) => {
                             },
                         }}
                     />
-                    <FormControlLabel control={<Checkbox checked={active} onChange={() => setActive(!active)} />} labelPlacement="top" label={text.active} />
+                    {!hideActiveFilter && (
+                        <FormControlLabel control={<Checkbox checked={active} onChange={() => setActive(!active)} />} labelPlacement="top" label={text.active} />
+                    )}
 
                 </Box>
             </DialogTitle>

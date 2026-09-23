@@ -72,6 +72,14 @@ const ResourceForm = () => {
             };
         }
 
+        if (resourceType === 'general') {
+            return {
+                ...baseDefaults,
+                unit: rawData?.unit ?? 'KG',
+                category: rawData?.category ?? ''
+            };
+        }
+
         return baseDefaults;
     };
 
@@ -130,9 +138,27 @@ const ResourceForm = () => {
         }
     };
 
+    // Shared by the N/P/K fields — react-hook-form passes the whole form's
+    // current values as the validate function's 2nd argument, so any one of
+    // the three failing re-validates all three together. Each of N/P/K is
+    // mandatory and can't be negative, and at least one of the three has to
+    // be a positive value.
+    const validateNpk = (value, formValues) => {
+        if (value === '' || value === null || value === undefined) {
+            return text?.fieldRequired || 'Required';
+        }
+        if (Number(value) < 0) {
+            return text?.mustBeNonNegative || "Can't be negative";
+        }
+        return [formValues.n, formValues.p, formValues.k].some((v) => Number(v) > 0)
+            || text?.npkAtLeastOnePositive
+            || 'At least one of N, P, K must be positive';
+    };
+
     const getSubTitleText = () => {
         if (resourceType === 'fertilizer') return text?.fertilizer || "Fertilizer Details";
         if (resourceType === 'worker') return text?.worker || "Worker/Manager Details";
+        if (resourceType === 'general') return text?.general || "General Resource Details";
         return "";
     };
 
@@ -231,7 +257,10 @@ const ResourceForm = () => {
                                         <Controller
                                             name="specificGravity"
                                             control={control}
-                                            rules={{ required: true }}
+                                            rules={{
+                                                required: true,
+                                                validate: (v) => Number(v) > 0 || text?.mustBePositive || 'Must be greater than 0'
+                                            }}
                                             render={({ field, fieldState: { error } }) => (
                                                 <TextField
                                                     {...field}
@@ -273,8 +302,9 @@ const ResourceForm = () => {
                                         <Controller
                                             name="n"
                                             control={control}
-                                            render={({ field }) => (
-                                                <TextField {...field} label="N (%)" variant="outlined" fullWidth type="number" slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }} />
+                                            rules={{ validate: validateNpk }}
+                                            render={({ field, fieldState: { error } }) => (
+                                                <TextField {...field} label="N (%)" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
                                             )}
                                         />
                                     </Box>
@@ -282,8 +312,9 @@ const ResourceForm = () => {
                                         <Controller
                                             name="p"
                                             control={control}
-                                            render={({ field }) => (
-                                                <TextField {...field} label="P (%)" variant="outlined" fullWidth type="number" slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }} />
+                                            rules={{ validate: validateNpk }}
+                                            render={({ field, fieldState: { error } }) => (
+                                                <TextField {...field} label="P (%)" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
                                             )}
                                         />
                                     </Box>
@@ -291,8 +322,9 @@ const ResourceForm = () => {
                                         <Controller
                                             name="k"
                                             control={control}
-                                            render={({ field }) => (
-                                                <TextField {...field} label="K (%)" variant="outlined" fullWidth type="number" slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }} />
+                                            rules={{ validate: validateNpk }}
+                                            render={({ field, fieldState: { error } }) => (
+                                                <TextField {...field} label="K (%)" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
                                             )}
                                         />
                                     </Box>
@@ -337,6 +369,46 @@ const ResourceForm = () => {
                                                 type="tel"
                                                 slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }}
                                             />
+                                        )}
+                                    />
+                                </Box>
+                            </Box>
+                        )}
+
+                        {/* GENERAL RESOURCE FIELDS MODEL */}
+                        {resourceType === 'general' && (
+                            <Box sx={{ display: "flex", flexDirection: "row", gap: 2, width: '100%' }}>
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Controller
+                                        name="category"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                label={text?.category || "Category"}
+                                                variant="outlined"
+                                                fullWidth
+                                                slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }}
+                                            />
+                                        )}
+                                    />
+                                </Box>
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Controller
+                                        name="unit"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                select
+                                                label={text?.unit || "Unit"}
+                                                variant="outlined"
+                                                fullWidth
+                                            >
+                                                <MenuItem value="KG">{text.kg || 'KG'}</MenuItem>
+                                                <MenuItem value="LIT">{text.lit || 'LIT'}</MenuItem>
+                                                <MenuItem value="UNIT">{text.unitOption || 'Unit'}</MenuItem>
+                                            </TextField>
                                         )}
                                     />
                                 </Box>

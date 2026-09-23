@@ -6,7 +6,7 @@ import {
   CardActionArea,
   Typography
 } from '@mui/material';
-import { ChevronRight, Grass, Groups } from '@mui/icons-material';
+import { Category, ChevronRight, Grass, Groups } from '@mui/icons-material';
 
 import { selectLang } from '../../../features/app/appSlice';
 
@@ -17,7 +17,8 @@ const Resources = () => {
   // Unified resource routing list structure dataset metadata mapping matrix
   const resourceItems = [
     { id: 'fertilizers', name: text?.fertilizers || 'Fertilizers', path: '/resources/fertilizer', icon: <Grass /> },
-    { id: 'managers', name: text?.managers || 'Managers', path: '/resources/worker', icon: <Groups /> }
+    { id: 'managers', name: text?.managers || 'Managers', path: '/resources/worker', icon: <Groups /> },
+    { id: 'general', name: text?.general || 'General', path: '/resources/general', icon: <Category /> }
   ];
 
   return (

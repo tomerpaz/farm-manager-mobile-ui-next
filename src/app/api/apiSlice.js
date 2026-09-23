@@ -32,9 +32,9 @@ export const ProductCategories_TAG = 'ProductCategories_TAG';
 export const Resource_TAG = 'Resource_TAG';
 
 
-// export const FARM_MANAGER = 'http://localhost:8080'
+export const FARM_MANAGER = 'http://localhost:8080'
 
-export const FARM_MANAGER = 'https://api.manager.farm'
+//export const FARM_MANAGER = 'https://api.manager.farm'
 
 
 const baseQuery = fetchBaseQuery({

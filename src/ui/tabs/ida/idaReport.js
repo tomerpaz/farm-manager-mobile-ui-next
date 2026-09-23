@@ -56,6 +56,12 @@ const UNIT_COLUMN = [
     { header: "Unit", value: (el) => el.unit ?? "" },
 ];
 
+// Every metric's schema now has an optional free-text note (IDAForm.js) —
+// appended to every section the same way UNIT_COLUMN is.
+const NOTE_COLUMN = [
+    { header: "Note", value: (el) => el.note ?? "" },
+];
+
 // Column sets cover every GGElement field each metric can carry (see
 // ggRecordMapper.js / the Java GGElement class) — not just the ones this
 // form's UI currently collects — so nothing present in the server data is
@@ -74,6 +80,7 @@ const METRIC_SECTIONS = [
             { header: "Product Handling (m³)", value: (el) => el.amountWaterUseProductHandling ?? "" },
             { header: "Flow Rate", value: (el) => el.flowRate ?? "" },
             ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
         ],
     },
     {
@@ -85,6 +92,7 @@ const METRIC_SECTIONS = [
             { header: "Water Source", value: (el) => el.waterSourceId ?? "" },
             { header: "Amount (m³)", value: (el) => el.amount ?? "" },
             ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
         ],
     },
     {
@@ -99,6 +107,7 @@ const METRIC_SECTIONS = [
             { header: "Pests", value: (el) => listLabel(el.pests) },
             { header: "Amount (kg)", value: (el) => el.amount ?? "" },
             ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
         ],
     },
     {
@@ -115,6 +124,7 @@ const METRIC_SECTIONS = [
             { header: "K", value: (el) => el.k ?? "" },
             { header: "Amount (kg)", value: (el) => el.amount ?? "" },
             ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
         ],
     },
     {
@@ -127,6 +137,7 @@ const METRIC_SECTIONS = [
             { header: "Amount (kWh)", value: (el) => el.amount ?? "" },
             { header: "Renewable (kWh)", value: (el) => el.renewableAmount ?? "" },
             ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
         ],
     },
     {
@@ -139,6 +150,7 @@ const METRIC_SECTIONS = [
             { header: "Generated (kWh)", value: (el) => el.amountGenerated ?? "" },
             { header: "Date Generated", value: (el) => formatDay(el.dateEnergyGenerated) },
             ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
         ],
     },
     {
@@ -149,6 +161,24 @@ const METRIC_SECTIONS = [
             { header: "Site", value: (el) => siteLabel(el.site) },
             { header: "Amount (mm)", value: (el) => el.amount ?? "" },
             ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
+        ],
+    },
+    {
+        key: "general",
+        title: "General",
+        columns: [
+            { header: "Date", value: (el) => formatDate(el.date) },
+            { header: "Fields", value: (el) => listLabel(el.fields) },
+            { header: "Resource", value: (el) => resourceLabel(el.resource) },
+            { header: "Category", value: (el) => el.resource?.category ?? "" },
+            // Amount has no fixed unit here (unlike fertilizers' "kg") — it
+            // depends on which resource was picked, so it's its own column
+            // rather than baked into the "Amount" header text.
+            { header: "Amount", value: (el) => el.amount ?? "" },
+            { header: "Resource Unit", value: (el) => el.resource?.unit ?? "" },
+            ...UNIT_COLUMN,
+            ...NOTE_COLUMN,
         ],
     },
 ];
@@ -207,7 +237,7 @@ function buildReportData(ggYearData, lang) {
 // shows entry counts for all seven metrics, not just the four xOk flags.
 const countHeaders = () => METRIC_SECTIONS.map((s) => `${s.title} #`);
 
-export function exportYearToXlsx(ggYearData, year, lang, targetWindow) {
+export function exportYearToXlsx(ggYearData, year, lang) {
     const { summaryRows, sections } = buildReportData(ggYearData, lang);
     const workbook = XLSX.utils.book_new();
 
@@ -232,21 +262,7 @@ export function exportYearToXlsx(ggYearData, year, lang, targetWindow) {
         XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
     });
 
-    // Browsers have no built-in spreadsheet renderer, so unlike the PDF
-    // export this still ends up downloaded rather than shown inline — but
-    // routing it through the same pre-opened tab keeps both exports
-    // consistent and avoids a second, separate popup-blocked window.
-    const wbArray = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([wbArray], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const blobUrl = URL.createObjectURL(blob);
-    if (targetWindow && !targetWindow.closed) {
-        targetWindow.location.href = blobUrl;
-    } else {
-        window.open(blobUrl, "_blank");
-    }
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    XLSX.writeFile(workbook, `ida-report-${year}.xlsx`);
 }
 
 // A bit darker than a pastel tint (better contrast for white header text)

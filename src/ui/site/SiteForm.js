@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,7 +10,7 @@ import {
   Typography,
   IconButton
 } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, LocationOn } from '@mui/icons-material';
 import { CircleMarker, MapContainer, useMapEvents } from 'react-leaflet';
 
 import {
@@ -22,6 +22,7 @@ import {
 import { selectLang, selectMapZoom, setSnackbar } from '../../features/app/appSlice';
 import SatelliteMapProvider from '../../components/map/SatelliteMapProvider';
 import GeoLocation from '../../components/GeoLocation';
+import AddressSearchControl from '../../components/map/AddressSearchControl';
 import { DEFAULT_COORDINATES } from '../FarmUtil';
 import ActionApprovalDialog from '../../components/ui/ActionApprovalDialog';
 import Loading from '../../components/Loading';
@@ -96,6 +97,15 @@ const SiteForm = () => {
       map.setView([Number(lat), Number(lng)], map.getZoom());
     }
   }, [map, lat, lng]);
+
+  // Address/location search — OpenStreetMap's Nominatim needs no API key
+  // (unlike the Google layer, which only some users have a key for), so it
+  // works regardless of which map provider the user's account is set to.
+  const handleAddressSelect = (location) => {
+    setValue('lat', Number(location.y).toFixed(5), { shouldDirty: true });
+    setValue('lng', Number(location.x).toFixed(5), { shouldDirty: true });
+    trigger(['lat', 'lng']);
+  };
 
   const handleGoBack = () => navigate(-1);
 
@@ -184,6 +194,14 @@ const SiteForm = () => {
               >
                 {isNewSite ? (text.createRecord || "New Site") : (site?.name || "Loading Site...")}
               </Typography>
+              {(site?.ggGeoName || site?.ggGeoCountry) && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>
+                  <LocationOn sx={{ fontSize: '1rem', flexShrink: 0 }} />
+                  <Typography variant="body2" noWrap>
+                    {[site.ggGeoName, site.ggGeoCountry].filter(Boolean).join(', ')}
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </Box>
 
@@ -299,6 +317,10 @@ const SiteForm = () => {
                 >
                   <SatelliteMapProvider />
                   <GeoLocation />
+                  {/* Native Leaflet control (collapsed search icon) added right
+                      after GeoLocation so it stacks underneath the geo-locate
+                      button in the top-left corner. */}
+                  <AddressSearchControl onLocationSelect={handleAddressSelect} />
                   {hasValidCoordinates && (
                     <CircleMarker color="white" fillColor="#2e7d32" fillOpacity={1} radius={8} center={siteLonLat} />
                   )}

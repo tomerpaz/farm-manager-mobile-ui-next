@@ -70,7 +70,17 @@ export default function MetricFieldArray({
     const formatCell = (f, field) => {
         const value = field[f.name];
         if (f.type === "date") return formatDate(value);
-        if (f.type === "number") return formatQty(value, f.unit);
+        if (f.type === "number") {
+            // unitFrom fields (e.g. general resources) carry their unit on
+            // whichever resource this row's own select field points at,
+            // rather than a fixed schema-level unit like fertilizers' "kg".
+            let unit = f.unit;
+            if (f.unitFrom) {
+                const sourceField = schema.find((s) => s.name === f.unitFrom);
+                unit = (sourceField?.options || []).find((o) => o.id === field[f.unitFrom])?.unit;
+            }
+            return formatQty(value, unit);
+        }
         if (f.type === "select" || f.type === "autocomplete") {
             const opt = (f.allOption ? [{ id: 0, name: "All Sites" }, ...(f.options || [])] : f.options || []).find(
                 (o) => o.id === value

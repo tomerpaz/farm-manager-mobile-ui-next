@@ -188,7 +188,10 @@ const IdaFieldForm = () => {
                                 <Controller
                                     name="area"
                                     control={control}
-                                    rules={{ required: text.areaRequired || 'Size is required' }}
+                                    rules={{
+                                        required: text.areaRequired || 'Size is required',
+                                        validate: (v) => Number(v) > 0 || text.mustBePositive || 'Must be greater than 0'
+                                    }}
                                     render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
@@ -212,7 +215,10 @@ const IdaFieldForm = () => {
                                 <Controller
                                     name="startDate"
                                     control={control}
-                                    render={({ field }) => (
+                                    rules={{
+                                        validate: (v) => (v && dayjs(v).isValid()) || text.startRequired || 'Start date is required'
+                                    }}
+                                    render={({ field, fieldState: { error } }) => (
                                         <DatePicker
                                             label={text.start || "Start Date"}
                                             closeOnSelect
@@ -226,6 +232,8 @@ const IdaFieldForm = () => {
                                                 textField: {
                                                     variant: 'outlined',
                                                     fullWidth: true,
+                                                    error: !!error,
+                                                    helperText: error?.message,
                                                     sx: {
                                                         '& .MuiInputBase-root': { fontSize: '1rem' },
                                                         '& .MuiInputBase-input': { padding: '16px 14px' }
@@ -282,7 +290,8 @@ const IdaFieldForm = () => {
                                 <Controller
                                     name="ggCropGenus"
                                     control={control}
-                                    render={({ field }) => (
+                                    rules={{ required: text.cropGenusRequired || 'Crop Genus is required' }}
+                                    render={({ field, fieldState: { error } }) => (
                                         <Autocomplete
                                             {...field}
                                             options={cropGenera}
@@ -290,7 +299,7 @@ const IdaFieldForm = () => {
                                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                             onChange={(_, data) => setValue('ggCropGenus', data)}
                                             renderInput={(params) => (
-                                                <TextField {...params} label={text.cropGenus || "Crop Genus"} variant="outlined" />
+                                                <TextField {...params} label={text.cropGenus || "Crop Genus"} variant="outlined" error={!!error} helperText={error?.message} />
                                             )}
                                         />
                                     )}
@@ -301,7 +310,8 @@ const IdaFieldForm = () => {
                                 <Controller
                                     name="ggProductCategory"
                                     control={control}
-                                    render={({ field }) => (
+                                    rules={{ required: text.productCategoryRequired || 'Product Category is required' }}
+                                    render={({ field, fieldState: { error } }) => (
                                         <Autocomplete
                                             {...field}
                                             options={productCategories}
@@ -309,7 +319,7 @@ const IdaFieldForm = () => {
                                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                             onChange={(_, data) => setValue('ggProductCategory', data)}
                                             renderInput={(params) => (
-                                                <TextField {...params} label={text.productCategory || "Product Category"} variant="outlined" />
+                                                <TextField {...params} label={text.productCategory || "Product Category"} variant="outlined" error={!!error} helperText={error?.message} />
                                             )}
                                         />
                                     )}
@@ -323,6 +333,7 @@ const IdaFieldForm = () => {
                                 <Controller
                                     name="type"
                                     control={control}
+                                    rules={{ required: true }}
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
@@ -342,6 +353,7 @@ const IdaFieldForm = () => {
                                 <Controller
                                     name="soilType"
                                     control={control}
+                                    rules={{ required: true }}
                                     render={({ field }) => (
                                         <TextField
                                             {...field}

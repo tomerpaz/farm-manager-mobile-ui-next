@@ -175,9 +175,16 @@ const ResourceList = () => {
                                     {resourceIcon}
                                 </Box>
 
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary', flex: 1, minWidth: 0 }} noWrap>
-                                    {value.name}
-                                </Typography>
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }} noWrap>
+                                        {value.name}
+                                    </Typography>
+                                    {resourceType === 'general' && value.category && (
+                                        <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
+                                            {value.category}
+                                        </Typography>
+                                    )}
+                                </Box>
 
                                 <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0 }} />
                             </CardActionArea>

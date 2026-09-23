@@ -3,10 +3,10 @@ import dayjs from "dayjs";
 // Converts between the IDAForm's per-row UI shape and the Java server's
 // GGRecord/GGElement model:
 //
-//   GGRecord { id, sites, date (LocalDate), lastSave, status, draft,
+//   GGRecord { id, sites, date (YearMonth), lastSave, status, draft,
 //              manager (Resource), waterUse, waterAbstracted, activeIngredients,
 //              fertilizers, energyUsed, energyExportedOrGenerated,
-//              precipitations: List<GGElement> }
+//              precipitations, general: List<GGElement> }
 //
 //   GGElement { id, date (LocalDateTime), amount, type, unit, productName,
 //               concentration, n, p, k, pests: List<Pest>,
@@ -18,13 +18,14 @@ import dayjs from "dayjs";
 //
 // IDAForm's METRICS schema already names its scalar fields exactly like
 // GGElement's (date, amount, amountWaterUseIrrigation, energySourceId, ...),
-// so those round-trip as-is. Four fields don't: the UI edits them as plain
+// so those round-trip as-is. Five fields don't: the UI edits them as plain
 // ids (a <select>/Autocomplete only needs an id to match against), while the
 // server wants an object reference —
-//   site_id (0 = "All Sites")      <-> site: {id} | null
-//   fertilizer_id / pesticideId    <-> resource: {id} | null
-//   fieldIds (id[])                <-> fields: [{id}, ...]
-//   pests (id[])                   <-> pests: [{id}, ...]
+//   site_id (0 = "All Sites")           <-> site: {id} | null
+//   fertilizer_id / pesticideId /
+//     resource_id (general)             <-> resource: {id} | null
+//   fieldIds (id[])                     <-> fields: [{id}, ...]
+//   pests (id[])                        <-> pests: [{id}, ...]
 // `type` and `unit` are left unset on the way out — there's no confirmed
 // mapping for GGElementTypes/unit codes to build from, and guessing risks
 // silently mislabeling saved data rather than failing loudly.
@@ -36,10 +37,15 @@ const METRIC_ELEMENT_SPEC = {
     precipitation: { refFields: { site_id: "site" }, wireKey: "precipitations" },
     fertilizers: { refFields: { fertilizer_id: "resource" }, listRefFields: { fieldIds: "fields" } },
     activeIngredients: { refFields: { pesticideId: "resource" }, listRefFields: { fieldIds: "fields", pests: "pests" } },
+    general: { refFields: { resource_id: "resource" }, listRefFields: { fieldIds: "fields" } },
 };
 
 const toGGDate = (iso) => (iso && dayjs(iso).isValid() ? dayjs(iso).format("YYYY-MM-DD") : null);
 const toGGDateTime = (iso) => (iso && dayjs(iso).isValid() ? dayjs(iso).format("YYYY-MM-DDTHH:mm:ss") : null);
+// GGRecord.date is a java.time.YearMonth, not a LocalDate — Jackson's
+// default YearMonth format is "yyyy-MM", so a full "yyyy-MM-dd" string (what
+// toGGDate produces) fails to deserialize server-side.
+const toGGYearMonth = (iso) => (iso && dayjs(iso).isValid() ? dayjs(iso).format("YYYY-MM") : null);
 
 const invert = (obj) => Object.fromEntries(Object.entries(obj || {}).map(([k, v]) => [v, k]));
 
@@ -90,7 +96,7 @@ const elementFromServer = (el, spec) => {
 export function toRecordPayload(formData, { id, firstDayOfMonth } = {}) {
     const payload = {
         ...(id ? { id } : {}),
-        date: toGGDate(firstDayOfMonth),
+        date: toGGYearMonth(firstDayOfMonth),
         draft: !!formData.draft,
         manager: formData.manager?.id ? { id: formData.manager.id } : null,
     };

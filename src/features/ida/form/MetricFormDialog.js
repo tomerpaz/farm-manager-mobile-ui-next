@@ -105,6 +105,24 @@ export default function MetricFormDialog({
         [schema]
     );
 
+    // A field can declare unitFrom: "resource_id" — e.g. general resources'
+    // amount, whose unit (kg/lit/unit) depends on which resource was picked
+    // rather than being fixed like fertilizers' "kg". Batched the same way
+    // as triggerValues, so this doesn't re-run per keystroke elsewhere.
+    const unitSourceFields = useMemo(() => schema.filter((f) => f.unitFrom), [schema]);
+    const unitSourceNames = useMemo(() => unitSourceFields.map((f) => f.unitFrom), [unitSourceFields]);
+    const unitSourceValues = useWatch({ control, name: unitSourceNames });
+
+    const dynamicUnits = useMemo(() => {
+        const units = {};
+        unitSourceFields.forEach((f, i) => {
+            const sourceSchema = schema.find((s) => s.name === f.unitFrom);
+            const selected = (sourceSchema?.options || []).find((o) => o.id === unitSourceValues[i]);
+            units[f.name] = selected?.unit;
+        });
+        return units;
+    }, [unitSourceFields, unitSourceValues, schema]);
+
     useEffect(() => {
         if (!open) return;
         triggerFields.forEach((f, i) => {
@@ -151,7 +169,28 @@ export default function MetricFormDialog({
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth slotProps={{ paper: { elevation: 3 } }}>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="xs"
+            fullWidth
+            // Without this, closing (Confirm/Cancel) restores focus to the
+            // "Add Record Entry" button that opened it while this Dialog's
+            // exit transition is still tearing down its aria-hidden effect
+            // on #root — Chrome blocks that (a focused descendant under an
+            // aria-hidden ancestor), and the resulting race is what makes
+            // the very next click (often the form's own Save button) not
+            // register until a second click.
+            disableRestoreFocus
+            // The default ~195ms exit fade left a window where clicking the
+            // form's Save button right after Confirm/Cancel landed mid-close
+            // — MUI was still unwinding the modal's body scroll-lock/aria-hidden
+            // side effects, which visibly shifted the page (the "jump") and
+            // ate that first click. Closing instantly removes that window;
+            // the opening fade is untouched.
+            transitionDuration={{ enter: 225, exit: 0 }}
+            slotProps={{ paper: { elevation: 3 } }}
+        >
             <DialogTitle sx={{ pb: 1, fontWeight: 700 }}>
                 {initialData ? `Edit ${title || "Entry"}` : `Add New ${title || "Entry"}`}
             </DialogTitle>
@@ -268,6 +307,7 @@ export default function MetricFormDialog({
                                 // that were already required (an optional linked field like
                                 // renewableAmount stays optional once re-enabled).
                                 const mustBePositive = autoManagedFields.has(f.name) && !isDisabled && f.required;
+                                const unit = f.unitFrom ? dynamicUnits[f.name] : f.unit;
                                 return (
                                     <Controller
                                         key={f.name}
@@ -301,8 +341,8 @@ export default function MetricFormDialog({
                                                 slotProps={{
                                                     htmlInput: { min: mustBePositive ? 0.0001 : 0, step: "any", inputMode: "decimal" },
                                                     input: {
-                                                        endAdornment: f.unit ? (
-                                                            <InputAdornment position="end">{f.unit}</InputAdornment>
+                                                        endAdornment: unit ? (
+                                                            <InputAdornment position="end">{unit}</InputAdornment>
                                                         ) : null,
                                                     },
                                                 }}
@@ -372,6 +412,14 @@ export default function MetricFormDialog({
                                                     <FieldSelectionDialog
                                                         open={fieldPickerOpen}
                                                         fields={availableFields || []}
+                                                        hideActiveFilter
+                                                        // This dialog itself is already open inside another Dialog
+                                                        // (MetricFormDialog) — without disablePortal, both render as
+                                                        // independent top-level modals under <body>, and their
+                                                        // separate aria-hidden bookkeeping on #root can race when one
+                                                        // closes, intermittently swallowing the next click (e.g. the
+                                                        // month form's Save button) until a second click works.
+                                                        disablePortal
                                                         handleClose={(selection) => {
                                                             if (selection) onChange(selection.map((s) => s.id));
                                                             setFieldPickerOpen(false);
@@ -391,7 +439,7 @@ export default function MetricFormDialog({
                                     control={control}
                                     name={f.name}
                                     render={({ field }) => (
-                                        <TextField {...field} label={f.label} size="medium" fullWidth multiline={f.multiline} />
+                                        <TextField {...field} label={f.label} size="medium" fullWidth multiline={f.multiline} minRows={f.multiline ? 2 : undefined} />
                                     )}
                                 />
                             );

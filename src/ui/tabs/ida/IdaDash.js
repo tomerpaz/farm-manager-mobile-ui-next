@@ -101,7 +101,7 @@ const IdaDash = () => {
   // flag defaults true), which would otherwise mask the empty case.
   const RECORD_METRIC_KEYS = [
     'waterUse', 'waterAbstracted', 'activeIngredients', 'fertilizers',
-    'energyUsed', 'energyExportedOrGenerated', 'precipitations',
+    'energyUsed', 'energyExportedOrGenerated', 'precipitations', 'general',
   ];
   const isRecordEmpty = (record) =>
     !!record && RECORD_METRIC_KEYS.every((key) => !record[key]?.length);
@@ -200,7 +200,7 @@ const IdaDash = () => {
           {/* Header Action Strip Row */}
           <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 1, borderBottom: '1px solid', borderColor: 'rgba(105, 14, 14, 0.08)', pb: { xs: 0.75, sm: 1 }, mb: '4px', px: { xs: 0, md: 0 }, flexShrink: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, minWidth: 0 }}>
-              <Box sx={{ flexShrink: 0, display: 'flex', width: { xs: '2.6rem', sm: '3.2rem' }, height: { xs: '2.6rem', sm: '3.2rem' } }}>
+              <Box sx={{ flexShrink: 0, display: { xs: 'none', sm: 'flex' }, width: '3.2rem', height: '3.2rem' }}>
                 <GlobalGapSvg width="100%" height="100%" />
               </Box>
               <Box sx={{ minWidth: 0 }}>
@@ -252,10 +252,7 @@ const IdaDash = () => {
                     color="secondary"
                     disableElevation
                     disabled={!ggYearData}
-                    onClick={() => {
-                      const reportWindow = window.open('', '_blank');
-                      exportYearToXlsx(ggYearData, year, lang, reportWindow);
-                    }}
+                    onClick={() => exportYearToXlsx(ggYearData, year, lang)}
                     startIcon={<TableChart sx={{ fontSize: '1.4rem', color: '#175C35' }} />}
                     sx={{
                       textTransform: 'none',
@@ -296,6 +293,16 @@ const IdaDash = () => {
                 <Card
                   key={m}
                   elevation={0}
+                  // IDAForm's :month route param is 0-indexed (native JS Date
+                  // convention); m here is 1-indexed for display. The button
+                  // below has no onClick of its own — a click on it bubbles
+                  // up to this same handler. (It used to have its own
+                  // identical onClick too, which meant every click pushed
+                  // TWO history entries for this route instead of one — so
+                  // IDAForm's navigate(-1) after saving only popped back to
+                  // the other /ida/... entry, not to this dashboard, and the
+                  // form appeared to just scroll instead of closing.)
+                  onClick={() => navigate(`/ida/${year}/${m - 1}`)}
                   sx={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -309,6 +316,7 @@ const IdaDash = () => {
                     borderRadius: 1.5,
                     backgroundColor: 'background.paper',
                     boxSizing: 'border-box',
+                    cursor: 'pointer',
                     transition: 'all 0.15s ease-in-out',
                     '&:hover': {
                       borderColor: 'primary.main',
@@ -327,9 +335,6 @@ const IdaDash = () => {
                       variant="contained"
                       size="medium"
                       disableElevation
-                      // IDAForm's :month route param is 0-indexed (native JS
-                      // Date convention); m here is 1-indexed for display.
-                      onClick={() => navigate(`/ida/${year}/${m - 1}`)}
                       startIcon={statusConfig.icon}
                       sx={{
                         textTransform: 'none',
