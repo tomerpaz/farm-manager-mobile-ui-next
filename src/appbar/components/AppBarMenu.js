@@ -7,6 +7,7 @@ import { logOut, selectActiveGPS, selectLang, setActiveGPS, setOpenSettings } fr
 import SettingsDialog from '../../ui/settings/SettingsDialog';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import LayersDialog from '../../ui/layers/LayersDialog';
+import { apiSlice } from '../../app/api/apiSlice';
 
 
 
@@ -37,6 +38,8 @@ const AppBarMenu = () => {
     const handleLogout = () => {
         setAnchorEl(null);
         dispatch(logOut());
+        // Clear cached queries so the next user doesn't start with this user's data
+        dispatch(apiSlice.util.resetApiState());
 
         navigate("/login");
     };

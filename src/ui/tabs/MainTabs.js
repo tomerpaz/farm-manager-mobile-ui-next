@@ -2,7 +2,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import FieldsMap from './map/FieldsMap';
-import { Link, useLocation, useParams } from 'react-router';
+import { Link, Navigate, useLocation } from 'react-router';
 import FieldList from './fields/FieldList';
 import IdaDash from './ida/IdaDash';
 import Resources from './resources/Resources';
@@ -14,6 +14,7 @@ import ActionFab from '../../components/ui/ActionFab';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import { isInventoryPossible, isPlansPossible } from '../FarmUtil';
 import InventoryTable from './inventory/InventoryTable';
+
 function TabPanel(props) {
     const { children, value, index, ...other } = props;
 
@@ -41,46 +42,74 @@ function a11yProps(index) {
     };
 }
 
-const inventoryPath = '/tabs/inventory';
-const plansBasePath = '/tabs/plans/';
-
+const Column = ({ children }) => (
+    <Box
+        sx={{
+            display: 'flex',
+            flex: 1,
+            flexDirection: 'column',
+            alignItems: 'stretch'
+        }}>
+        {children}
+    </Box>
+);
 
 const MainTabs = () => {
 
     const { pathname } = useLocation();
-    const { page } = useParams()
-    const text = useSelector(selectLang)
-
-
-    const plansPath = `${plansBasePath}${page}`;
-
-    const { data: { userConf, usePlans } } = useGetUserDataQuery()
-
-    const isIda = userConf.filter(e => e.type === 'IDA').length > 0;
-    const paths = isIda ? ['/tabs/ida/dash', '/tabs/ida/sites', '/tabs/resources'] : ['/tabs/map', '/tabs/fields', `/tabs/activities/${page}`/*, `/tabs/plans/${page}`*/];
-
+    const text = useSelector(selectLang);
     const showInventory = useSelector(selectShowInventory);
-    const isInventory = showInventory && isInventoryPossible(userConf);
-
-
     const showPlans = useSelector(selectShowPlans);
-    const isPlans = showPlans && isPlansPossible(userConf);
     const editLayer = useSelector(selectEditLayer);
 
-    if (isPlans) {
-        paths.push(plansPath)
+    const { data } = useGetUserDataQuery();
+    const userConf = data?.userConf ?? [];
+
+    const isIda = userConf.some(e => e.type === 'IDA');
+    const isPlans = showPlans && isPlansPossible(userConf);
+    const isInventory = showInventory && isInventoryPossible(userConf);
+
+    // Each tab is declared once: `to` is where the tab links, `match` is the
+    // pathname prefix that selects it (so /tabs/activities/:page still matches).
+    const tabs = isIda
+        ? [
+            { key: 'ida', label: text.ida, to: '/tabs/ida/dash', match: '/tabs/ida/dash', element: <IdaDash /> },
+            { key: 'sites', label: text.sites, to: '/tabs/ida/sites', match: '/tabs/ida/sites', element: <IdaSites /> },
+            { key: 'resources', label: text.resources, to: '/tabs/resources', match: '/tabs/resources', element: <Resources /> },
+        ]
+        : [
+            {
+                key: 'map', label: text.map, to: '/tabs/map', match: '/tabs/map',
+                element: <Column><FieldsMap />{editLayer === null && <ActionFab map={true} plan={false} />}</Column>
+            },
+            {
+                key: 'fields', label: text.fields, to: '/tabs/fields', match: '/tabs/fields',
+                element: <Column><FieldList /><ActionFab plan={false} /></Column>
+            },
+            {
+                key: 'activities', label: text.activities, to: '/tabs/activities/0', match: '/tabs/activities',
+                element: <Column><ActivitiesList plans={false} /><ActionFab bottom={80} plan={false} /></Column>
+            },
+            isPlans && {
+                key: 'plans', label: text.plans, to: '/tabs/plans/0', match: '/tabs/plans',
+                element: <><ActivitiesList plans={true} /><ActionFab bottom={80} plan={true} /></>
+            },
+            isInventory && {
+                key: 'inventory', label: text.inventory, to: '/tabs/inventory', match: '/tabs/inventory',
+                element: <InventoryTable />
+            },
+        ].filter(Boolean);
+
+    const matchedIndex = tabs.findIndex(t => pathname.startsWith(t.match));
+
+    // A path that belongs to the other mode (e.g. /tabs/map for an IDA user)
+    // would otherwise show tab 0 under the wrong AppBar, which follows the URL.
+    if (data && matchedIndex === -1) {
+        return <Navigate to={tabs[0].to} replace />;
     }
 
-    if (isInventory) {
-        paths.push(inventoryPath)
-    }
-    const plansIndex = paths.findIndex((element) => element === plansPath)
-    const inventoryIndex = paths.findIndex((element) => element === inventoryPath)
-
-    const getIndex = ((element) => element === pathname);
-    const value = paths.findIndex(getIndex) > 0 ? paths.findIndex(getIndex) : 0;
-
-    const addScroll = paths.length > 4;
+    const value = Math.max(0, matchedIndex);
+    const addScroll = tabs.length > 4;
 
     return (
         <Box
@@ -98,86 +127,22 @@ const MainTabs = () => {
                     borderBottom: 1,
                     borderColor: 'divider'
                 }}>
-                <Tabs value={value} aria-label="basic tabs example"
-                    // indicatorColor="secondary"
+                <Tabs value={value} aria-label="main tabs"
                     textColor="inherit"
                     variant={addScroll ? 'scrollable' : 'fullWidth'}
                     scrollButtons={addScroll}
                     allowScrollButtonsMobile={addScroll}
-                // variant="scrollable"
-                // scrollButtons={true}
-                // allowScrollButtonsMobile
                 >
-                    {!isIda && <Tab label={text.map} to={"/tabs/map"} component={Link}   {...a11yProps(0)} />}
-                    {!isIda && <Tab label={text.fields} to="/tabs/fields" component={Link} {...a11yProps(1)} />}
-                    {!isIda && <Tab label={text.activities} to="/tabs/activities/0" component={Link}  {...a11yProps(2)} />}
-
-                    {isIda && <Tab label={text.ida} to="/tabs/ida/dash" component={Link}   {...a11yProps(0)} />}
-                    {isIda && <Tab label={text.sites} to="/tabs/ida/sites" component={Link}   {...a11yProps(1)} />}
-                    {isIda && <Tab label={text.resources} to="/tabs/resources" component={Link}   {...a11yProps(2)} />}
-
-                    {/* {usePlans && <Tab label={text.plans} to="/tabs/plans/0" component={Link}  {...a11yProps(3)} />}  */}
-
-                    {isPlans && <Tab label={text.plans} to={`${plansBasePath}${0}`} component={Link}  {...a11yProps(plansIndex)} />}
-
-                    {isInventory && <Tab label={text.inventory} to={inventoryPath} component={Link}  {...a11yProps(inventoryIndex)} />}
-
+                    {tabs.map((t, i) => (
+                        <Tab key={t.key} label={t.label} to={t.to} component={Link} {...a11yProps(i)} />
+                    ))}
                 </Tabs>
             </Box>
-            <TabPanel component={'div'} value={value} index={0}>
-                {isIda && <IdaDash />}
-                {!isIda &&
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            flexDirection: 'column',
-                            alignItems: 'stretch'
-                        }}>
-                        <FieldsMap />
-                        {editLayer === null && <ActionFab map={true} plan={false} />}
-                    </Box>}
-            </TabPanel>
-            <TabPanel component={'div'} value={value} index={1}>
-                {isIda && <IdaSites />}
-                {!isIda &&
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            flexDirection: 'column',
-                            alignItems: 'stretch'
-                        }}>
-                        <FieldList />
-                        <ActionFab plan={false} />
-                    </Box>}
-
-            </TabPanel>
-            <TabPanel component={'div'} value={value} index={2}>
-                {isIda && <Resources />}
-                {!isIda &&
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            flexDirection: 'column',
-                            alignItems: 'stretch'
-                        }}>
-                        <ActivitiesList plans={false} />
-                        <ActionFab bottom={80} plan={false} />
-                    </Box>}
-
-
-
-            </TabPanel>
-            {isPlans && <TabPanel value={value} index={plansIndex}>
-                <ActivitiesList plans={true} />
-                <ActionFab bottom={80} plan={true} />
-            </TabPanel>}
-            {isInventory && <TabPanel value={value} index={inventoryIndex}>
-                <InventoryTable />
-            </TabPanel>}
-
+            {tabs.map((t, i) => (
+                <TabPanel key={t.key} value={value} index={i}>
+                    {t.element}
+                </TabPanel>
+            ))}
         </Box>
     );
 }

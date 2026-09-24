@@ -74,9 +74,8 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
                 result = await baseQuery(args, api, extraOptions)
             } else {
                 api.dispatch(logOut())
-                if (api.util && api.util.resetApiState) {
-                    api.dispatch(api.utils.resetApiState())
-                }
+                // Drop the previous user's cached queries (user data, fields, ...)
+                api.dispatch(apiSlice.util.resetApiState())
             }
         }
     }
