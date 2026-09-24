@@ -92,7 +92,6 @@ const IdaDash = () => {
       </Box>
     );
   }
-  console.log(idaSystemData)
 
   // A record with every metric list empty means someone created it and
   // never actually entered anything — checked directly off the record's own

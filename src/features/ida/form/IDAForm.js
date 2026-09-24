@@ -64,7 +64,7 @@ const METRICS = [
     },
     {
         id: "fertilizers",
-        title: "Fertilizers",
+        title: "Fertilizers (NPK)",
         dateField: "date",
         totalField: "amount",
         totalUnit: "kg",
