@@ -471,7 +471,7 @@ function IDAForm() {
                             </Typography>
                         </Box>
 
-                        <Box sx={{ ml: "auto", minWidth: 320, width: { xs: "100%", sm: "auto" }, mt: { xs: 1, sm: 0 } }}>
+                        <Box sx={{ ml: "auto", minWidth: { sm: 320 }, width: { xs: "100%", sm: "auto" }, mt: { xs: 1, sm: 0 } }}>
                             <Controller
                                 control={control}
                                 name="manager"
@@ -512,16 +512,17 @@ function IDAForm() {
                     <Box
                         sx={{
                             display: "grid",
-                            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
+                            // minmax(0, 1fr) stops wide tables from stretching the track past the viewport
+                            gridTemplateColumns: { xs: "minmax(0, 1fr)", lg: "repeat(2, minmax(0, 1fr))" },
                             gap: 3,
                             mb: 4,
                             alignItems: "start",
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
                             {METRICS.slice(0, half).map((m, i) => renderPanel(m, i))}
                         </Box>
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
                             {METRICS.slice(half).map((m, i) => renderPanel(m, i + half))}
                         </Box>
                     </Box>
@@ -532,16 +533,28 @@ function IDAForm() {
                         </Alert>
                     )}
 
+                    {/* Docked to the bottom of the viewport so Save stays reachable without scrolling */}
                     <Box
                         sx={{
+                            position: "sticky",
+                            bottom: 0,
+                            zIndex: (theme) => theme.zIndex.appBar,
                             display: "flex",
                             flexWrap: "wrap",
                             gap: 2,
                             justifyContent: "space-between",
                             alignItems: "center",
-                            pt: 3,
+                            mx: { xs: -2, sm: -4 },
+                            mb: -4,
+                            px: { xs: 2, sm: 4 },
+                            py: 1.5,
+                            pb: "calc(12px + env(safe-area-inset-bottom))",
+                            bgcolor: "background.paper",
                             borderTop: "2px solid",
                             borderColor: "divider",
+                            boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.08)",
+                            borderBottomLeftRadius: { xs: 0, sm: 8 },
+                            borderBottomRightRadius: { xs: 0, sm: 8 },
                         }}
                     >
                         <Controller

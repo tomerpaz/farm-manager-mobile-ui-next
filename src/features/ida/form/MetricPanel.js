@@ -18,7 +18,7 @@ export default function MetricPanel({ id, title, count, expanded, onChange, chil
         >
             <AccordionSummary
                 expandIcon={<ExpandMore />}
-                sx={{ minHeight: 64, px: 3, gap: 1.5 }}
+                sx={{ minHeight: 64, px: { xs: 2, sm: 3 }, gap: 1.5 }}
                 aria-controls={`${id}-content`}
                 id={`${id}-header`}
             >
@@ -28,7 +28,7 @@ export default function MetricPanel({ id, title, count, expanded, onChange, chil
                 {count > 0 && <Chip size="small" label={count} color="success" variant="outlined" sx={{ ml: 1.5 }} />}
             </AccordionSummary>
             <AccordionDetails
-                sx={{ p: 3, borderTop: "1px solid", borderColor: "divider", bgcolor: "background.default" }}
+                sx={{ p: { xs: 1.5, sm: 3 }, minWidth: 0, borderTop: "1px solid", borderColor: "divider", bgcolor: "background.default" }}
             >
                 {children}
             </AccordionDetails>

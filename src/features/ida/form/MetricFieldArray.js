@@ -14,6 +14,8 @@ import {
     TableRow,
     Paper,
     Tooltip,
+    Divider,
+    useMediaQuery,
 } from "@mui/material";
 import { Add, Delete, Edit } from "@mui/icons-material";
 import MetricFormDialog from "./MetricFormDialog";
@@ -51,6 +53,9 @@ export default function MetricFieldArray({
 }) {
     const { fields, append, remove, update } = useFieldArray({ control, name });
     const [dialogState, setDialogState] = useState(CLOSED);
+    // Phones get stacked cards instead of a wide table, which would otherwise
+    // force horizontal scrolling inside the narrow accordion.
+    const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
 
     const rows = useMemo(
         () =>
@@ -119,14 +124,41 @@ export default function MetricFieldArray({
         }
     };
 
+    const renderActions = (field, index) => (
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
+            <Tooltip title="Edit entry">
+                <IconButton
+                    size="small"
+                    color="primary"
+                    aria-label={`Edit ${title || "entry"} from ${formatDate(field[dateField])}`}
+                    onClick={() => handleOpenEdit(index)}
+                >
+                    <Edit fontSize="small" />
+                </IconButton>
+            </Tooltip>
+            <Tooltip title="Remove entry">
+                <IconButton
+                    size="small"
+                    color="secondary"
+                    aria-label={`Remove ${title || "entry"} from ${formatDate(field[dateField])}`}
+                    onClick={() => remove(index)}
+                >
+                    <Delete fontSize="small" />
+                </IconButton>
+            </Tooltip>
+        </Box>
+    );
+
     return (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%", minWidth: 0 }}>
             {mandatoryError && (
                 <Alert severity="error" sx={{ borderRadius: 2 }}>
                     {mandatoryError}
                 </Alert>
             )}
-            <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 1.5 }}>
+            <Box
+                sx={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", alignItems: "center", gap: 1.5 }}
+            >
                 {disabled && disabledReason && (
                     <Typography variant="body2" sx={{ color: "text.secondary" }}>
                         {disabledReason}
@@ -147,7 +179,7 @@ export default function MetricFieldArray({
             {fields.length === 0 ? (
                 <Box
                     sx={{
-                        p: 4,
+                        p: { xs: 2.5, sm: 4 },
                         textAlign: "center",
                         border: "1px dashed",
                         borderColor: "divider",
@@ -158,6 +190,76 @@ export default function MetricFieldArray({
                     <Typography variant="body1" sx={{ color: "text.secondary" }}>
                         No records logged under this parameter segment.
                     </Typography>
+                </Box>
+            ) : isMobile ? (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                    {rows.map(({ field, index }) => (
+                        <Paper key={field.id} variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    pl: 1.5,
+                                    pr: 0.5,
+                                    py: 0.5,
+                                    bgcolor: "action.hover",
+                                }}
+                            >
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                                    {formatDate(field[dateField])}
+                                </Typography>
+                                {renderActions(field, index)}
+                            </Box>
+                            <Divider />
+                            <Box
+                                component="dl"
+                                sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "auto minmax(0, 1fr)",
+                                    columnGap: 2,
+                                    rowGap: 0.75,
+                                    m: 0,
+                                    p: 1.5,
+                                }}
+                            >
+                                {tableColumns
+                                    .filter((f) => f.name !== dateField)
+                                    .map((f) => (
+                                        <Box key={f.name} sx={{ display: "contents" }}>
+                                            <Typography component="dt" variant="body2" sx={{ color: "text.secondary" }}>
+                                                {f.label}
+                                            </Typography>
+                                            <Typography
+                                                component="dd"
+                                                variant="body2"
+                                                sx={{ m: 0, textAlign: "right", overflowWrap: "anywhere" }}
+                                            >
+                                                {formatCell(f, field)}
+                                            </Typography>
+                                        </Box>
+                                    ))}
+                            </Box>
+                        </Paper>
+                    ))}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            px: 1.5,
+                            py: 1,
+                            borderRadius: 2,
+                            bgcolor: "action.hover",
+                            fontWeight: 700,
+                        }}
+                    >
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            Total ({fields.length})
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            {formatQty(total, totalUnit)}
+                        </Typography>
+                    </Box>
                 </Box>
             ) : (
                 <TableContainer component={Paper} variant="outlined" elevation={0} sx={{ borderRadius: 2 }}>
@@ -191,28 +293,7 @@ export default function MetricFieldArray({
                                         </TableCell>
                                     ))}
                                     <TableCell align="center">
-                                        <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
-                                            <Tooltip title="Edit entry">
-                                                <IconButton
-                                                    size="small"
-                                                    color="primary"
-                                                    aria-label={`Edit ${title || "entry"} from ${formatDate(field[dateField])}`}
-                                                    onClick={() => handleOpenEdit(index)}
-                                                >
-                                                    <Edit fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Remove entry">
-                                                <IconButton
-                                                    size="small"
-                                                    color="secondary"
-                                                    aria-label={`Remove ${title || "entry"} from ${formatDate(field[dateField])}`}
-                                                    onClick={() => remove(index)}
-                                                >
-                                                    <Delete fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
+                                        {renderActions(field, index)}
                                     </TableCell>
                                 </TableRow>
                             ))}
