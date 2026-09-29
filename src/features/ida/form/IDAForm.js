@@ -29,6 +29,7 @@ import { useGetResourcesQuery } from "../../resources/resourcesApiSlice";
 import MetricFieldArray from "./MetricFieldArray";
 import MetricPanel from "./MetricPanel";
 import { fromRecord, getExistingRecord, toRecordPayload } from "../ggRecordMapper";
+import useIdaText from "./useIdaText";
 
 const WORKER = "WORKER";
 const GENERAL = "GENERAL";
@@ -36,157 +37,182 @@ const GENERAL = "GENERAL";
 // Every scalar field name below (date, amount, amountWaterUseIrrigation,
 // energySourceId, ...) matches the Java server's GGElement class exactly
 // (see ggRecordMapper.js), so toRecordPayload/fromRecord can copy them
-// straight across. The four fields that don't map 1:1 (site_id, fertilizer_id
-// / pesticideId, fieldIds, pests) are plain ids here — friendlier for
-// <select>/Autocomplete matching — and get reshaped into GGElement's object
-// references (site/resource/fields/pests) at submit time.
+// straight across. The three fields that don't map 1:1 (site_id, fieldIds,
+// pests) are plain ids here — friendlier for <select>/Autocomplete matching —
+// and get reshaped into GGElement's object references (site/fields/pests) at
+// submit time. `resources` keeps GGElement's own shape.
 //
 // Each schema entry describes one input: {name, type, label, unit, required,
 // column, optionsFrom, allOption, defaultToFormDate}. `type` drives both the
 // dialog control and the table cell (date | number | select | multiselect |
-// fields | text). `column: false` keeps a field editable without cluttering
-// the summary table. `optionsFrom` is resolved against the `dataSources` map
+// fields | resources | text). `column: false` keeps a field editable without cluttering
+// the summary table. titleKey/labelKey/emptyLabelKey are src/lang/*.json
+// keys, with title/label/emptyLabel as the English fallback. `optionsFrom` is resolved against the `dataSources` map
 // built inside IDAForm from idaSystemData + the pests query.
 const METRICS = [
     {
         id: "activeIngredients",
-        title: "Active Ingredients",
+        title: "Active Ingredients", titleKey: "activeIngredients",
         dateField: "date",
-        totalField: "amount",
+        // The amount lives on each resource row now — the total sums those.
+        totalField: "resources",
         totalUnit: "kg",
         schema: [
-            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
-            { name: "pesticideId", type: "autocomplete", label: "Pesticide", required: true, optionsFrom: "pesticides", zeroLinksTo: ["date", "amount"] },
-            { name: "pests", type: "multiselect", label: "Pests", optionsFrom: "pests" },
-            { name: "fieldIds", type: "fields", label: "Fields", required: true },
-            { name: "amount", type: "number", label: "Amount Applied", unit: "kg", required: true },
+            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            // An empty list declares "No Active Ingredient" for the fields,
+            // so the date gets the same forced/locked treatment the old id-0
+            // "None" option had. Each row only takes a resource and its amount.
+            {
+                name: "resources", type: "resources", label: "Pesticides", labelKey: "pesticides", optionsFrom: "pesticides",
+                emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg",
+            },
+            { name: "pests", type: "multiselect", label: "Pests", labelKey: "pests", optionsFrom: "pests" },
+            { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
         ],
     },
     {
         id: "fertilizers",
-        title: "Fertilizers (NPK)",
+        title: "Fertilizers (NPK)", titleKey: "fertilizersNpk",
         dateField: "date",
-        totalField: "amount",
+        totalField: "resources",
         totalUnit: "kg",
         schema: [
-            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
-            { name: "fertilizer_id", type: "select", label: "Fertilizer", required: true, optionsFrom: "fertilizers", zeroLinksTo: ["date", "amount"] },
-            { name: "fieldIds", type: "fields", label: "Fields", required: true },
-            { name: "amount", type: "number", label: "Amount", unit: "kg", required: true },
+            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            {
+                name: "resources", type: "resources", label: "Fertilizers", labelKey: "fertilizers", optionsFrom: "fertilizers",
+                emptyLabel: "No NPK", emptyLabelKey: "noNpk", zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg",
+            },
+            { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
         ],
     },
     {
         id: "waterUse",
-        title: "Water Use",
+        title: "Water Use", titleKey: "waterUse",
         dateField: "date",
         totalField: "amount",
         totalUnit: "m³",
         schema: [
-            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
-            { name: "site_id", type: "select", label: "Site", optionsFrom: "sites", allOption: true },
+            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            { name: "site_id", type: "select", label: "Site", labelKey: "site", optionsFrom: "sites", allOption: true },
             {
-                name: "amount", type: "number", label: "Total Amount", unit: "m³", required: true,
+                name: "amount", type: "number", label: "Total Amount", labelKey: "totalAmount", unit: "m³", required: true,
                 // Derived, not user-entered — kept out of the dialog and summed
                 // from the two fields below whenever the record is saved.
                 hidden: true, computeFrom: ["amountWaterUseIrrigation", "amountWaterUseProductHandling"],
             },
-            { name: "amountWaterUseIrrigation", type: "number", label: "Irrigation Amount", unit: "m³", column: false, required: true },
-            { name: "amountWaterUseProductHandling", type: "number", label: "Product Handling", unit: "m³", column: false, required: true },
-            { name: "flowRate", type: "text", label: "Flow Rate", column: false },
+            { name: "amountWaterUseIrrigation", type: "number", label: "Irrigation Amount", labelKey: "irrigationAmount", unit: "m³", column: false, required: true },
+            { name: "amountWaterUseProductHandling", type: "number", label: "Product Handling", labelKey: "productHandling", unit: "m³", column: false, required: true },
+            { name: "flowRate", type: "text", label: "Flow Rate", labelKey: "flowRate", column: false },
         ],
     },
     {
         id: "waterAbstracted",
-        title: "Water Abstracted",
+        title: "Water Abstracted", titleKey: "waterAbstracted",
         dateField: "date",
         totalField: "amount",
         totalUnit: "m³",
         schema: [
-            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
-            { name: "site_id", type: "select", label: "Site", optionsFrom: "sites", allOption: true },
-            { name: "waterSourceId", type: "select", label: "Water Source", required: true, optionsFrom: "waterTypes" },
-            { name: "amount", type: "number", label: "Volume Extracted", unit: "m³", required: true },
+            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            { name: "site_id", type: "select", label: "Site", labelKey: "site", optionsFrom: "sites", allOption: true },
+            { name: "waterSourceId", type: "select", label: "Water Source", labelKey: "waterSource", required: true, optionsFrom: "waterTypes" },
+            { name: "amount", type: "number", label: "Volume Extracted", labelKey: "volumeExtracted", unit: "m³", required: true },
         ],
     },
     {
         id: "precipitation",
-        title: "Precipitation",
+        title: "Precipitation", titleKey: "precipitation",
         dateField: "date",
         totalField: "amount",
         totalUnit: "mm",
         schema: [
-            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
-            { name: "site_id", type: "select", label: "Site", optionsFrom: "sites", allOption: true },
-            { name: "amount", type: "number", label: "Rainfall Depth", unit: "mm", required: true },
+            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            { name: "site_id", type: "select", label: "Site", labelKey: "site", optionsFrom: "sites", allOption: true },
+            { name: "amount", type: "number", label: "Rainfall Depth", labelKey: "rainfallDepth", unit: "mm", required: true },
         ],
     },
     {
         id: "energyUsed",
-        title: "Energy Used",
+        title: "Energy Used", titleKey: "energyUsed",
         dateField: "date",
         totalField: "amount",
         totalUnit: "kWh",
         schema: [
-            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
-            { name: "site_id", type: "select", label: "Site", optionsFrom: "sites", allOption: true },
+            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            { name: "site_id", type: "select", label: "Site", labelKey: "site", optionsFrom: "sites", allOption: true },
             {
-                name: "energySourceId", type: "select", label: "Energy Source", required: true, optionsFrom: "energyTypes",
+                name: "energySourceId", type: "select", label: "Energy Source", labelKey: "energySource", required: true, optionsFrom: "energyTypes",
                 // Energy source 15 is "renewable"/self-generated — no external
                 // amount was drawn, so date/amount/renewableAmount are forced
-                // (last day of the month / 0) and locked, same idea as the
-                // "None" pesticide/fertilizer option below (id 0 there).
+                // (last day of the month / 0) and locked, same idea as an
+                // empty pesticide/fertilizer resources list above.
                 zeroLinksTo: ["date", "amount", "renewableAmount"], linkTriggerValue: 15,
             },
-            { name: "amount", type: "number", label: "Power Absorbed", unit: "kWh", required: true },
-            { name: "renewableAmount", type: "number", label: "Renewable Amount", unit: "kWh", column: false },
+            { name: "amount", type: "number", label: "Power Absorbed", labelKey: "powerAbsorbed", unit: "kWh", required: true },
+            { name: "renewableAmount", type: "number", label: "Renewable Amount", labelKey: "renewableAmount", unit: "kWh", column: false },
         ],
     },
     {
         id: "energyExportedOrGenerated",
-        title: "Energy Exported / Generated",
+        title: "Energy Exported / Generated", titleKey: "energyExported",
         dateField: "date",
         totalField: "amountExportedToGrid",
         totalUnit: "kWh",
         schema: [
-            { name: "date", type: "date", label: "Date Exported", required: true, defaultToFormDate: true },
-            { name: "site_id", type: "select", label: "Site", optionsFrom: "sites", allOption: true },
-            { name: "amountGenerated", type: "number", label: "Power Generated", unit: "kWh" },
-            { name: "dateEnergyGenerated", type: "date", label: "Date Generated", column: false },
-            { name: "amountExportedToGrid", type: "number", label: "Power Exported to Grid", unit: "kWh", required: true },
+            { name: "date", type: "date", label: "Date Exported", labelKey: "dateExported", required: true, defaultToFormDate: true },
+            { name: "site_id", type: "select", label: "Site", labelKey: "site", optionsFrom: "sites", allOption: true },
+            { name: "amountGenerated", type: "number", label: "Power Generated", labelKey: "powerGenerated", unit: "kWh" },
+            { name: "dateEnergyGenerated", type: "date", label: "Date Generated", labelKey: "dateGenerated", column: false },
+            { name: "amountExportedToGrid", type: "number", label: "Power Exported to Grid", labelKey: "powerExported", unit: "kWh", required: true },
         ],
     },
     {
         id: "general",
-        title: "General",
+        title: "General", titleKey: "general",
         dateField: "date",
         totalField: "amount",
         // No single unit here (unlike fertilizers' fixed "kg") — general
-        // resources carry their own unit (kg/lit/unit), so the per-row
-        // amount's unit comes from the selected resource via unitFrom below,
-        // and the summary total is left unlabeled since rows can mix units.
+        // resources carry their own unit (kg/lit/unit), shown per resource
+        // row, and the summary total is left unlabeled since rows can mix units.
         totalUnit: "",
         schema: [
-            { name: "date", type: "date", label: "Date", required: true, defaultToFormDate: true },
-            // Unlike fertilizers/activeIngredients, there's no id 0 "None"
-            // option here — a general resource application is either logged
-            // or it isn't, there's nothing to explicitly declare.
-            { name: "resource_id", type: "select", label: "Resource", required: true, optionsFrom: "generalResources" },
-            { name: "fieldIds", type: "fields", label: "Fields", required: true },
-            { name: "amount", type: "number", label: "Amount", required: true, unitFrom: "resource_id" },
+            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            // Unlike fertilizers/activeIngredients, an empty list isn't a
+            // "None" declaration here — a general resource application is
+            // either logged or it isn't, so at least one row is required.
+            { name: "resources", type: "resources", label: "Resources", labelKey: "resources", required: true, optionsFrom: "generalResources" },
+            { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
+            { name: "amount", type: "number", label: "Amount", labelKey: "amountLabel", required: true },
         ],
     },
 ].map((m) => ({
     ...m,
     // Every metric gets an optional free-text note, kept out of the summary
     // table (it's a detail you open the row to read, not scan a column for).
-    schema: [...m.schema, { name: "note", type: "text", label: "Note", column: false, multiline: true }],
+    schema: [...m.schema, { name: "note", type: "text", label: "Note", labelKey: "note", column: false, multiline: true }],
 }));
 
 const EMPTY_RECORD = METRICS.reduce((acc, m) => ({ ...acc, [m.id]: [] }), {});
 const METRIC_IDS = METRICS.map((m) => m.id);
 
-const resolveSchema = (schema, dataSources) =>
-    schema.map((f) => (f.optionsFrom ? { ...f, options: dataSources[f.optionsFrom] || [] } : f));
+// The fertilizer/pesticide lists lead with a "none" entry (id 0) — never a
+// valid resource row, since an empty resources list is what means "none"
+// now. It's split off here and its label reused for the empty state.
+const resolveSchema = (schema, dataSources, t) =>
+    schema.map((spec) => {
+        const f = {
+            ...spec,
+            label: t(spec.labelKey, spec.label),
+            ...(spec.emptyLabelKey ? { emptyLabel: t(spec.emptyLabelKey, spec.emptyLabel) } : {}),
+        };
+        if (!f.optionsFrom) return f;
+        const options = dataSources[f.optionsFrom] || [];
+        if (f.type !== "resources") return { ...f, options };
+        return {
+            ...f,
+            options: options.filter((o) => o.id !== 0),
+            emptyLabel: options.find((o) => o.id === 0)?.name || f.emptyLabel,
+        };
+    });
 
 // A field with no startDate on record shouldn't be hidden from selection —
 // only exclude it once we can actually tell it starts after this month.
@@ -196,20 +222,21 @@ const filterByStartDate = (fields, cutoff) =>
 // Drafts can be left incomplete — a real submission can't. waterUse and
 // energyUsed just need one record each; activeIngredients/fertilizers are
 // keyed per field (crop_id server-side), so every field needs its own
-// covering record — either a real application, or an explicit "No Active
-// Ingredient"/"No NPK" (id 0) entry declaring nothing was applied.
+// covering record — either a real application, or an entry with no resources
+// ("No Active Ingredient"/"No NPK") declaring nothing was applied.
 // Returns a { [metricId]: message } map (only for metrics that actually have
 // a problem) so each error can be shown right on its own panel instead of
 // one bundled banner the user has to cross-reference.
-function validateMandatoryMetrics(formData, availableFields, zeroOptionLabels) {
+function validateMandatoryMetrics(formData, availableFields, zeroOptionLabels, t) {
     if (formData.draft) return {};
 
+    const needsOne = t("needsOneRecord", "Needs at least one record before this can be finalized.");
     const errors = {};
     if ((formData.waterUse || []).length === 0) {
-        errors.waterUse = "Needs at least one record before this can be finalized.";
+        errors.waterUse = needsOne;
     }
     if ((formData.energyUsed || []).length === 0) {
-        errors.energyUsed = "Needs at least one record before this can be finalized.";
+        errors.energyUsed = needsOne;
     }
 
     const checkFieldCoverage = (metricId, records, zeroLabel) => {
@@ -219,14 +246,18 @@ function validateMandatoryMetrics(formData, availableFields, zeroOptionLabels) {
         // it would silently pass a totally empty list for a site with no
         // fields set up yet.
         if ((records || []).length === 0) {
-            errors[metricId] = "Needs at least one record before this can be finalized.";
+            errors[metricId] = needsOne;
             return;
         }
         const uncovered = (availableFields || []).filter(
             (field) => !(records || []).some((r) => (r.fieldIds || []).includes(field.id))
         );
         if (uncovered.length > 0) {
-            errors[metricId] = `Needs a record (or "${zeroLabel}") for: ${uncovered.map((f) => f.name).join(", ")}.`;
+            errors[metricId] = t(
+                "needsFieldCoverage",
+                'Needs a record for: {fields}. If nothing was applied, add an entry with no rows ("{none}").',
+                { fields: uncovered.map((f) => f.name).join(", "), none: zeroLabel }
+            );
         }
     };
     checkFieldCoverage("activeIngredients", formData.activeIngredients, zeroOptionLabels.activeIngredients);
@@ -241,6 +272,7 @@ function IDAForm() {
 
     const text = useSelector(selectLang);
     const lang = text?.lang;
+    const t = useIdaText();
 
     const recordYear = Number(year);
     const recordMonth = Number(month); // 0-indexed
@@ -332,10 +364,16 @@ function IDAForm() {
 
     const handleFormSubmit = async (formData) => {
         setSubmitError(null);
-        const mandatoryErrors = validateMandatoryMetrics(formData, availableFields, {
-            activeIngredients: dataSources.pesticides.find((p) => p.id === 0)?.name || "None",
-            fertilizers: dataSources.fertilizers.find((f) => f.id === 0)?.name || "None",
-        });
+        const mandatoryErrors = validateMandatoryMetrics(
+            formData,
+            availableFields,
+            {
+                activeIngredients:
+                    dataSources.pesticides.find((p) => p.id === 0)?.name || t("noActiveIngredient", "No Active Ingredient"),
+                fertilizers: dataSources.fertilizers.find((f) => f.id === 0)?.name || t("noNpk", "No NPK"),
+            },
+            t
+        );
         setMetricErrors(mandatoryErrors);
         if (Object.keys(mandatoryErrors).length > 0) {
             // Expand every panel with a problem so the inline message is
@@ -354,7 +392,7 @@ function IDAForm() {
         } catch (err) {
             console.error("Failed to save the monthly IDA record:", err);
             setSubmitError(
-                err?.data?.message || text?.saveFailed || "Could not save this month's records. Please try again."
+                err?.data?.message || t("saveFailed", "Could not save this month's records. Please try again.")
             );
         }
     };
@@ -376,18 +414,10 @@ function IDAForm() {
         energyTypes: [...(idaSystemData?.energyTypes || [])].sort((a, b) =>
             (a.id === 15 ? -1 : b.id === 15 ? 1 : 0)
         ),
-        // id 0 is a real, selectable choice — it's how a farmer declares
-        // "nothing was applied to this field" for the month, which still
-        // counts toward the per-field coverage required when not a draft.
-        // The server already returns its own id-0 entry for both lists, so
-        // this only fills one in (with our label) if it's somehow missing,
-        // rather than risk showing it twice.
-        fertilizers: (idaSystemData?.fertilizers || []).some((f) => f.id === 0)
-            ? idaSystemData.fertilizers
-            : [{ id: 0, name: "No NPK" }, ...(idaSystemData?.fertilizers || [])],
-        pesticides: (idaSystemData?.pesticides || []).some((p) => p.id === 0)
-            ? idaSystemData.pesticides
-            : [{ id: 0, name: "No Active Ingredient" }, ...(idaSystemData?.pesticides || [])],
+        // Both lists lead with the server's "none" entry (id 0); resolveSchema
+        // keeps it out of the resource rows and only uses its label.
+        fertilizers: idaSystemData?.fertilizers || [],
+        pesticides: idaSystemData?.pesticides || [],
         pests,
         generalResources,
     };
@@ -402,7 +432,7 @@ function IDAForm() {
             <MetricPanel
                 key={metric.id}
                 id={metric.id}
-                title={metric.title}
+                title={t(metric.titleKey, metric.title)}
                 count={metricValues?.[indexInAll]?.length ?? 0}
                 expanded={expanded.has(metric.id)}
                 onChange={togglePanel(metric.id)}
@@ -410,8 +440,8 @@ function IDAForm() {
                 <MetricFieldArray
                     control={control}
                     name={metric.id}
-                    title={metric.title}
-                    schema={resolveSchema(metric.schema, dataSources)}
+                    title={t(metric.titleKey, metric.title)}
+                    schema={resolveSchema(metric.schema, dataSources, t)}
                     dateField={metric.dateField}
                     totalField={metric.totalField}
                     totalUnit={metric.totalUnit}
@@ -420,7 +450,7 @@ function IDAForm() {
                     maxDate={lastDayOfMonth}
                     availableFields={availableFields}
                     disabled={noFieldsAvailable}
-                    disabledReason={noFieldsAvailable ? "No fields available to select for this month." : null}
+                    disabledReason={noFieldsAvailable ? t("noFieldsForMonth", "No fields available to select for this month.") : null}
                     mandatoryError={metricErrors[metric.id]}
                 />
             </MetricPanel>
@@ -456,7 +486,7 @@ function IDAForm() {
                                 variant="overline"
                                 sx={{ color: "success.main", fontWeight: 800, letterSpacing: "0.06em" }}
                             >
-                                IDA Tracking Matrix
+                                {t("trackingMatrix", "IDA Tracking Matrix")}
                             </Typography>
                             <Typography
                                 variant="h4"
@@ -475,7 +505,7 @@ function IDAForm() {
                             <Controller
                                 control={control}
                                 name="manager"
-                                rules={{ required: text?.managerRequired || "Select a manager" }}
+                                rules={{ required: t("managerRequired", "Select a manager") }}
                                 render={({ field: { value, onChange, ref, ...field }, fieldState }) => (
                                     <Autocomplete
                                         {...field}
@@ -490,7 +520,7 @@ function IDAForm() {
                                             <TextField
                                                 {...params}
                                                 inputRef={ref}
-                                                label={text?.manager || "Manager"}
+                                                label={t("manager", "Manager")}
                                                 size="medium"
                                                 error={!!fieldState.error}
                                                 helperText={fieldState.error?.message ?? " "}
@@ -504,8 +534,10 @@ function IDAForm() {
 
                     {availableFields.length === 0 && (
                         <Alert severity="warning" sx={{ mb: 3 }}>
-                            No fields are available for this month — records can&apos;t be logged and this matrix
-                            can&apos;t be saved until at least one field exists.
+                            {t(
+                                "noFieldsWarning",
+                                "No fields are available for this month — records can't be logged and this matrix can't be saved until at least one field exists."
+                            )}
                         </Alert>
                     )}
 
@@ -571,7 +603,7 @@ function IDAForm() {
                                             {...field}
                                         />
                                     }
-                                    label={text?.draft || "Mark configuration matrix as Draft"}
+                                    label={t("markMatrixAsDraft", "Mark configuration matrix as Draft")}
                                 />
                             )}
                         />
@@ -592,8 +624,8 @@ function IDAForm() {
                             }}
                         >
                             {isSubmitting
-                                ? text?.saving || "Saving Records..."
-                                : text?.save || "Save Matrix Records"}
+                                ? t("saving", "Saving Records...")
+                                : t("saveRecords", "Save Matrix Records")}
                         </Button>
                     </Box>
                 </Box>

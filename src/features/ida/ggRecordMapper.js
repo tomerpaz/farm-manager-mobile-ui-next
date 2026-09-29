@@ -9,23 +9,28 @@ import dayjs from "dayjs";
 //              precipitations, general: List<GGElement> }
 //
 //   GGElement { id, date (LocalDateTime), amount, type, unit, productName,
-//               concentration, n, p, k, pests: List<Pest>,
+//               concentration, pests: List<Pest>,
 //               amountWaterUseIrrigation, amountWaterUseProductHandling,
 //               amountExportedToGrid, amountGenerated,
 //               dateEnergyGenerated (LocalDate), renewableAmount,
-//               energySourceId, waterSourceId, flowRate, resource (Resource),
+//               energySourceId, waterSourceId, flowRate,
+//               resources: List<GGElementResource>,
 //               site (Site), fields: List<Field> }
+//
+//   GGElementResource { id, resource (Resource), qty, n, p, k, amount }
 //
 // IDAForm's METRICS schema already names its scalar fields exactly like
 // GGElement's (date, amount, amountWaterUseIrrigation, energySourceId, ...),
-// so those round-trip as-is. Five fields don't: the UI edits them as plain
+// so those round-trip as-is. Three fields don't: the UI edits them as plain
 // ids (a <select>/Autocomplete only needs an id to match against), while the
 // server wants an object reference —
 //   site_id (0 = "All Sites")           <-> site: {id} | null
-//   fertilizer_id / pesticideId /
-//     resource_id (general)             <-> resource: {id} | null
 //   fieldIds (id[])                     <-> fields: [{id}, ...]
 //   pests (id[])                        <-> pests: [{id}, ...]
+// `resources` keeps the server's shape in the UI (see resourcesToServer /
+// resourcesFromServer). An empty list means "no fertilizer / no active
+// ingredient"; the server deletes any row left out of the list, so each
+// existing row's `id` has to be sent back for it to be updated in place.
 // `type` and `unit` are left unset on the way out — there's no confirmed
 // mapping for GGElementTypes/unit codes to build from, and guessing risks
 // silently mislabeling saved data rather than failing loudly.
@@ -35,9 +40,9 @@ const METRIC_ELEMENT_SPEC = {
     energyUsed: { refFields: { site_id: "site" } },
     energyExportedOrGenerated: { refFields: { site_id: "site" }, localDateFields: ["dateEnergyGenerated"] },
     precipitation: { refFields: { site_id: "site" }, wireKey: "precipitations" },
-    fertilizers: { refFields: { fertilizer_id: "resource" }, listRefFields: { fieldIds: "fields" } },
-    activeIngredients: { refFields: { pesticideId: "resource" }, listRefFields: { fieldIds: "fields", pests: "pests" } },
-    general: { refFields: { resource_id: "resource" }, listRefFields: { fieldIds: "fields" } },
+    fertilizers: { listRefFields: { fieldIds: "fields" } },
+    activeIngredients: { listRefFields: { fieldIds: "fields", pests: "pests" } },
+    general: { listRefFields: { fieldIds: "fields" } },
 };
 
 const toGGDate = (iso) => (iso && dayjs(iso).isValid() ? dayjs(iso).format("YYYY-MM-DD") : null);
@@ -47,13 +52,34 @@ const toGGDateTime = (iso) => (iso && dayjs(iso).isValid() ? dayjs(iso).format("
 // toGGDate produces) fails to deserialize server-side.
 const toGGYearMonth = (iso) => (iso && dayjs(iso).isValid() ? dayjs(iso).format("YYYY-MM") : null);
 
+const RESOURCE_NUMBER_FIELDS = ["qty", "n", "p", "k", "amount"];
+
+const resourcesToServer = (rows) =>
+    (rows || [])
+        .filter((r) => r?.resource?.id)
+        .map((r) => ({
+            id: r.id ?? null,
+            resource: { id: r.resource.id },
+            ...Object.fromEntries(
+                RESOURCE_NUMBER_FIELDS.map((name) => [name, r[name] === "" || r[name] == null ? null : Number(r[name])])
+            ),
+        }));
+
+const resourcesFromServer = (rows) =>
+    (rows || []).map((r) => ({
+        id: r.id,
+        resource: r.resource,
+        ...Object.fromEntries(RESOURCE_NUMBER_FIELDS.map((name) => [name, r[name] ?? ""])),
+    }));
+
 const invert = (obj) => Object.fromEntries(Object.entries(obj || {}).map(([k, v]) => [v, k]));
 
 const buildElement = (row, spec) => {
     const out = {};
     Object.entries(row).forEach(([key, value]) => {
         // useFieldArray's own row-tracking key (a generated uuid) — never real data.
-        if (key === "id") return;
+        // resources is always sent (below), even for metrics with no rows.
+        if (key === "id" || key === "resources") return;
         if (spec.refFields?.[key]) {
             out[spec.refFields[key]] = value ? { id: value } : null;
         } else if (spec.listRefFields?.[key]) {
@@ -66,6 +92,7 @@ const buildElement = (row, spec) => {
             out[key] = value === "" ? null : value;
         }
     });
+    out.resources = resourcesToServer(row.resources);
     return out;
 };
 
@@ -75,11 +102,11 @@ const elementFromServer = (el, spec) => {
     const row = {};
     Object.entries(el || {}).forEach(([key, value]) => {
         if (key === "id") return;
-        if (refBack[key]) {
-            // Every ref field (site, resource) is either 0 ("All Sites" /
-            // "None") or a real id when saved — a null reference only ever
-            // comes from an explicit 0 selection, since these fields are
-            // required and can't be submitted genuinely unset.
+        if (key === "resources") {
+            row.resources = resourcesFromServer(value);
+        } else if (refBack[key]) {
+            // site is either 0 ("All Sites") or a real id when saved — a
+            // null reference only ever comes from an explicit 0 selection.
             row[refBack[key]] = value?.id ?? 0;
         } else if (listRefBack[key]) {
             row[listRefBack[key]] = (value || []).map((v) => v.id);

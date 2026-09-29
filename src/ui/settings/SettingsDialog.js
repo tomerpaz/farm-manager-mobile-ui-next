@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Checkbox, Dialog, DialogContent, FormControlLabel, IconButton, MenuItem, Select } from '@mui/material'
+import { Box, Checkbox, Dialog, DialogContent, FormControlLabel, IconButton, MenuItem, Select, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux';
 import { selectLang, selectOpenSettings, selectShowInventory, selectShowPlans, setLang, setOpenSettings, setShowInventory, setShowPlans } from '../../features/app/appSlice';
 import { DesktopWindowsOutlined, MobileFriendlyOutlined } from '@mui/icons-material';
@@ -13,6 +13,10 @@ const flagMap = [
     { id: 'en', flag: 'GB', label: 'English', emoji: '🇬🇧' },
     { id: 'pt', flag: 'PT', label: 'Português', emoji: '🇵🇹' },
     { id: 'es', flag: 'ES', label: 'Español', emoji: '🇪🇸' },
+    { id: 'it', flag: 'IT', label: 'Italiano', emoji: '🇮🇹' },
+    { id: 'fr', flag: 'FR', label: 'Français', emoji: '🇫🇷' },
+    { id: 'de', flag: 'DE', label: 'Deutsch', emoji: '🇩🇪' },
+    { id: 'nl', flag: 'NL', label: 'Nederlands', emoji: '🇳🇱' },
     { id: 'he', flag: 'IL', label: 'עברית', emoji: '🇮🇱' },
 ];
 
@@ -28,6 +32,8 @@ const SettingsDialog = () => {
 
     const isInventory = isUserSuccess ? isInventoryPossible(user.userConf) : false;
     const isPlans = isUserSuccess ? isPlansPossible(user.userConf) : false;
+    // GLOBALG.A.P. Number of the user's business — shown for reference only.
+    const ggn = isUserSuccess ? user.ggn : null;
 
     const showInventory = useSelector(selectShowInventory);
     const showPlans = useSelector(selectShowPlans);
@@ -96,6 +102,12 @@ const SettingsDialog = () => {
                         </MenuItem>
                     )}
                 </Select>
+                {ggn &&
+                    <Box sx={{ marginTop: 2 }}>
+                        <Typography variant="caption" color="text.secondary">GGN</Typography>
+                        <Typography variant="body1">{ggn}</Typography>
+                    </Box>
+                }
                 {isPlans &&
                     <Box
                         sx={{

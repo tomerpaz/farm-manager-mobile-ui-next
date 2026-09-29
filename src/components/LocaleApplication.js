@@ -8,8 +8,10 @@ import 'dayjs/locale/he';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en-gb';
 import 'dayjs/locale/pt';
-// import 'dayjs/locale/nl';
-// import 'dayjs/locale/fr';
+import 'dayjs/locale/it';
+import 'dayjs/locale/nl';
+import 'dayjs/locale/fr';
+import 'dayjs/locale/de';
 import { selectLang } from '../features/app/appSlice';
 import { useSelector } from 'react-redux';
 import { prefixer } from 'stylis';
@@ -28,8 +30,10 @@ const localeMap = {
     he: 'he',
      es: 'es',
      pt: 'pt',
-    // nl: 'nl',
-    // fr: 'fr',
+     it: 'it',
+    nl: 'nl',
+    fr: 'fr',
+    de: 'de',
 };
 
 function getDayjsLocale(lang) {

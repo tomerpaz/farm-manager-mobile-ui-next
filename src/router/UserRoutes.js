@@ -8,6 +8,10 @@ import he from "../lang/he.json";
 import en from "../lang/en.json";
 import pt from "../lang/pt.json";
 import es from "../lang/es.json";
+import it from "../lang/it.json";
+import fr from "../lang/fr.json";
+import de from "../lang/de.json";
+import nl from "../lang/nl.json";
 
 
 const langs = {
@@ -15,6 +19,10 @@ const langs = {
     'pt':  pt,
     'en':  en,
     'es':  es,
+    'it':  it,
+    'fr':  fr,
+    'de':  de,
+    'nl':  nl,
 }
 export const getUserLang = (lang) =>{
    return langs[lang];

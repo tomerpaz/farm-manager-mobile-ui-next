@@ -56,6 +56,27 @@ const UNIT_COLUMN = [
     { header: "Unit", value: (el) => el.unit ?? "" },
 ];
 
+// GGElement.resources is a list of { resource, qty, n, p, k, amount } rows.
+// Sections with perResource: true print one line per resource row (element
+// columns repeated), and a single line with blank resource cells when the
+// list is empty ("no fertilizer / no active ingredient"). Resource column
+// value functions receive (el, r) — r is null on that empty-list line.
+const resourceColumns = (label, noneLabel) => [
+    { header: label, value: (el, r) => (r ? resourceLabel(r.resource) : noneLabel) },
+    { header: "Qty", value: (el, r) => r?.qty ?? "" },
+    { header: "N", value: (el, r) => r?.n ?? "" },
+    { header: "P", value: (el, r) => r?.p ?? "" },
+    { header: "K", value: (el, r) => r?.k ?? "" },
+    { header: `${label} Amount`, value: (el, r) => r?.amount ?? "" },
+];
+
+// Fertilizer/pesticide rows only collect a resource and its amount (the
+// element itself has no amount of its own in IDAForm).
+const resourceAmountColumns = (label, noneLabel, amountHeader) => [
+    { header: label, value: (el, r) => (r ? resourceLabel(r.resource) : noneLabel) },
+    { header: amountHeader, value: (el, r) => r?.amount ?? "" },
+];
+
 // Every metric's schema now has an optional free-text note (IDAForm.js) —
 // appended to every section the same way UNIT_COLUMN is.
 const NOTE_COLUMN = [
@@ -98,14 +119,14 @@ const METRIC_SECTIONS = [
     {
         key: "activeIngredients",
         title: "Active Ingredients",
+        perResource: true,
         columns: [
             { header: "Date", value: (el) => formatDate(el.date) },
             { header: "Fields", value: (el) => listLabel(el.fields) },
-            { header: "Pesticide", value: (el) => resourceLabel(el.resource) },
+            ...resourceAmountColumns("Pesticide", "No Active Ingredient", "Amount (kg)"),
             { header: "Product Name", value: (el) => el.productName ?? "" },
             { header: "Concentration", value: (el) => el.concentration ?? "" },
             { header: "Pests", value: (el) => listLabel(el.pests) },
-            { header: "Amount (kg)", value: (el) => el.amount ?? "" },
             ...UNIT_COLUMN,
             ...NOTE_COLUMN,
         ],
@@ -113,16 +134,13 @@ const METRIC_SECTIONS = [
     {
         key: "fertilizers",
         title: "Fertilizers",
+        perResource: true,
         columns: [
             { header: "Date", value: (el) => formatDate(el.date) },
             { header: "Fields", value: (el) => listLabel(el.fields) },
-            { header: "Fertilizer", value: (el) => resourceLabel(el.resource) },
+            ...resourceAmountColumns("Fertilizer", "No NPK", "Amount (kg)"),
             { header: "Product Name", value: (el) => el.productName ?? "" },
             { header: "Concentration", value: (el) => el.concentration ?? "" },
-            { header: "N", value: (el) => el.n ?? "" },
-            { header: "P", value: (el) => el.p ?? "" },
-            { header: "K", value: (el) => el.k ?? "" },
-            { header: "Amount (kg)", value: (el) => el.amount ?? "" },
             ...UNIT_COLUMN,
             ...NOTE_COLUMN,
         ],
@@ -167,16 +185,17 @@ const METRIC_SECTIONS = [
     {
         key: "general",
         title: "General",
+        perResource: true,
         columns: [
             { header: "Date", value: (el) => formatDate(el.date) },
             { header: "Fields", value: (el) => listLabel(el.fields) },
-            { header: "Resource", value: (el) => resourceLabel(el.resource) },
-            { header: "Category", value: (el) => el.resource?.category ?? "" },
-            // Amount has no fixed unit here (unlike fertilizers' "kg") — it
+            ...resourceColumns("Resource", ""),
+            { header: "Category", value: (el, r) => r?.resource?.category ?? "" },
+            // Amounts have no fixed unit here (unlike fertilizers' "kg") — it
             // depends on which resource was picked, so it's its own column
             // rather than baked into the "Amount" header text.
+            { header: "Resource Unit", value: (el, r) => r?.resource?.unit ?? "" },
             { header: "Amount", value: (el) => el.amount ?? "" },
-            { header: "Resource Unit", value: (el) => el.resource?.unit ?? "" },
             ...UNIT_COLUMN,
             ...NOTE_COLUMN,
         ],
@@ -219,7 +238,10 @@ function buildReportData(ggYearData, lang) {
             const records = months[m]?.records || [];
             records.forEach((record) => {
                 (record[section.key] || []).forEach((el) => {
-                    rows.push([monthLabel(m, lang), ...section.columns.map((c) => String(c.value(el) ?? ""))]);
+                    const lines = section.perResource && el.resources?.length ? el.resources : [null];
+                    lines.forEach((r) => {
+                        rows.push([monthLabel(m, lang), ...section.columns.map((c) => String(c.value(el, r) ?? ""))]);
+                    });
                 });
             });
         });

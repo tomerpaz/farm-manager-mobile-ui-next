@@ -17,6 +17,8 @@ import {
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import FieldSelectionDialog from "../../../ui/dialog/FieldsSelectionDialog";
+import ResourceRowsField from "./ResourceRowsField";
+import useIdaText from "./useIdaText";
 
 // The app's LocalizationProvider is wired to AdapterDayjs (see
 // LocaleApplication.js), so the pickers work in dayjs objects — form state
@@ -28,14 +30,21 @@ const toIso = (v) => (v && dayjs(v).isValid() ? dayjs(v).toISOString() : null);
 // particular — it's prepended ahead of the actual site list for any field
 // with allOption: true.
 const ALL_ID = 0;
-const ALL_OPTION = { id: ALL_ID, name: "All Sites" };
 
 const emptyValueFor = (f) => {
     if (f.type === "date") return null;
     if (f.type === "select" || f.type === "autocomplete") return f.allOption ? ALL_ID : "";
-    if (f.type === "multiselect" || f.type === "fields") return [];
+    if (f.type === "multiselect" || f.type === "fields" || f.type === "resources") return [];
     return "";
 };
+
+const toNumberOrNull = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
+
+// Trigger fields fire zeroLinksTo on a specific value (0 by default) —
+// except a resources list, which fires when it's empty ("no fertilizer /
+// no active ingredient").
+const isTriggered = (f, value) =>
+    f.type === "resources" ? (value?.length ?? 0) === 0 : value === (f.linkTriggerValue ?? 0);
 
 // A metric record is described declaratively as a list of field specs
 // (name/type/label/unit/options/required) — see IDAForm's METRICS config.
@@ -58,6 +67,9 @@ export default function MetricFormDialog({
     const defaultValues = Object.fromEntries(schema.map((f) => [f.name, emptyValueFor(f)]));
     const { control, handleSubmit, reset, setValue } = useForm({ defaultValues });
     const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
+    const t = useIdaText();
+    const allOption = { id: ALL_ID, name: t("allSites", "All Sites") };
+    const autoSetHint = t("setAutomatically", "Set automatically for “None” entries");
 
     useEffect(() => {
         if (!open) return;
@@ -72,13 +84,12 @@ export default function MetricFormDialog({
         reset(values);
     }, [open, initialData, defaultDate, reset, schema]);
 
-    // A field can declare zeroLinksTo: ["date", "amount"] — e.g. picking the
-    // "No Active Ingredient" / "No NPK" option (id 0) for pesticideId /
-    // fertilizer_id, or energy source 15 ("renewable") for energySourceId —
+    // A field can declare zeroLinksTo: ["date", "amount"] — e.g. leaving the
+    // pesticide / fertilizer resources list empty ("No Active Ingredient" /
+    // "No NPK"), or energy source 15 ("renewable") for energySourceId —
     // means the record is a declaration that nothing external was applied,
     // so the linked fields are forced (last day of the month / 0) and
-    // locked instead of being left editable. The trigger value defaults to
-    // 0 (linkTriggerValue overrides it). Only the trigger field(s) are
+    // locked instead of being left editable. See isTriggered. Only the trigger field(s) are
     // watched (not the whole form), so this doesn't re-run on every
     // keystroke elsewhere in the dialog.
     const triggerFields = useMemo(() => schema.filter((f) => f.zeroLinksTo), [schema]);
@@ -88,7 +99,7 @@ export default function MetricFormDialog({
     const disabledByZero = useMemo(() => {
         const disabled = new Set();
         triggerFields.forEach((f, i) => {
-            if (triggerValues[i] === (f.linkTriggerValue ?? 0)) {
+            if (isTriggered(f, triggerValues[i])) {
                 f.zeroLinksTo.forEach((name) => disabled.add(name));
             }
         });
@@ -105,9 +116,9 @@ export default function MetricFormDialog({
         [schema]
     );
 
-    // A field can declare unitFrom: "resource_id" — e.g. general resources'
-    // amount, whose unit (kg/lit/unit) depends on which resource was picked
-    // rather than being fixed like fertilizers' "kg". Batched the same way
+    // A field can declare unitFrom: "<select field>" — an amount whose unit
+    // (kg/lit/unit) depends on which option was picked rather than being
+    // fixed like fertilizers' "kg". Batched the same way
     // as triggerValues, so this doesn't re-run per keystroke elsewhere.
     const unitSourceFields = useMemo(() => schema.filter((f) => f.unitFrom), [schema]);
     const unitSourceNames = useMemo(() => unitSourceFields.map((f) => f.unitFrom), [unitSourceFields]);
@@ -126,7 +137,7 @@ export default function MetricFormDialog({
     useEffect(() => {
         if (!open) return;
         triggerFields.forEach((f, i) => {
-            if (triggerValues[i] !== (f.linkTriggerValue ?? 0)) return;
+            if (!isTriggered(f, triggerValues[i])) return;
             f.zeroLinksTo.forEach((linkedName) => {
                 const linked = schema.find((s) => s.name === linkedName);
                 if (!linked) return;
@@ -153,7 +164,18 @@ export default function MetricFormDialog({
                 // onChange below converts via toIso() the moment it fires, so
                 // running it again on a string (not a Date) would just return null.
                 if (f.type === "number") record[f.name] = raw === "" ? null : Number(raw);
-                else record[f.name] = raw;
+                else if (f.type === "resources") {
+                    // Only the row inputs this metric shows (rowFields) are
+                    // kept — the rest are sent as null.
+                    const shown = f.rowFields || ["qty", "n", "p", "k", "amount"];
+                    record[f.name] = (raw || []).map((r) => ({
+                        id: r.id,
+                        resource: r.resource,
+                        ...Object.fromEntries(
+                            ["qty", "n", "p", "k", "amount"].map((k) => [k, shown.includes(k) ? toNumberOrNull(r[k]) : null])
+                        ),
+                    }));
+                } else record[f.name] = raw;
             });
             // computeFrom fields (e.g. waterUse's amount = irrigation +
             // product handling) are never edited directly — derive them last
@@ -172,7 +194,8 @@ export default function MetricFormDialog({
         <Dialog
             open={open}
             onClose={onClose}
-            maxWidth="xs"
+            // Resource rows need room for a picker plus up to five numbers per row.
+            maxWidth={schema.some((f) => f.type === "resources" && (f.rowFields?.length ?? 5) > 1) ? "sm" : "xs"}
             fullWidth
             // Without this, closing (Confirm/Cancel) restores focus to the
             // "Add Record Entry" button that opened it while this Dialog's
@@ -192,10 +215,21 @@ export default function MetricFormDialog({
             slotProps={{ paper: { elevation: 3 } }}
         >
             <DialogTitle sx={{ pb: 1, fontWeight: 700 }}>
-                {initialData ? `Edit ${title || "Entry"}` : `Add New ${title || "Entry"}`}
+                {initialData
+                    ? t("editTitle", "Edit {title}", { title: title || "" })
+                    : t("addTitle", "Add New {title}", { title: title || "" })}
             </DialogTitle>
-            <form onSubmit={handleFormSubmit} noValidate>
-                <DialogContent sx={{ pt: 1, pb: 2 }}>
+            {/* The <form> sits between the Paper and DialogContent/DialogActions, so
+                it has to carry the flex column itself — otherwise the whole Paper
+                scrolls (long resource lists push Confirm off-screen) instead of
+                just DialogContent, with the actions pinned below it. */}
+            <Box
+                component="form"
+                onSubmit={handleFormSubmit}
+                noValidate
+                sx={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minHeight: 0 }}
+            >
+                <DialogContent dividers sx={{ pt: 1, pb: 2 }}>
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 1 }}>
                         {schema.map((f) => {
                             if (f.hidden) return null;
@@ -206,7 +240,7 @@ export default function MetricFormDialog({
                                         control={control}
                                         name={f.name}
                                         rules={{
-                                            validate: (v) => !f.required || (v && dayjs(v).isValid()) || "Enter a valid date",
+                                            validate: (v) => !f.required || (v && dayjs(v).isValid()) || t("enterValidDate", "Enter a valid date"),
                                         }}
                                         render={({ field: { value, onChange, ref, ...field }, fieldState }) => (
                                             <DatePicker
@@ -224,7 +258,7 @@ export default function MetricFormDialog({
                                                         fullWidth: true,
                                                         error: !!fieldState.error,
                                                         helperText: disabledByZero.has(f.name)
-                                                            ? "Set automatically for “None” entries"
+                                                            ? autoSetHint
                                                             : fieldState.error?.message ?? " ",
                                                     },
                                                 }}
@@ -235,13 +269,13 @@ export default function MetricFormDialog({
                             }
 
                             if (f.type === "select") {
-                                const options = f.allOption ? [ALL_OPTION, ...(f.options || [])] : f.options || [];
+                                const options = f.allOption ? [allOption, ...(f.options || [])] : f.options || [];
                                 return (
                                     <Controller
                                         key={f.name}
                                         control={control}
                                         name={f.name}
-                                        rules={{ validate: (v) => !f.required || v !== "" || `Select ${f.label}` }}
+                                        rules={{ validate: (v) => !f.required || v !== "" || t("selectField", "Select {label}", { label: f.label }) }}
                                         render={({ field, fieldState }) => (
                                             <TextField
                                                 {...field}
@@ -272,7 +306,7 @@ export default function MetricFormDialog({
                                         key={f.name}
                                         control={control}
                                         name={f.name}
-                                        rules={{ validate: (v) => !f.required || v !== "" || `Select ${f.label}` }}
+                                        rules={{ validate: (v) => !f.required || v !== "" || t("selectField", "Select {label}", { label: f.label }) }}
                                         render={({ field: { value, onChange, ref, ...field }, fieldState }) => (
                                             <Autocomplete
                                                 {...field}
@@ -316,11 +350,11 @@ export default function MetricFormDialog({
                                         rules={{
                                             validate: (v) => {
                                                 if (isDisabled) return true;
-                                                if (v === "") return !f.required || "This field is required";
+                                                if (v === "") return !f.required || t("fieldRequired", "This field is required");
                                                 const n = Number(v);
-                                                if (Number.isNaN(n)) return "Enter a number";
-                                                if (mustBePositive && n <= 0) return "Must be greater than 0";
-                                                if (n < 0) return "Must be 0 or greater";
+                                                if (Number.isNaN(n)) return t("enterNumber", "Enter a number");
+                                                if (mustBePositive && n <= 0) return t("mustBePositive", "Must be greater than 0");
+                                                if (n < 0) return t("mustBeNonNegative", "Must be 0 or greater");
                                                 return true;
                                             },
                                         }}
@@ -335,7 +369,7 @@ export default function MetricFormDialog({
                                                 error={!!fieldState.error}
                                                 helperText={
                                                     isDisabled
-                                                        ? "Set automatically for “None” entries"
+                                                        ? autoSetHint
                                                         : fieldState.error?.message ?? " "
                                                 }
                                                 slotProps={{
@@ -385,7 +419,7 @@ export default function MetricFormDialog({
                                         control={control}
                                         name={f.name}
                                         rules={{
-                                            validate: (v) => !f.required || (v && v.length > 0) || "Select at least one field",
+                                            validate: (v) => !f.required || (v && v.length > 0) || t("selectAtLeastOneField", "Select at least one field"),
                                         }}
                                         render={({ field: { value, onChange }, fieldState }) => {
                                             const selectedNames = (availableFields || [])
@@ -432,6 +466,22 @@ export default function MetricFormDialog({
                                 );
                             }
 
+                            if (f.type === "resources") {
+                                return (
+                                    <ResourceRowsField
+                                        key={f.name}
+                                        control={control}
+                                        name={f.name}
+                                        label={f.label}
+                                        options={f.options || []}
+                                        required={f.required}
+                                        emptyLabel={f.emptyLabel}
+                                        rowFields={f.rowFields}
+                                        rowUnit={f.rowUnit}
+                                    />
+                                );
+                            }
+
                             // "text" — free-text fields like description.
                             return (
                                 <Controller
@@ -446,15 +496,15 @@ export default function MetricFormDialog({
                         })}
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ px: 3, pb: 2.5 }}>
+                <DialogActions sx={{ px: 3, py: 1.5 }}>
                     <Button onClick={onClose} variant="outlined" color="inherit" sx={{ textTransform: "none" }}>
-                        Cancel
+                        {t("cancel", "Cancel")}
                     </Button>
                     <Button type="submit" variant="contained" color="success" sx={{ textTransform: "none", px: 3 }}>
-                        Confirm
+                        {t("confirm", "Confirm")}
                     </Button>
                 </DialogActions>
-            </form>
+            </Box>
         </Dialog>
     );
 }

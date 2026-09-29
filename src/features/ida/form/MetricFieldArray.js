@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import { Add, Delete, Edit } from "@mui/icons-material";
 import MetricFormDialog from "./MetricFormDialog";
+import useIdaText from "./useIdaText";
 
 const CLOSED = { open: false, index: null, initialData: null };
 
@@ -52,6 +53,7 @@ export default function MetricFieldArray({
     mandatoryError,
 }) {
     const { fields, append, remove, update } = useFieldArray({ control, name });
+    const t = useIdaText();
     const [dialogState, setDialogState] = useState(CLOSED);
     // Phones get stacked cards instead of a wide table, which would otherwise
     // force horizontal scrolling inside the narrow accordion.
@@ -65,8 +67,14 @@ export default function MetricFieldArray({
         [fields, dateField]
     );
 
+    // A totalField pointing at a resources list sums its rows' amounts.
     const total = useMemo(
-        () => fields.reduce((sum, f) => sum + (Number(f[totalField]) || 0), 0),
+        () =>
+            fields.reduce((sum, f) => {
+                const value = f[totalField];
+                if (Array.isArray(value)) return value.reduce((s, r) => s + (Number(r?.amount) || 0), sum);
+                return sum + (Number(value) || 0);
+            }, 0),
         [fields, totalField]
     );
 
@@ -76,9 +84,9 @@ export default function MetricFieldArray({
         const value = field[f.name];
         if (f.type === "date") return formatDate(value);
         if (f.type === "number") {
-            // unitFrom fields (e.g. general resources) carry their unit on
-            // whichever resource this row's own select field points at,
-            // rather than a fixed schema-level unit like fertilizers' "kg".
+            // unitFrom fields carry their unit on whichever option this
+            // row's own select field points at, rather than a fixed
+            // schema-level unit like fertilizers' "kg".
             let unit = f.unit;
             if (f.unitFrom) {
                 const sourceField = schema.find((s) => s.name === f.unitFrom);
@@ -87,7 +95,7 @@ export default function MetricFieldArray({
             return formatQty(value, unit);
         }
         if (f.type === "select" || f.type === "autocomplete") {
-            const opt = (f.allOption ? [{ id: 0, name: "All Sites" }, ...(f.options || [])] : f.options || []).find(
+            const opt = (f.allOption ? [{ id: 0, name: t("allSites", "All Sites") }, ...(f.options || [])] : f.options || []).find(
                 (o) => o.id === value
             );
             return opt?.name || (value === "" || value === undefined || value === null ? "—" : `#${value}`);
@@ -96,6 +104,22 @@ export default function MetricFieldArray({
             if (!value?.length) return "—";
             const names = value.map((id) => (f.options || []).find((o) => o.id === id)?.name || `#${id}`);
             return names.join(", ");
+        }
+        if (f.type === "resources") {
+            // An empty list is the "No NPK" / "No Active Ingredient" declaration.
+            if (!value?.length) return f.emptyLabel || "—";
+            return value
+                .map((r) => {
+                    const name =
+                        r.resource?.name ||
+                        (f.options || []).find((o) => o.id === r.resource?.id)?.name ||
+                        `#${r.resource?.id}`;
+                    const unit = r.resource?.unit || f.rowUnit;
+                    return r.amount === null || r.amount === undefined || r.amount === ""
+                        ? name
+                        : `${name} (${formatQty(r.amount, unit)})`;
+                })
+                .join(", ");
         }
         if (f.type === "fields") {
             if (!value?.length) return "—";
@@ -126,21 +150,21 @@ export default function MetricFieldArray({
 
     const renderActions = (field, index) => (
         <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
-            <Tooltip title="Edit entry">
+            <Tooltip title={t("editEntry", "Edit entry")}>
                 <IconButton
                     size="small"
                     color="primary"
-                    aria-label={`Edit ${title || "entry"} from ${formatDate(field[dateField])}`}
+                    aria-label={t("editEntryAria", "Edit {title} from {date}", { title, date: formatDate(field[dateField]) })}
                     onClick={() => handleOpenEdit(index)}
                 >
                     <Edit fontSize="small" />
                 </IconButton>
             </Tooltip>
-            <Tooltip title="Remove entry">
+            <Tooltip title={t("removeEntry", "Remove entry")}>
                 <IconButton
                     size="small"
                     color="secondary"
-                    aria-label={`Remove ${title || "entry"} from ${formatDate(field[dateField])}`}
+                    aria-label={t("removeEntryAria", "Remove {title} from {date}", { title, date: formatDate(field[dateField]) })}
                     onClick={() => remove(index)}
                 >
                     <Delete fontSize="small" />
@@ -172,7 +196,7 @@ export default function MetricFieldArray({
                     disabled={disabled}
                     sx={{ textTransform: "none" }}
                 >
-                    Add Record Entry
+                    {t("addRecordEntry", "Add Record Entry")}
                 </Button>
             </Box>
 
@@ -188,7 +212,7 @@ export default function MetricFieldArray({
                     }}
                 >
                     <Typography variant="body1" sx={{ color: "text.secondary" }}>
-                        No records logged under this parameter segment.
+                        {t("noRecords", "No records logged under this parameter segment.")}
                     </Typography>
                 </Box>
             ) : isMobile ? (
@@ -254,7 +278,7 @@ export default function MetricFieldArray({
                         }}
                     >
                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                            Total ({fields.length})
+                            {t("totalCount", "Total ({count})", { count: fields.length })}
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
                             {formatQty(total, totalUnit)}
@@ -276,7 +300,7 @@ export default function MetricFieldArray({
                                     </TableCell>
                                 ))}
                                 <TableCell sx={{ fontWeight: 700, width: 110 }} align="center">
-                                    Actions
+                                    {t("actions", "Actions")}
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -299,7 +323,7 @@ export default function MetricFieldArray({
                             ))}
                             <TableRow sx={{ bgcolor: "action.hover" }}>
                                 <TableCell sx={{ fontWeight: 700 }} colSpan={Math.max(tableColumns.length - 1, 1)}>
-                                    Total ({fields.length})
+                                    {t("totalCount", "Total ({count})", { count: fields.length })}
                                 </TableCell>
                                 <TableCell align="right" sx={{ fontWeight: 700 }}>
                                     {formatQty(total, totalUnit)}
