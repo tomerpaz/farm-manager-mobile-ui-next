@@ -61,7 +61,14 @@ export default function ResourceRowsField({ control, name, label, options, requi
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     {label}
                 </Typography>
-                <Button size="small" startIcon={<Add />} onClick={() => append({ ...EMPTY_RESOURCE_ROW })} sx={{ textTransform: "none" }}>
+                <Button
+                    size="small"
+                    variant="contained"
+                    disableElevation
+                    startIcon={<Add />}
+                    onClick={() => append({ ...EMPTY_RESOURCE_ROW })}
+                    sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2, px: 1.5 }}
+                >
                     {t("add", "Add")}
                 </Button>
             </Box>
@@ -140,7 +147,7 @@ export default function ResourceRowsField({ control, name, label, options, requi
                                     />
                                 )}
                             />
-                            {amountOnly && <Box sx={{ width: 140, flexShrink: 0 }}>{renderNumber(numberFields[0])}</Box>}
+                            {amountOnly && <Box sx={{ width: { xs: 96, sm: 110 }, flexShrink: 0 }}>{renderNumber(numberFields[0])}</Box>}
                             <Tooltip title={t("removeRow", "Remove row")}>
                                 <IconButton size="small" color="secondary" aria-label={t("removeRowAria", "Remove row {n}", { n: index + 1 })} onClick={() => remove(index)}>
                                     <Delete fontSize="small" />

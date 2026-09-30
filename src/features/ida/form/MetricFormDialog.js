@@ -3,7 +3,6 @@ import { useForm, Controller, useWatch } from "react-hook-form";
 import dayjs from "dayjs";
 import {
     Dialog,
-    DialogTitle,
     DialogContent,
     DialogActions,
     Button,
@@ -17,8 +16,10 @@ import {
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import FieldSelectionDialog from "../../../ui/dialog/FieldsSelectionDialog";
+import DialogAppBar from "../../../ui/dialog/DialogAppBar";
 import ResourceRowsField from "./ResourceRowsField";
 import useIdaText from "./useIdaText";
+import { isMobile } from "../../../ui/FarmUtil";
 
 // The app's LocalizationProvider is wired to AdapterDayjs (see
 // LocaleApplication.js), so the pickers work in dayjs objects — form state
@@ -197,6 +198,7 @@ export default function MetricFormDialog({
             // Resource rows need room for a picker plus up to five numbers per row.
             maxWidth={schema.some((f) => f.type === "resources" && (f.rowFields?.length ?? 5) > 1) ? "sm" : "xs"}
             fullWidth
+            fullScreen={isMobile()}
             // Without this, closing (Confirm/Cancel) restores focus to the
             // "Add Record Entry" button that opened it while this Dialog's
             // exit transition is still tearing down its aria-hidden effect
@@ -214,11 +216,12 @@ export default function MetricFormDialog({
             transitionDuration={{ enter: 225, exit: 0 }}
             slotProps={{ paper: { elevation: 3 } }}
         >
-            <DialogTitle sx={{ pb: 1, fontWeight: 700 }}>
-                {initialData
+            <DialogAppBar
+                onClose={onClose}
+                title={initialData
                     ? t("editTitle", "Edit {title}", { title: title || "" })
                     : t("addTitle", "Add New {title}", { title: title || "" })}
-            </DialogTitle>
+            />
             {/* The <form> sits between the Paper and DialogContent/DialogActions, so
                 it has to carry the flex column itself — otherwise the whole Paper
                 scrolls (long resource lists push Confirm off-screen) instead of
@@ -497,9 +500,6 @@ export default function MetricFormDialog({
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, py: 1.5 }}>
-                    <Button onClick={onClose} variant="outlined" color="inherit" sx={{ textTransform: "none" }}>
-                        {t("cancel", "Cancel")}
-                    </Button>
                     <Button type="submit" variant="contained" color="success" sx={{ textTransform: "none", px: 3 }}>
                         {t("confirm", "Confirm")}
                     </Button>
