@@ -271,5 +271,14 @@
   "addAtLeastOneRow": "Voeg minstens één regel toe",
   "selectResource": "Selecteer een middel",
   "removeRow": "Regel verwijderen",
-  "removeRowAria": "Regel {n} verwijderen"
+  "removeRowAria": "Regel {n} verwijderen",
+  "drawPolygon": "Polygoon tekenen",
+  "redrawPolygon": "Opnieuw tekenen",
+  "deletePolygon": "Polygoon verwijderen",
+  "undo": "Ongedaan maken",
+  "finish": "Klaar",
+  "tapMapToDraw": "Tik op de kaart om de hoeken van het perceel toe te voegen",
+  "color": "Kleur",
+  "siteMap": "Locatiekaart",
+  "noFieldPolygons": "Er zijn nog geen perceelpolygonen getekend voor deze locatie."
 }

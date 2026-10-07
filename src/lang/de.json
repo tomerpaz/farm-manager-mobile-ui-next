@@ -271,5 +271,14 @@
   "addAtLeastOneRow": "Mindestens eine Zeile hinzufügen",
   "selectResource": "Ressource auswählen",
   "removeRow": "Zeile entfernen",
-  "removeRowAria": "Zeile {n} entfernen"
+  "removeRowAria": "Zeile {n} entfernen",
+  "drawPolygon": "Polygon zeichnen",
+  "redrawPolygon": "Neu zeichnen",
+  "deletePolygon": "Polygon entfernen",
+  "undo": "Rückgängig",
+  "finish": "Fertig",
+  "tapMapToDraw": "Tippen Sie auf die Karte, um die Ecken des Feldes hinzuzufügen",
+  "color": "Farbe",
+  "siteMap": "Standortkarte",
+  "noFieldPolygons": "Für diesen Standort wurden noch keine Feldpolygone gezeichnet."
 }

@@ -267,5 +267,14 @@
   "addAtLeastOneRow": "Agregue al menos una fila",
   "selectResource": "Seleccione un recurso",
   "removeRow": "Eliminar fila",
-  "removeRowAria": "Eliminar fila {n}"
+  "removeRowAria": "Eliminar fila {n}",
+  "drawPolygon": "Dibujar polígono",
+  "redrawPolygon": "Redibujar",
+  "deletePolygon": "Quitar polígono",
+  "undo": "Deshacer",
+  "finish": "Terminar",
+  "tapMapToDraw": "Toca el mapa para añadir las esquinas del campo",
+  "color": "Color",
+  "siteMap": "Mapa del sitio",
+  "noFieldPolygons": "Aún no se han dibujado polígonos de campos para este sitio."
 }

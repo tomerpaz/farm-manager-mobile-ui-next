@@ -36,7 +36,10 @@ export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG
                 });
                 return fieldsAdapter.setAll(initialState, fields)
             },
+            // Field_TAG too, so creating/updating/deleting a field (polygon,
+            // color, ...) refreshes the map instead of showing the cached list.
             providesTags: (result, error, arg) => [
+                Field_TAG,
                 { type: User_TAG, id: "LIST" },
                 ...result.ids.map(id => ({ type: User_TAG, id }))
             ]

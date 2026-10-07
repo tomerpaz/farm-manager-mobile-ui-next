@@ -271,5 +271,14 @@
   "addAtLeastOneRow": "Ajoutez au moins une ligne",
   "selectResource": "Sélectionnez une ressource",
   "removeRow": "Supprimer la ligne",
-  "removeRowAria": "Supprimer la ligne {n}"
+  "removeRowAria": "Supprimer la ligne {n}",
+  "drawPolygon": "Dessiner le polygone",
+  "redrawPolygon": "Redessiner",
+  "deletePolygon": "Supprimer le polygone",
+  "undo": "Défaire",
+  "finish": "Terminer",
+  "tapMapToDraw": "Touchez la carte pour ajouter les coins de la parcelle",
+  "color": "Couleur",
+  "siteMap": "Carte du site",
+  "noFieldPolygons": "Aucun polygone de parcelle n'a encore été dessiné pour ce site."
 }

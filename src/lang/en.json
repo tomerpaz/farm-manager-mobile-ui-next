@@ -271,5 +271,14 @@
   "addAtLeastOneRow": "Add at least one row",
   "selectResource": "Select a resource",
   "removeRow": "Remove row",
-  "removeRowAria": "Remove row {n}"
+  "removeRowAria": "Remove row {n}",
+  "drawPolygon": "Draw polygon",
+  "redrawPolygon": "Redraw",
+  "deletePolygon": "Remove polygon",
+  "undo": "Undo",
+  "finish": "Finish",
+  "tapMapToDraw": "Tap the map to add the field's corners",
+  "color": "Color",
+  "siteMap": "Site Map",
+  "noFieldPolygons": "No field polygons have been drawn for this site yet."
 }

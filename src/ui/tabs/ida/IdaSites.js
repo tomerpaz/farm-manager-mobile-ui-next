@@ -6,9 +6,11 @@ import {
   Card,
   CardActionArea,
   Fab,
+  IconButton,
+  Tooltip,
   Typography
 } from '@mui/material';
-import { Add, ChevronRight, LocationOn, SquareFoot, Terrain } from '@mui/icons-material';
+import { Add, ChevronRight, LocationOn, Map as MapIcon, SquareFoot, Terrain } from '@mui/icons-material';
 
 import Loading from '../../../components/Loading';
 import { useGetSitesQuery } from '../../../features/sites/sitesApiSlice';
@@ -160,6 +162,24 @@ const IdaSites = () => {
 
                   <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0 }} />
                 </CardActionArea>
+
+                <Tooltip title={text?.siteMap || "Site Map"}>
+                  <IconButton
+                    color="success"
+                    aria-label={text?.siteMap || "Site Map"}
+                    onClick={() => navigate(`/site/${value.id}/map`)}
+                    sx={{
+                      flexShrink: 0,
+                      ml: 1,
+                      mr: value.ggId ? 0 : 2,
+                      border: '1.5px solid',
+                      borderColor: 'success.main',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <MapIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
 
                 {value.ggId && (
                   <Button

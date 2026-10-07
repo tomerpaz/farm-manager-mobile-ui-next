@@ -271,5 +271,14 @@
     "addAtLeastOneRow": "הוסף לפחות שורה אחת",
     "selectResource": "בחר משאב",
     "removeRow": "הסר שורה",
-    "removeRowAria": "הסר שורה {n}"
+    "removeRowAria": "הסר שורה {n}",
+    "drawPolygon": "שרטט פוליגון",
+    "redrawPolygon": "שרטט מחדש",
+    "deletePolygon": "הסר פוליגון",
+    "undo": "בטל",
+    "finish": "סיום",
+    "tapMapToDraw": "הקש על המפה כדי להוסיף את פינות החלקה",
+    "color": "צבע",
+    "siteMap": "מפת אתר",
+    "noFieldPolygons": "עדיין לא שורטטו פוליגונים לחלקות באתר זה."
 }

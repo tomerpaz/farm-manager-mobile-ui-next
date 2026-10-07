@@ -267,5 +267,14 @@
   "addAtLeastOneRow": "Adicione pelo menos uma linha",
   "selectResource": "Selecione um recurso",
   "removeRow": "Remover linha",
-  "removeRowAria": "Remover linha {n}"
+  "removeRowAria": "Remover linha {n}",
+  "drawPolygon": "Desenhar polígono",
+  "redrawPolygon": "Redesenhar",
+  "deletePolygon": "Remover polígono",
+  "undo": "Desfazer",
+  "finish": "Concluir",
+  "tapMapToDraw": "Toque no mapa para adicionar os cantos do campo",
+  "color": "Cor",
+  "siteMap": "Mapa do local",
+  "noFieldPolygons": "Ainda não foram desenhados polígonos de campos para este local."
 }

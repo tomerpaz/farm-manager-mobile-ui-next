@@ -271,5 +271,14 @@
   "addAtLeastOneRow": "Aggiungi almeno una riga",
   "selectResource": "Seleziona una risorsa",
   "removeRow": "Rimuovi riga",
-  "removeRowAria": "Rimuovi riga {n}"
+  "removeRowAria": "Rimuovi riga {n}",
+  "drawPolygon": "Disegna poligono",
+  "redrawPolygon": "Ridisegna",
+  "deletePolygon": "Rimuovi poligono",
+  "undo": "Annulla ultimo",
+  "finish": "Fine",
+  "tapMapToDraw": "Tocca la mappa per aggiungere gli angoli del campo",
+  "color": "Colore",
+  "siteMap": "Mappa del sito",
+  "noFieldPolygons": "Non sono ancora stati disegnati poligoni dei campi per questo sito."
 }
