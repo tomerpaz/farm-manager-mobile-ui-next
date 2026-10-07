@@ -6,8 +6,6 @@ import {
     Alert,
     Box,
     Button,
-    Checkbox,
-    FormControlLabel,
     Autocomplete,
     TextField,
     Typography,
@@ -379,6 +377,11 @@ function IDAForm() {
 
     const handleGoBack = () => navigate(-1);
 
+    // Two submit paths: Save finalizes (draft = false, full validation),
+    // Save Draft keeps it a draft (draft = true, mandatory checks skipped).
+    const [savingAs, setSavingAs] = useState(null);
+    const submitAs = (draft) => handleSubmit((data) => handleFormSubmit({ ...data, draft }));
+
     const handleFormSubmit = async (formData) => {
         setSubmitError(null);
         const mandatoryErrors = validateMandatoryMetrics(
@@ -399,6 +402,7 @@ function IDAForm() {
             return;
         }
         const payload = toRecordPayload(formData, { id: existingRecord?.id, firstDayOfMonth });
+        setSavingAs(formData.draft ? "draft" : "final");
         try {
             if (existingRecord?.id) {
                 await updateIdaMonthRecord(payload).unwrap();
@@ -411,6 +415,8 @@ function IDAForm() {
             setSubmitError(
                 err?.data?.message || t("saveFailed", "Could not save this month's records. Please try again.")
             );
+        } finally {
+            setSavingAs(null);
         }
     };
 
@@ -482,7 +488,7 @@ function IDAForm() {
     const half = Math.ceil(METRICS.length / 2);
 
     return (
-        <Box component="form" sx={{ display: "flex", flex: 1 }} onSubmit={handleSubmit(handleFormSubmit)} noValidate>
+        <Box component="form" sx={{ display: "flex", flex: 1 }} onSubmit={submitAs(false)} noValidate>
             <Box sx={{ width: "100%" }}>
                 <GoBackAppBar sticky />
 
@@ -596,7 +602,7 @@ function IDAForm() {
                             display: "flex",
                             flexWrap: "wrap",
                             gap: 2,
-                            justifyContent: "space-between",
+                            justifyContent: "flex-end",
                             alignItems: "center",
                             mx: { xs: -2, sm: -4 },
                             mb: -4,
@@ -611,24 +617,28 @@ function IDAForm() {
                             borderBottomRightRadius: { xs: 0, sm: 8 },
                         }}
                     >
-                        <Controller
-                            control={control}
-                            name="draft"
-                            render={({ field: { value, onChange, ...field } }) => (
-                                <FormControlLabel
-                                    slotProps={{ typography: { variant: "body1", sx: { fontWeight: 500 } } }}
-                                    control={
-                                        <Checkbox
-                                            size="medium"
-                                            checked={!!value}
-                                            onChange={(e) => onChange(e.target.checked)}
-                                            {...field}
-                                        />
-                                    }
-                                    label={t("markMatrixAsDraft", "Mark configuration matrix as Draft")}
-                                />
-                            )}
-                        />
+                        <Button
+                            type="button"
+                            variant="outlined"
+                            color="success"
+                            size="large"
+                            onClick={submitAs(true)}
+                            disabled={isSubmitting || availableFields.length === 0}
+                            sx={{
+                                textTransform: "none",
+                                borderRadius: 2,
+                                px: { xs: 2.5, sm: 4 },
+                                py: 1.5,
+                                fontSize: "1.05rem",
+                                fontWeight: 700,
+                                borderWidth: "1.5px",
+                                "&:hover": { borderWidth: "1.5px" },
+                            }}
+                        >
+                            {isSubmitting && savingAs === "draft"
+                                ? t("saving", "Saving Records...")
+                                : t("saveDraft", "Save Draft")}
+                        </Button>
 
                         <Button
                             type="submit"
@@ -645,9 +655,9 @@ function IDAForm() {
                                 fontWeight: 700,
                             }}
                         >
-                            {isSubmitting
+                            {isSubmitting && savingAs === "final"
                                 ? t("saving", "Saving Records...")
-                                : t("saveRecords", "Save Matrix Records")}
+                                : t("save", "Save")}
                         </Button>
                     </Box>
                 </Box>

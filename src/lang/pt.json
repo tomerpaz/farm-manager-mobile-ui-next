@@ -240,9 +240,7 @@
   "trackingMatrix": "Matriz de acompanhamento IDA",
   "manager": "Responsável",
   "managerRequired": "Selecione um responsável",
-  "markMatrixAsDraft": "Marcar a matriz como rascunho",
   "saving": "Salvando registros...",
-  "saveRecords": "Salvar registros",
   "allSites": "Todos os locais",
   "editEntry": "Editar registro",
   "removeEntry": "Remover registro",
@@ -276,5 +274,6 @@
   "tapMapToDraw": "Toque no mapa para adicionar os cantos do campo",
   "color": "Cor",
   "siteMap": "Mapa do local",
-  "noFieldPolygons": "Ainda não foram desenhados polígonos de campos para este local."
+  "noFieldPolygons": "Ainda não foram desenhados polígonos de campos para este local.",
+  "saveDraft": "Salvar rascunho"
 }

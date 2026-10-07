@@ -244,9 +244,7 @@
     "trackingMatrix": "מטריצת מעקב IDA",
     "manager": "מנהל",
     "managerRequired": "בחר מנהל",
-    "markMatrixAsDraft": "סמן את המטריצה כטיוטה",
     "saving": "שומר רשומות...",
-    "saveRecords": "שמור רשומות",
     "allSites": "כל האתרים",
     "editEntry": "ערוך רשומה",
     "removeEntry": "הסר רשומה",
@@ -280,5 +278,6 @@
     "tapMapToDraw": "הקש על המפה כדי להוסיף את פינות החלקה",
     "color": "צבע",
     "siteMap": "מפת אתר",
-    "noFieldPolygons": "עדיין לא שורטטו פוליגונים לחלקות באתר זה."
+    "noFieldPolygons": "עדיין לא שורטטו פוליגונים לחלקות באתר זה.",
+    "saveDraft": "שמור טיוטה"
 }

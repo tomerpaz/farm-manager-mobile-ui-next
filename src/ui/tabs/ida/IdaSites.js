@@ -6,7 +6,6 @@ import {
   Card,
   CardActionArea,
   Fab,
-  IconButton,
   Tooltip,
   Typography
 } from '@mui/material';
@@ -20,6 +19,19 @@ const formatSize = (size) => {
   const n = Number(size);
   if (size === null || size === undefined || Number.isNaN(n)) return null;
   return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`;
+};
+
+// Shared by the card's Map and Fields buttons so they read as one pair:
+// same outlined border, radius and height.
+const cardButtonSx = {
+  textTransform: 'none',
+  borderRadius: 2,
+  fontWeight: 600,
+  flexShrink: 0,
+  height: 38,
+  borderWidth: '1.5px',
+  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+  '&:hover': { borderWidth: '1.5px' }
 };
 
 const IdaSites = () => {
@@ -164,21 +176,15 @@ const IdaSites = () => {
                 </CardActionArea>
 
                 <Tooltip title={text?.siteMap || "Site Map"}>
-                  <IconButton
+                  <Button
+                    variant="outlined"
                     color="success"
                     aria-label={text?.siteMap || "Site Map"}
                     onClick={() => navigate(`/site/${value.id}/map`)}
-                    sx={{
-                      flexShrink: 0,
-                      ml: 1,
-                      mr: value.ggId ? 0 : 2,
-                      border: '1.5px solid',
-                      borderColor: 'success.main',
-                      borderRadius: 2,
-                    }}
+                    sx={{ ...cardButtonSx, minWidth: 38, px: 0, ml: 1, mr: value.ggId ? 0 : 2 }}
                   >
                     <MapIcon fontSize="small" />
-                  </IconButton>
+                  </Button>
                 </Tooltip>
 
                 {value.ggId && (
@@ -186,18 +192,7 @@ const IdaSites = () => {
                     variant="outlined"
                     color="success"
                     onClick={() => navigate(`/site/${value.id}/fields`)}
-                    sx={{
-                      textTransform: 'none',
-                      borderRadius: 2,
-                      fontWeight: 600,
-                      mr: 2,
-                      ml: 1,
-                      flexShrink: 0,
-                      borderWidth: '1.5px',
-                      px: { xs: 2, sm: 3 },
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      '&:hover': { borderWidth: '1.5px' }
-                    }}
+                    sx={{ ...cardButtonSx, px: { xs: 2, sm: 3 }, ml: 1, mr: 2 }}
                   >
                     {text?.fields || "Fields"}
                   </Button>

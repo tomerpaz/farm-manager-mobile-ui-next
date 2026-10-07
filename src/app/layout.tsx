@@ -31,12 +31,14 @@ export default function RootLayout({
                 Learn how to configure a non-root public URL by running `npm run build`.
     --> */}
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+                {/* Rubik covers Hebrew (Roboto has no Hebrew glyphs) — same Hebrew font as the web app. */}
+                <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800&display=swap" />
                 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
                     integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
                     crossOrigin="" />
+                {/* Styles only — the control's JS comes from the npm package (see GeoLocation.js). */}
                 <link rel="stylesheet"
-                    href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.76.1/dist/L.Control.Locate.min.css" />
-                <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.76.1/dist/L.Control.Locate.min.js"></script>
+                    href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.css" />
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-geosearch@4.4.0/dist/geosearch.css" />
                 <title>Farm Manager Mobile</title>
             </head>

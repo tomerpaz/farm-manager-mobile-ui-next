@@ -36,7 +36,20 @@ import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
 const parseISO = (v) => dayjs(v).toDate()
 
 const DEFAULT_COLOR = '#43a047';
-const COLOR_PRESETS = ['#43a047', '#fdd835', '#fb8c00', '#e53935', '#8e24aa', '#1e88e5', '#00acc1', '#6d4c41'];
+// Crop-associated colors, picked to stay distinct from each other and
+// readable at 50% fill over satellite imagery.
+const COLOR_PRESETS = [
+    '#43a047', // green — leafy vegetables, general crops
+    '#9ccc65', // light green — lettuce, young/seedling crops
+    '#827717', // olive — olives, orchards
+    '#fdd835', // golden yellow — wheat, barley, cereals
+    '#fb8c00', // orange — citrus, pumpkin, carrots
+    '#e53935', // red — tomatoes, peppers, apples
+    '#d81b60', // magenta — berries, cherries
+    '#8e24aa', // purple — grapes, vineyards
+    '#6d4c41', // brown — potatoes, root crops, fallow
+    '#1e88e5', // blue — greenhouses, rice, irrigated plots
+];
 const isHexColor = (v) => /^#[0-9a-f]{6}$/i.test(v || '');
 const isMobileWidth = () => typeof window !== 'undefined' && window.innerWidth <= 600;
 

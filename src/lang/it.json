@@ -244,9 +244,7 @@
   "trackingMatrix": "Matrice di monitoraggio IDA",
   "manager": "Responsabile",
   "managerRequired": "Seleziona un responsabile",
-  "markMatrixAsDraft": "Segna la matrice come bozza",
   "saving": "Salvataggio in corso...",
-  "saveRecords": "Salva registrazioni",
   "allSites": "Tutti i siti",
   "editEntry": "Modifica voce",
   "removeEntry": "Rimuovi voce",
@@ -280,5 +278,6 @@
   "tapMapToDraw": "Tocca la mappa per aggiungere gli angoli del campo",
   "color": "Colore",
   "siteMap": "Mappa del sito",
-  "noFieldPolygons": "Non sono ancora stati disegnati poligoni dei campi per questo sito."
+  "noFieldPolygons": "Non sono ancora stati disegnati poligoni dei campi per questo sito.",
+  "saveDraft": "Salva bozza"
 }

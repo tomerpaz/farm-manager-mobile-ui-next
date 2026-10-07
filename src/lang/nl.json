@@ -244,9 +244,7 @@
   "trackingMatrix": "IDA-registratiematrix",
   "manager": "Verantwoordelijke",
   "managerRequired": "Selecteer een verantwoordelijke",
-  "markMatrixAsDraft": "Matrix als concept markeren",
   "saving": "Opslaan...",
-  "saveRecords": "Registraties opslaan",
   "allSites": "Alle locaties",
   "editEntry": "Invoer bewerken",
   "removeEntry": "Invoer verwijderen",
@@ -280,5 +278,6 @@
   "tapMapToDraw": "Tik op de kaart om de hoeken van het perceel toe te voegen",
   "color": "Kleur",
   "siteMap": "Locatiekaart",
-  "noFieldPolygons": "Er zijn nog geen perceelpolygonen getekend voor deze locatie."
+  "noFieldPolygons": "Er zijn nog geen perceelpolygonen getekend voor deze locatie.",
+  "saveDraft": "Concept opslaan"
 }

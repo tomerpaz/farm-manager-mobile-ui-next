@@ -50,6 +50,11 @@ const theme = createTheme({
       link: '#2196f3'
     }
   },
+  // Roboto for Latin text; Hebrew characters (absent from Roboto) fall
+  // through to Rubik — the web app's Hebrew font — on every device.
+  typography: {
+    fontFamily: '"Roboto", "Rubik", "Helvetica", "Arial", sans-serif',
+  },
 });
 
 

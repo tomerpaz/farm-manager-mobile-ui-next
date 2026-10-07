@@ -244,9 +244,7 @@
   "trackingMatrix": "IDA-Erfassungsmatrix",
   "manager": "Verantwortlicher",
   "managerRequired": "Verantwortlichen auswählen",
-  "markMatrixAsDraft": "Matrix als Entwurf markieren",
   "saving": "Wird gespeichert...",
-  "saveRecords": "Einträge speichern",
   "allSites": "Alle Standorte",
   "editEntry": "Eintrag bearbeiten",
   "removeEntry": "Eintrag entfernen",
@@ -280,5 +278,6 @@
   "tapMapToDraw": "Tippen Sie auf die Karte, um die Ecken des Feldes hinzuzufügen",
   "color": "Farbe",
   "siteMap": "Standortkarte",
-  "noFieldPolygons": "Für diesen Standort wurden noch keine Feldpolygone gezeichnet."
+  "noFieldPolygons": "Für diesen Standort wurden noch keine Feldpolygone gezeichnet.",
+  "saveDraft": "Entwurf speichern"
 }

@@ -362,7 +362,7 @@ const IdaDash = () => {
                   <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: { xs: 0.5, sm: 1 }, flex: { xs: '0 0 auto', sm: 1 }, minWidth: 0, alignItems: 'center' }}>
                     <StatusIndicator
                       icon={<Science sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
-                      label={text?.activeIngredient || "Pesticides"}
+                      label={text?.pesticides || "Pesticides"}
                       ok={ggYearData?.months?.[m]?.activeIngredientOk}
                       isMobile={isMobile}
                       styles={getIndicatorStyles(ggYearData?.months?.[m]?.activeIngredientOk)}

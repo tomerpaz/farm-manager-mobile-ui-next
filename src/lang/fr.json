@@ -244,9 +244,7 @@
   "trackingMatrix": "Matrice de suivi IDA",
   "manager": "Responsable",
   "managerRequired": "Sélectionnez un responsable",
-  "markMatrixAsDraft": "Marquer la matrice comme brouillon",
   "saving": "Enregistrement...",
-  "saveRecords": "Enregistrer",
   "allSites": "Tous les sites",
   "editEntry": "Modifier l'entrée",
   "removeEntry": "Supprimer l'entrée",
@@ -280,5 +278,6 @@
   "tapMapToDraw": "Touchez la carte pour ajouter les coins de la parcelle",
   "color": "Couleur",
   "siteMap": "Carte du site",
-  "noFieldPolygons": "Aucun polygone de parcelle n'a encore été dessiné pour ce site."
+  "noFieldPolygons": "Aucun polygone de parcelle n'a encore été dessiné pour ce site.",
+  "saveDraft": "Enregistrer le brouillon"
 }

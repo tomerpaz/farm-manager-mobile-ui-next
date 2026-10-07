@@ -244,9 +244,7 @@
   "trackingMatrix": "IDA Tracking Matrix",
   "manager": "Manager",
   "managerRequired": "Select a manager",
-  "markMatrixAsDraft": "Mark configuration matrix as Draft",
   "saving": "Saving Records...",
-  "saveRecords": "Save Matrix Records",
   "allSites": "All Sites",
   "editEntry": "Edit entry",
   "removeEntry": "Remove entry",
@@ -280,5 +278,6 @@
   "tapMapToDraw": "Tap the map to add the field's corners",
   "color": "Color",
   "siteMap": "Site Map",
-  "noFieldPolygons": "No field polygons have been drawn for this site yet."
+  "noFieldPolygons": "No field polygons have been drawn for this site yet.",
+  "saveDraft": "Save Draft"
 }
