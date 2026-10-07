@@ -41,11 +41,27 @@ const emptyValueFor = (f) => {
 
 const toNumberOrNull = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
 
-// Trigger fields fire zeroLinksTo on a specific value (0 by default) —
-// except a resources list, which fires when it's empty ("no fertilizer /
-// no active ingredient").
-const isTriggered = (f, value) =>
-    f.type === "resources" ? (value?.length ?? 0) === 0 : value === (f.linkTriggerValue ?? 0);
+// Trigger fields fire on a specific value (`when`: one value or a list,
+// 0 by default) — except a resources list, which fires when it's empty
+// ("no fertilizer / no active ingredient"). Number inputs hold strings
+// ("0"), so they're compared numerically, and an empty input never counts as 0.
+const isTriggered = (f, value, when = f.linkTriggerValue ?? 0) => {
+    if (f.type === "resources") return (value?.length ?? 0) === 0;
+    const values = Array.isArray(when) ? when : [when];
+    if (f.type === "number") {
+        return value !== "" && value !== null && value !== undefined && values.includes(Number(value));
+    }
+    return values.includes(value);
+};
+
+// Every auto-zero rule in the schema: a field's own zeroLinksTo (fired by
+// linkTriggerValue) plus any extra zeroLinks: [{ when, to }] entries, for a
+// field whose different values lock different fields.
+const zeroLinkRules = (schema) =>
+    schema.flatMap((f) => [
+        ...(f.zeroLinksTo ? [{ field: f, to: f.zeroLinksTo, when: f.linkTriggerValue ?? 0, with: f.zeroLinksWith || [] }] : []),
+        ...(f.zeroLinks || []).map((r) => ({ field: f, to: r.to, when: r.when ?? 0, with: r.with || [] })),
+    ]);
 
 // A metric record is described declaratively as a list of field specs
 // (name/type/label/unit/options/required) — see IDAForm's METRICS config.
@@ -90,22 +106,35 @@ export default function MetricFormDialog({
     // "No NPK"), or energy source 15 ("renewable") for energySourceId —
     // means the record is a declaration that nothing external was applied,
     // so the linked fields are forced (last day of the month / 0) and
-    // locked instead of being left editable. See isTriggered. Only the trigger field(s) are
-    // watched (not the whole form), so this doesn't re-run on every
-    // keystroke elsewhere in the dialog.
-    const triggerFields = useMemo(() => schema.filter((f) => f.zeroLinksTo), [schema]);
-    const triggerNames = useMemo(() => triggerFields.map((f) => f.name), [triggerFields]);
-    const triggerValues = useWatch({ control, name: triggerNames });
+    // locked instead of being left editable. See isTriggered/zeroLinkRules.
+    // A trigger can also declare zeroLinksWith: ["<other field>"] — it then
+    // only fires when those fields are at their trigger value too (e.g. water
+    // use: irrigation AND product handling both 0). Only the trigger field(s)
+    // and their partners are watched (not the whole form), so this doesn't
+    // re-run on every keystroke elsewhere in the dialog.
+    const rules = useMemo(() => zeroLinkRules(schema), [schema]);
+    const watchedNames = useMemo(
+        () => [...new Set(rules.flatMap((r) => [r.field.name, ...r.with]))],
+        [rules]
+    );
+    const watchedValues = useWatch({ control, name: watchedNames });
 
-    const disabledByZero = useMemo(() => {
-        const disabled = new Set();
-        triggerFields.forEach((f, i) => {
-            if (isTriggered(f, triggerValues[i])) {
-                f.zeroLinksTo.forEach((name) => disabled.add(name));
-            }
-        });
-        return disabled;
-    }, [triggerFields, triggerValues]);
+    const firedRules = useMemo(() => {
+        const valueOf = (name) => watchedValues[watchedNames.indexOf(name)];
+        return rules.filter(
+            (r) =>
+                isTriggered(r.field, valueOf(r.field.name), r.when) &&
+                r.with.every((name) => {
+                    const partner = schema.find((s) => s.name === name);
+                    return partner && isTriggered(partner, valueOf(name));
+                })
+        );
+    }, [rules, watchedNames, watchedValues, schema]);
+
+    const disabledByZero = useMemo(
+        () => new Set(firedRules.flatMap((r) => r.to)),
+        [firedRules]
+    );
     // Fields any zeroLinksTo points at — these get the stricter "must be
     // positive" rule (not just "0 or greater") once a real resource is
     // picked instead of the "None"/auto-managed option, but only if they
@@ -113,14 +142,14 @@ export default function MetricFormDialog({
     // (e.g. renewableAmount) shouldn't become mandatory just for being
     // auto-zeroed under the trigger.
     const autoManagedFields = useMemo(
-        () => new Set(schema.flatMap((f) => f.zeroLinksTo || [])),
-        [schema]
+        () => new Set(rules.flatMap((r) => r.to)),
+        [rules]
     );
 
     // A field can declare unitFrom: "<select field>" — an amount whose unit
     // (kg/lit/unit) depends on which option was picked rather than being
     // fixed like fertilizers' "kg". Batched the same way
-    // as triggerValues, so this doesn't re-run per keystroke elsewhere.
+    // as watchedValues, so this doesn't re-run per keystroke elsewhere.
     const unitSourceFields = useMemo(() => schema.filter((f) => f.unitFrom), [schema]);
     const unitSourceNames = useMemo(() => unitSourceFields.map((f) => f.unitFrom), [unitSourceFields]);
     const unitSourceValues = useWatch({ control, name: unitSourceNames });
@@ -137,9 +166,8 @@ export default function MetricFormDialog({
 
     useEffect(() => {
         if (!open) return;
-        triggerFields.forEach((f, i) => {
-            if (!isTriggered(f, triggerValues[i])) return;
-            f.zeroLinksTo.forEach((linkedName) => {
+        firedRules.forEach((r) => {
+            r.to.forEach((linkedName) => {
                 const linked = schema.find((s) => s.name === linkedName);
                 if (!linked) return;
                 if (linked.type === "date") {
@@ -149,7 +177,7 @@ export default function MetricFormDialog({
                 }
             });
         });
-    }, [open, triggerFields, triggerValues, schema, setValue, maxDate]);
+    }, [open, firedRules, schema, setValue, maxDate]);
 
     const handleFormSubmit = (event) => {
         // MUI renders the Dialog through a portal, so this <form> is not nested
@@ -481,6 +509,7 @@ export default function MetricFormDialog({
                                         emptyLabel={f.emptyLabel}
                                         rowFields={f.rowFields}
                                         rowUnit={f.rowUnit}
+                                        unitFromResource={f.unitFromResource}
                                     />
                                 );
                             }

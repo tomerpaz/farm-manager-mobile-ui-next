@@ -24,6 +24,14 @@ const NUMBER_FIELDS = [
 
 export const EMPTY_RESOURCE_ROW = { resource: null, qty: "", n: "", p: "", k: "", amount: "" };
 
+// Unit shown next to a row's amount. With unitFromResource it's the picked
+// resource's own usage unit (translated like elsewhere in the app, e.g.
+// "KG" -> text.kg); otherwise — or with no resource/unit yet — the fixed rowUnit.
+export const resourceRowUnit = (resource, { unitFromResource, rowUnit }, t) => {
+    const raw = unitFromResource ? resource?.usageUnit || resource?.unit : null;
+    return raw ? t(String(raw).toLowerCase(), raw) : rowUnit;
+};
+
 const validateNumber = (v, required, t) => {
     if (v === "" || v === null || v === undefined) return !required || t("required", "Required");
     const n = Number(v);
@@ -39,7 +47,7 @@ const validateNumber = (v, required, t) => {
 // keeps useFieldArray's generated key from overwriting that `id`.
 // `rowFields` limits which number inputs a row shows (all by default); when
 // it's just ["amount"], that amount is the element's amount and is required.
-export default function ResourceRowsField({ control, name, label, options, required, emptyLabel, rowFields, rowUnit }) {
+export default function ResourceRowsField({ control, name, label, options, required, emptyLabel, rowFields, rowUnit, unitFromResource }) {
     const t = useIdaText();
     const numberFields = rowFields ? NUMBER_FIELDS.filter((nf) => rowFields.includes(nf.name)) : NUMBER_FIELDS;
     const amountOnly = numberFields.length === 1 && numberFields[0].name === "amount";
@@ -85,7 +93,7 @@ export default function ResourceRowsField({ control, name, label, options, requi
                     rows.filter((_, i) => i !== index).map((r) => r?.resource?.id).filter(Boolean)
                 );
                 const rowOptions = options.filter((o) => !takenIds.has(o.id));
-                const unit = rows[index]?.resource?.unit || rowUnit;
+                const unit = resourceRowUnit(rows[index]?.resource, { unitFromResource, rowUnit }, t);
                 const renderNumber = (nf) => (
                     <Controller
                         key={nf.name}

@@ -32,6 +32,11 @@ import { fromRecord, getExistingRecord, toRecordPayload } from "../ggRecordMappe
 import useIdaText from "./useIdaText";
 
 const WORKER = "WORKER";
+
+// GLOBALG.A.P. energy source ids measured in litres rather than kWh:
+// 1 Hydrogen (liquid), 4 Ethanol, 5 Gasoline/petrol, 8 Heavy oil,
+// 10 Diesel, 12 Biofuel, 13 Light heating oil.
+const FUEL_ENERGY_TYPE_IDS = new Set([1, 4, 5, 8, 10, 12, 13]);
 const GENERAL = "GENERAL";
 
 // Every scalar field name below (date, amount, amountWaterUseIrrigation,
@@ -75,12 +80,15 @@ const METRICS = [
         title: "Fertilizers (NPK)", titleKey: "fertilizersNpk",
         dateField: "date",
         totalField: "resources",
+        // Fallback only — "No NPK" / a resource with no usage unit.
         totalUnit: "kg",
         schema: [
             { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
             {
+                // Each row's unit comes from the fertilizer's own usage unit
+                // (unitFromResource), with kg as the fallback.
                 name: "resources", type: "resources", label: "Fertilizers", labelKey: "fertilizers", optionsFrom: "fertilizers",
-                emptyLabel: "No NPK", emptyLabelKey: "noNpk", zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg",
+                emptyLabel: "No NPK", emptyLabelKey: "noNpk", zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
             },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
         ],
@@ -100,7 +108,12 @@ const METRICS = [
                 // from the two fields below whenever the record is saved.
                 hidden: true, computeFrom: ["amountWaterUseIrrigation", "amountWaterUseProductHandling"],
             },
-            { name: "amountWaterUseIrrigation", type: "number", label: "Irrigation Amount", labelKey: "irrigationAmount", unit: "m³", column: false, required: true },
+            // No water used at all (both amounts 0) locks the date to the
+            // last day of the month, like the "None" entries elsewhere.
+            {
+                name: "amountWaterUseIrrigation", type: "number", label: "Irrigation Amount", labelKey: "irrigationAmount", unit: "m³", column: false, required: true,
+                zeroLinksTo: ["date"], zeroLinksWith: ["amountWaterUseProductHandling"],
+            },
             { name: "amountWaterUseProductHandling", type: "number", label: "Product Handling", labelKey: "productHandling", unit: "m³", column: false, required: true },
             { name: "flowRate", type: "text", label: "Flow Rate", labelKey: "flowRate", column: false },
         ],
@@ -146,8 +159,12 @@ const METRICS = [
                 // (last day of the month / 0) and locked, same idea as an
                 // empty pesticide/fertilizer resources list above.
                 zeroLinksTo: ["date", "amount", "renewableAmount"], linkTriggerValue: 15,
+                // Fuels aren't renewable — their renewable amount is 0 and locked.
+                zeroLinks: [{ when: [...FUEL_ENERGY_TYPE_IDS], to: ["renewableAmount"] }],
             },
-            { name: "amount", type: "number", label: "Power Absorbed", labelKey: "powerAbsorbed", unit: "kWh", required: true },
+            // Unit follows the energy source: liquid fuels in litres, the rest kWh
+            // (see FUEL_ENERGY_TYPE_IDS / energyTypes below).
+            { name: "amount", type: "number", label: "Power Absorbed", labelKey: "powerAbsorbed", unitFrom: "energySourceId", required: true },
             { name: "renewableAmount", type: "number", label: "Renewable Amount", labelKey: "renewableAmount", unit: "kWh", column: false },
         ],
     },
@@ -411,9 +428,14 @@ function IDAForm() {
         // Id 15 ("renewable") drives the auto-zero/disable behavior below —
         // surfaced first in the dropdown since it's the option farmers
         // reach for most often.
-        energyTypes: [...(idaSystemData?.energyTypes || [])].sort((a, b) =>
-            (a.id === 15 ? -1 : b.id === 15 ? 1 : 0)
-        ),
+        // Each type also carries the unit its amount is entered in (the
+        // amount field's unitFrom reads it).
+        energyTypes: [...(idaSystemData?.energyTypes || [])]
+            .sort((a, b) => (a.id === 15 ? -1 : b.id === 15 ? 1 : 0))
+            .map((e) => ({
+                ...e,
+                unit: FUEL_ENERGY_TYPE_IDS.has(e.id) ? t("lit", "Lit") : "kWh",
+            })),
         // Both lists lead with the server's "none" entry (id 0); resolveSchema
         // keeps it out of the resource rows and only uses its label.
         fertilizers: idaSystemData?.fertilizers || [],

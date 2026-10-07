@@ -20,6 +20,7 @@ import {
 import { Add, Delete, Edit } from "@mui/icons-material";
 import MetricFormDialog from "./MetricFormDialog";
 import useIdaText from "./useIdaText";
+import { resourceRowUnit } from "./ResourceRowsField";
 
 const CLOSED = { open: false, index: null, initialData: null };
 
@@ -31,6 +32,13 @@ const formatQty = (value, unit) => {
     const n = Number(value);
     if (Number.isNaN(n)) return "—";
     return `${n.toLocaleString("en-AU", { maximumFractionDigits: 2 })}${unit ? ` ${unit}` : ""}`;
+};
+
+// unitFrom number fields take their unit from the option this row's
+// select (e.g. energySourceId) points at.
+const optionUnit = (schema, f, field) => {
+    const sourceField = schema.find((s) => s.name === f.unitFrom);
+    return (sourceField?.options || []).find((o) => o.id === field[f.unitFrom])?.unit;
 };
 
 // The field spec drives both the add/edit dialog (MetricFormDialog) and this
@@ -67,16 +75,21 @@ export default function MetricFieldArray({
         [fields, dateField]
     );
 
-    // A totalField pointing at a resources list sums its rows' amounts.
-    const total = useMemo(
-        () =>
-            fields.reduce((sum, f) => {
-                const value = f[totalField];
-                if (Array.isArray(value)) return value.reduce((s, r) => s + (Number(r?.amount) || 0), sum);
-                return sum + (Number(value) || 0);
-            }, 0),
-        [fields, totalField]
-    );
+    // A totalField pointing at a resources list sums its rows' amounts —
+    // per unit, since unitFromResource rows (fertilizers) can mix kg and L.
+    // Nothing to sum (e.g. only "No NPK" entries) shows 0 in totalUnit.
+    const totalText = useMemo(() => {
+        const totalSpec = schema.find((s) => s.name === totalField) || {};
+        const byUnit = new Map();
+        const add = (unit, value) => byUnit.set(unit, (byUnit.get(unit) || 0) + (Number(value) || 0));
+        fields.forEach((f) => {
+            const value = f[totalField];
+            if (Array.isArray(value)) value.forEach((r) => add(resourceRowUnit(r?.resource, totalSpec, t), r?.amount));
+            else add((totalSpec.unitFrom && optionUnit(schema, totalSpec, f)) || totalUnit, value);
+        });
+        if (byUnit.size === 0) return formatQty(0, totalUnit);
+        return [...byUnit].map(([unit, sum]) => formatQty(sum, unit)).join(", ");
+    }, [fields, totalField, totalUnit, schema, t]);
 
     const tableColumns = schema.filter((f) => f.column !== false);
 
@@ -87,12 +100,7 @@ export default function MetricFieldArray({
             // unitFrom fields carry their unit on whichever option this
             // row's own select field points at, rather than a fixed
             // schema-level unit like fertilizers' "kg".
-            let unit = f.unit;
-            if (f.unitFrom) {
-                const sourceField = schema.find((s) => s.name === f.unitFrom);
-                unit = (sourceField?.options || []).find((o) => o.id === field[f.unitFrom])?.unit;
-            }
-            return formatQty(value, unit);
+            return formatQty(value, f.unitFrom ? optionUnit(schema, f, field) : f.unit);
         }
         if (f.type === "select" || f.type === "autocomplete") {
             const opt = (f.allOption ? [{ id: 0, name: t("allSites", "All Sites") }, ...(f.options || [])] : f.options || []).find(
@@ -114,7 +122,7 @@ export default function MetricFieldArray({
                         r.resource?.name ||
                         (f.options || []).find((o) => o.id === r.resource?.id)?.name ||
                         `#${r.resource?.id}`;
-                    const unit = r.resource?.unit || f.rowUnit;
+                    const unit = resourceRowUnit(r.resource, f, t);
                     return r.amount === null || r.amount === undefined || r.amount === ""
                         ? name
                         : `${name} (${formatQty(r.amount, unit)})`;
@@ -281,7 +289,7 @@ export default function MetricFieldArray({
                             {t("totalCount", "Total ({count})", { count: fields.length })}
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                            {formatQty(total, totalUnit)}
+                            {totalText}
                         </Typography>
                     </Box>
                 </Box>
@@ -326,7 +334,7 @@ export default function MetricFieldArray({
                                     {t("totalCount", "Total ({count})", { count: fields.length })}
                                 </TableCell>
                                 <TableCell align="right" sx={{ fontWeight: 700 }}>
-                                    {formatQty(total, totalUnit)}
+                                    {totalText}
                                 </TableCell>
                                 <TableCell />
                             </TableRow>
