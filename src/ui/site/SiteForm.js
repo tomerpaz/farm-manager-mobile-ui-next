@@ -6,7 +6,6 @@ import {
   Box,
   Stack,
   TextField,
-  Button,
   Typography,
   IconButton
 } from '@mui/material';
@@ -28,6 +27,7 @@ import ActionApprovalDialog from '../../components/ui/ActionApprovalDialog';
 import Loading from '../../components/Loading';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
+import FormActionBar from '../../components/ui/FormActionBar';
 
 const SiteForm = () => {
   const navigate = useNavigate();
@@ -41,24 +41,15 @@ const SiteForm = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [map, setMap] = useState(null);
 
-  // FIX: Custom responsive height selector calculation
-  const calculateMapHeight = () => {
-    if (typeof window !== 'undefined') {
-      const isMobileDevice = window.innerWidth <= 600;
-      // On mobile, maps stretch dynamically to fill 52% of display viewport height safely
-      return isMobileDevice ? '52vh' : Math.max(window.innerHeight - 530, 320);
-    }
-    return 355;
-  };
-
-  const [mapHeight, setMapHeight] = useState(calculateMapHeight());
-
+  // The map takes whatever height is left on screen (see the flex layout
+  // below), so it changes size with the layout — Leaflet only re-measures on
+  // window resize, so tell it whenever its container changes.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handleResize = () => setMapHeight(calculateMapHeight());
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    if (!map || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [map]);
 
   // RTK Query hooks
   const isNewSite = siteId === '0';
@@ -159,15 +150,28 @@ const SiteForm = () => {
   const hasValidCoordinates = lat !== '' && lng !== '';
   const siteLonLat = hasValidCoordinates ? [Number(lat), Number(lng)] : DEFAULT_COORDINATES;
   return (
-    <Box  >
+    // Exactly one screen tall: header, fields and the docked Save bar keep
+    // their natural size and the map flexes to fill the rest — no page scroll.
+    <Box sx={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <GoBackAppBar />
-      <Box sx={{ width: '100%', mt: { xs: 0, sm: '32px !important' } }}>
+      <Box sx={{
+        width: '100%',
+        mt: { xs: 0, sm: '32px !important' },
+        mb: { xs: 0, sm: 4 },
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
         <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
           width: '100% !important',
           boxSizing: 'border-box !important',
           maxWidth: { xs: '100% !important', sm: '800px !important' },
           minWidth: '0px !important',
-          flex: { xs: '1 1 100% !important', sm: 'initial' },
+          flex: '1 1 auto !important',
+          minHeight: 0,
           margin: '0 auto !important',
           position: 'relative',
           px: { xs: 2, sm: 3 },
@@ -206,8 +210,8 @@ const SiteForm = () => {
           </Box>
 
           {/* Main Structural Inputs Form */}
-          <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ width: '100%' }}>
-            <Stack spacing={3} sx={{ width: '100%' }}>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <Stack spacing={3} sx={{ width: '100%', flex: 1, minHeight: 0 }}>
 
               {/* Row 1: Name and Size permanently locked side-by-side (flex 3 to 1) */}
               <Box sx={{ display: "flex", flexDirection: "row", gap: 2, width: '100%' }}>
@@ -302,6 +306,9 @@ const SiteForm = () => {
                 dir="ltr"
                 sx={{
                   width: '100%',
+                  flex: 1,
+                  minHeight: 200,
+                  position: 'relative',
                   borderRadius: 3,
                   overflow: 'hidden',
                   border: '1px solid rgba(0, 0, 0, 0.12)',
@@ -309,7 +316,7 @@ const SiteForm = () => {
                 }}
               >
                 <MapContainer
-                  style={{ height: mapHeight, width: '100%' }}
+                  style={{ position: 'absolute', inset: 0 }}
                   center={siteLonLat}
                   zoom={zoom}
                   scrollWheelZoom={false}
@@ -328,41 +335,12 @@ const SiteForm = () => {
                 </MapContainer>
               </Box>
 
-              {/* Row 4: Action Submissions Panel Bar */}
-              <Box sx={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 2,
-                pt: 0.5
-              }}>
-                {site?.id && site?.deletable === true && (
-                  <Button
-                    type="button"
-                    onClick={() => setDeleteOpen(true)}
-                    variant="outlined"
-                    color="secondary"
-                    sx={{ textTransform: 'none', borderRadius: 2, px: 5, py: 1, fontWeight: 600 }}
-                  >
-                    {text.delete || 'Delete'}
-                  </Button>
-                )}
-
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="success"
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: 2,
-                    px: 6,
-                    py: 1,
-                    fontWeight: 600,
-                    boxShadow: '0px 4px 12px rgba(46, 125, 50, 0.2)'
-                  }}
-                >
-                  {text.save || 'Save'}
-                </Button>
-              </Box>
+              {/* Row 4: Docked Save/Delete bar */}
+              <FormActionBar
+                saveLabel={text.save || 'Save'}
+                deleteLabel={text.delete || 'Delete'}
+                onDelete={site?.id && site?.deletable === true ? () => setDeleteOpen(true) : undefined}
+              />
             </Stack>
           </form>
 

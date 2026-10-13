@@ -6,11 +6,9 @@ import {
     Box,
     Stack,
     TextField,
-    Button,
     Typography,
     Autocomplete,
-    MenuItem,
-    useMediaQuery
+    MenuItem
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -32,6 +30,7 @@ import FieldPolygonDraw from './FieldPolygonDraw';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
+import FormActionBar from '../../components/ui/FormActionBar';
 
 const parseISO = (v) => dayjs(v).toDate()
 
@@ -51,7 +50,6 @@ const COLOR_PRESETS = [
     '#1e88e5', // blue — greenhouses, rice, irrigated plots
 ];
 const isHexColor = (v) => /^#[0-9a-f]{6}$/i.test(v || '');
-const isMobileWidth = () => typeof window !== 'undefined' && window.innerWidth <= 600;
 
 const IdaFieldForm = () => {
     const navigate = useNavigate();
@@ -59,8 +57,6 @@ const IdaFieldForm = () => {
     const dispatch = useDispatch();
     const text = useSelector(selectLang);
     const mapZoom = useSelector(selectMapZoom);
-    // Matches the grid's md breakpoint, where the map sits beside the fields.
-    const isSideBySide = useMediaQuery((theme) => theme.breakpoints.up('md'));
 
     // Active UI modal tracking states
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -180,15 +176,20 @@ const IdaFieldForm = () => {
     };
 
     return (
-        <Box sx={{ width: '100%' }}>
+        // Exactly one screen tall: header, fields and the docked Save bar keep
+        // their natural size and the map flexes to fill the rest — no page scroll.
+        <Box sx={{ width: '100%', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
             <GoBackAppBar />
             <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
                 width: '100% !important',
                 boxSizing: 'border-box !important',
                 maxWidth: { xs: '100% !important', sm: '800px !important', md: '1200px !important' },
                 minWidth: '0px !important',
-                flex: { xs: '1 1 100% !important', sm: 'initial' },
-                margin: '0 auto !important',
+                flex: '1 1 auto !important',
+                margin: { xs: '0 auto !important', sm: '0 auto 32px !important' },
                 position: 'relative',
                 px: { xs: 2, sm: 3 },
                 pt: { xs: 2, sm: '32px !important' },
@@ -198,7 +199,7 @@ const IdaFieldForm = () => {
             }}>
 
                 {/* Header Layout */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: { xs: 1.5, sm: 3 } }}>
                     <GoBackDesktopButton />
 
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -217,19 +218,21 @@ const IdaFieldForm = () => {
                     </Box>
                 </Box>
                 {/* Main Structural Inputs Form */}
-                <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ width: '100%' }}>
-                    <Stack spacing={2.5} sx={{ width: '100%' }}>
-                        {/* Mobile: fields, map, actions stacked. Desktop: fields with the
-                            actions pinned under them on the left, the map filling the
-                            whole right column. */}
+                <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                    <Stack spacing={{ xs: 1.5, sm: 2.5 }} sx={{ width: '100%', flex: 1, minHeight: 0 }}>
+                        {/* Mobile: fields, then the map filling the rest of the screen.
+                            Desktop: fields on the left, the map filling the right column.
+                            The Save/Delete bar is docked below both. */}
                         <Box sx={{
                             display: 'grid',
                             width: '100%',
+                            flex: 1,
+                            minHeight: 0,
                             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
-                            gridTemplateRows: { md: 'auto 1fr' },
-                            gridTemplateAreas: { xs: '"fields" "map" "actions"', md: '"fields map" "actions map"' },
+                            gridTemplateRows: { xs: 'auto minmax(0, 1fr)', md: 'minmax(0, 1fr)' },
+                            gridTemplateAreas: { xs: '"fields" "map"', md: '"fields map"' },
                             columnGap: 3,
-                            rowGap: 2.5,
+                            rowGap: { xs: 2, sm: 2.5 },
                         }}>
                             <Stack spacing={2.5} sx={{ gridArea: 'fields', minWidth: 0 }}>
 
@@ -445,16 +448,16 @@ const IdaFieldForm = () => {
 
                             </Stack>
 
-                            <Box sx={{ gridArea: 'map', minWidth: 0, display: 'flex' }}>
+                            <Box sx={{ gridArea: 'map', minWidth: 0, minHeight: 0, display: 'flex' }}>
                                 {/* Row 5: Map shape — color picker + polygon drawing */}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: '100%', minHeight: { md: 480 } }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 1.5 }, width: '100%', minHeight: 0 }}>
                                     <FieldPolygonDraw
                                         polygon={polygonPoints}
                                         color={color || DEFAULT_COLOR}
                                         center={mapCenter}
                                         zoom={mapViewZoom}
-                                        // Side by side: no fixed height — the map fills the column.
-                                        height={isSideBySide ? undefined : isMobileWidth() ? '45vh' : 420}
+                                        // No fixed height — the map fills whatever space is left.
+                                        minMapHeight={180}
                                         text={text}
                                         onDraw={handlePolygonDraw}
                                         onRemove={() => setValue('polygon', null, { shouldDirty: true })}
@@ -464,7 +467,7 @@ const IdaFieldForm = () => {
                                         control={control}
                                         render={({ field: { value, onChange } }) => (
                                             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mr: 0.5 }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mr: 0.5, display: { xs: 'none', sm: 'block' } }}>
                                                     {text.color || 'Color'}
                                                 </Typography>
                                                 {COLOR_PRESETS.map((c) => (
@@ -517,44 +520,14 @@ const IdaFieldForm = () => {
 
                             </Box>
 
-                            {/* Row 6: Action Submissions Panel Bar */}
-                            <Box sx={{
-                                gridArea: 'actions',
-                                alignSelf: { md: 'end' },
-                                display: "flex",
-                                justifyContent: "center",
-                                gap: 2,
-                                pt: 0.5
-                            }}>
-                                {field?.id && field?.deletable === true && (
-                                    <Button
-                                        type="button"
-                                        onClick={() => setDeleteOpen(true)}
-                                        variant="outlined"
-                                        color="secondary"
-                                        sx={{ textTransform: 'none', borderRadius: 2, px: 5, py: 1, fontWeight: 600 }}
-                                    >
-                                        {text.delete || 'Delete'}
-                                    </Button>
-                                )}
-
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    color="success"
-                                    sx={{
-                                        textTransform: 'none',
-                                        borderRadius: 2,
-                                        px: 6,
-                                        py: 1,
-                                        fontWeight: 600,
-                                        boxShadow: '0px 4px 12px rgba(46, 125, 50, 0.2)'
-                                    }}
-                                >
-                                    {text.save || 'Save'}
-                                </Button>
-                            </Box>
                         </Box>
+
+                        {/* Docked Save/Delete bar */}
+                        <FormActionBar
+                            saveLabel={text.save || 'Save'}
+                            deleteLabel={text.delete || 'Delete'}
+                            onDelete={field?.id && field?.deletable === true ? () => setDeleteOpen(true) : undefined}
+                        />
                     </Stack>
                 </form>
 

@@ -20,6 +20,7 @@ import DialogAppBar from "../../../ui/dialog/DialogAppBar";
 import ResourceRowsField from "./ResourceRowsField";
 import useIdaText from "./useIdaText";
 import { isMobile } from "../../../ui/FarmUtil";
+import { saveButtonSx } from "../../../components/ui/FormActionBar";
 
 // The app's LocalizationProvider is wired to AdapterDayjs (see
 // LocaleApplication.js), so the pickers work in dayjs objects — form state
@@ -528,8 +529,8 @@ export default function MetricFormDialog({
                         })}
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ px: 3, py: 1.5 }}>
-                    <Button type="submit" variant="contained" color="success" sx={{ textTransform: "none", px: 3 }}>
+                <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 1.5, pb: "calc(12px + env(safe-area-inset-bottom))" }}>
+                    <Button type="submit" variant="contained" color="success" size="large" sx={saveButtonSx}>
                         {t("confirm", "Confirm")}
                     </Button>
                 </DialogActions>

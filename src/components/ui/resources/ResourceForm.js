@@ -6,7 +6,6 @@ import {
     Box,
     Stack,
     TextField,
-    Button,
     Typography,
     MenuItem,
     FormControlLabel,
@@ -18,6 +17,7 @@ import ActionApprovalDialog from '../../../components/ui/ActionApprovalDialog';
 import Loading from '../../../components/Loading';
 import GoBackAppBar from '../../../appbar/content/GoBackAppBar'
 import GoBackDesktopButton from '../../../components/ui/GoBackDesktopButton'
+import FormActionBar from '../../../components/ui/FormActionBar'
 
 import {
     useGetResourceQuery,
@@ -435,41 +435,12 @@ const ResourceForm = () => {
                             />
                         </Box>
 
-                        {/* Action Panel Bar */}
-                        <Box sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            gap: 2,
-                            pt: 0.5
-                        }}>
-                            {!isNewRecord && resource?.deletable === true && (
-                                <Button
-                                    type="button"
-                                    onClick={() => setDeleteOpen(true)}
-                                    variant="outlined"
-                                    color="secondary"
-                                    sx={{ textTransform: 'none', borderRadius: 2, px: 5, py: 1, fontWeight: 600 }}
-                                >
-                                    {text?.delete || 'Delete'}
-                                </Button>
-                            )}
-
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                color="success"
-                                sx={{
-                                    textTransform: 'none',
-                                    borderRadius: 2,
-                                    px: 6,
-                                    py: 1,
-                                    fontWeight: 600,
-                                    boxShadow: '0px 4px 12px rgba(46, 125, 50, 0.2)'
-                                }}
-                            >
-                                {text?.save || 'Save'}
-                            </Button>
-                        </Box>
+                        {/* Docked Save/Delete bar */}
+                        <FormActionBar
+                            saveLabel={text?.save || 'Save'}
+                            deleteLabel={text?.delete || 'Delete'}
+                            onDelete={!isNewRecord && resource?.deletable === true ? () => setDeleteOpen(true) : undefined}
+                        />
                     </Stack>
                 </form>
 

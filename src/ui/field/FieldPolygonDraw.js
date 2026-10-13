@@ -20,7 +20,7 @@ const MapClick = ({ onClick }) => {
 // its center and the resulting zoom. `polygon` is an array of [lat, lng]
 // points — the same (unclosed) shape the web app's draw control saves.
 // Without a `height` the map fills whatever space its parent gives it.
-const FieldPolygonDraw = ({ polygon, color, center, zoom, height, text, onDraw, onRemove }) => {
+const FieldPolygonDraw = ({ polygon, color, center, zoom, height, minMapHeight = 320, text, onDraw, onRemove }) => {
     const [map, setMap] = useState(null);
     const [drawing, setDrawing] = useState(false);
     const [points, setPoints] = useState([]);
@@ -119,7 +119,7 @@ const FieldPolygonDraw = ({ polygon, color, center, zoom, height, text, onDraw, 
                     width: '100%',
                     position: 'relative',
                     flex: fill ? 1 : undefined,
-                    minHeight: fill ? 320 : undefined,
+                    minHeight: fill ? minMapHeight : undefined,
                     borderRadius: 3,
                     overflow: 'hidden',
                     border: '1px solid rgba(0, 0, 0, 0.12)',
