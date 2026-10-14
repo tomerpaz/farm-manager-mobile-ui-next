@@ -13,7 +13,15 @@ import {
     Autocomplete,
     Typography,
     Badge,
+    IconButton,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
 } from "@mui/material";
+import { Delete, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers";
 import FieldSelectionDialog from "../../../ui/dialog/FieldsSelectionDialog";
 import DialogAppBar from "../../../ui/dialog/DialogAppBar";
@@ -21,6 +29,8 @@ import ResourceRowsField from "./ResourceRowsField";
 import useIdaText from "./useIdaText";
 import { isMobile } from "../../../ui/FarmUtil";
 import { saveButtonSx } from "../../../components/ui/FormActionBar";
+import { cellSx, headerSx } from "../../../ui/Util";
+import { useGetUserDataQuery } from "../../auth/authApiSlice";
 
 // The app's LocalizationProvider is wired to AdapterDayjs (see
 // LocaleApplication.js), so the pickers work in dayjs objects — form state
@@ -39,6 +49,8 @@ const emptyValueFor = (f) => {
     if (f.type === "multiselect" || f.type === "fields" || f.type === "resources") return [];
     return "";
 };
+
+const FIELD_ROWS_COLLAPSED = 3;
 
 const toNumberOrNull = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
 
@@ -85,12 +97,17 @@ export default function MetricFormDialog({
     const defaultValues = Object.fromEntries(schema.map((f) => [f.name, emptyValueFor(f)]));
     const { control, handleSubmit, reset, setValue } = useForm({ defaultValues });
     const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
+    // The selected-fields table shows only the first FIELD_ROWS_COLLAPSED rows
+    // until expanded (same idea as ActivityFields' TRASHHOLD).
+    const [fieldsExpanded, setFieldsExpanded] = useState(false);
     const t = useIdaText();
+    const { data: user } = useGetUserDataQuery();
     const allOption = { id: ALL_ID, name: t("allSites", "All Sites") };
     const autoSetHint = t("setAutomatically", "Set automatically for “None” entries");
 
     useEffect(() => {
         if (!open) return;
+        setFieldsExpanded(false);
         const values = {};
         schema.forEach((f) => {
             if (f.type === "date") {
@@ -454,40 +471,115 @@ export default function MetricFormDialog({
                                             validate: (v) => !f.required || (v && v.length > 0) || t("selectAtLeastOneField", "Select at least one field"),
                                         }}
                                         render={({ field: { value, onChange }, fieldState }) => {
-                                            const selectedNames = (availableFields || [])
-                                                .filter((af) => value?.includes(af.id))
-                                                .map((af) => af.name);
+                                            // Same layout as ActivityFields in the activity form:
+                                            // picker button, then a table of the selected fields.
+                                            const selected = (value || []).map(
+                                                (id) => (availableFields || []).find((af) => af.id === id) || { id, name: `#${id}` }
+                                            );
+                                            const areaUnit = user?.areaUnit ? t(user.areaUnit, user.areaUnit) : "";
+                                            const totalArea = selected.reduce((sum, af) => sum + (Number(af.area) || 0), 0);
                                             return (
                                                 <Box>
-                                                    <Badge badgeContent={value?.length || 0} color="primary">
-                                                        <Button
-                                                            variant="outlined"
-                                                            color={fieldState.error ? "error" : "primary"}
-                                                            sx={{ textTransform: "none" }}
-                                                            onClick={() => setFieldPickerOpen(true)}
+                                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                                        <Badge badgeContent={value?.length || 0} color="info">
+                                                            <Button
+                                                                variant="contained"
+                                                                disableElevation
+                                                                size="large"
+                                                                color={fieldState.error ? "error" : "primary"}
+                                                                sx={{ textTransform: "none" }}
+                                                                // Drop focus first: opening the nested picker aria-hides
+                                                                // this part of the dialog, and Chrome blocks that (and
+                                                                // warns) while a hidden element still holds focus.
+                                                                onClick={(e) => {
+                                                                    e.currentTarget.blur();
+                                                                    setFieldPickerOpen(true);
+                                                                }}
+                                                            >
+                                                                {f.label}
+                                                            </Button>
+                                                        </Badge>
+                                                        <IconButton
+                                                            color="secondary"
+                                                            aria-label={t("removeAll", "Remove all")}
+                                                            disabled={!value?.length}
+                                                            onClick={() => onChange([])}
                                                         >
-                                                            {f.label}
+                                                            <Delete />
+                                                        </IconButton>
+                                                    </Box>
+                                                    {fieldState.error && (
+                                                        <Typography variant="caption" sx={{ display: "block", mt: 0.5, color: "error.main" }}>
+                                                            {fieldState.error.message}
+                                                        </Typography>
+                                                    )}
+                                                    {selected.length > 0 && (
+                                                        <TableContainer sx={{ mt: 1 }}>
+                                                            <Table size="small">
+                                                                <TableHead>
+                                                                    <TableRow>
+                                                                        <TableCell sx={headerSx}>{t("field", "Field")}</TableCell>
+                                                                        <TableCell sx={headerSx}>{t("productCategory", "Product Category")}</TableCell>
+                                                                        <TableCell sx={headerSx}>{t("cropGenus", "Crop Genus")}</TableCell>
+                                                                        <TableCell sx={headerSx}>{areaUnit}</TableCell>
+                                                                        <TableCell sx={headerSx} />
+                                                                    </TableRow>
+                                                                </TableHead>
+                                                                <TableBody>
+                                                                    {(fieldsExpanded ? selected : selected.slice(0, FIELD_ROWS_COLLAPSED)).map((af) => (
+                                                                        <TableRow key={af.id}>
+                                                                            <TableCell sx={cellSx}>{af.name}</TableCell>
+                                                                            <TableCell sx={cellSx}>{af.cropName}</TableCell>
+                                                                            <TableCell sx={cellSx}>{af.varietyName}</TableCell>
+                                                                            <TableCell sx={cellSx}>
+                                                                                {af.area != null && af.area !== "" ? Number(af.area).toFixed(2) : ""}
+                                                                            </TableCell>
+                                                                            <TableCell sx={{ ...cellSx, width: 40 }} align="right">
+                                                                                <IconButton
+                                                                                    size="small"
+                                                                                    color="secondary"
+                                                                                    aria-label={t("removeRow", "Remove row")}
+                                                                                    onClick={() => onChange(value.filter((id) => id !== af.id))}
+                                                                                >
+                                                                                    <Delete fontSize="small" />
+                                                                                </IconButton>
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    ))}
+                                                                    <TableRow>
+                                                                        <TableCell sx={headerSx} colSpan={3}>{`${t("total", "Total")} ${areaUnit}`}</TableCell>
+                                                                        <TableCell sx={headerSx}>{totalArea.toFixed(2)}</TableCell>
+                                                                        <TableCell sx={headerSx} />
+                                                                    </TableRow>
+                                                                </TableBody>
+                                                            </Table>
+                                                        </TableContainer>
+                                                    )}
+                                                    {selected.length > FIELD_ROWS_COLLAPSED && (
+                                                        <Button
+                                                            size="small"
+                                                            onClick={() => setFieldsExpanded((x) => !x)}
+                                                            startIcon={fieldsExpanded ? <ExpandLess /> : <ExpandMore />}
+                                                            sx={{ textTransform: "none", mt: 0.5 }}
+                                                        >
+                                                            {fieldsExpanded
+                                                                ? t("showLess", "Show less")
+                                                                : t("showAllCount", "Show all ({count})", { count: selected.length })}
                                                         </Button>
-                                                    </Badge>
-                                                    <Typography
-                                                        variant="caption"
-                                                        sx={{ display: "block", mt: 0.5, color: fieldState.error ? "error.main" : "text.secondary" }}
-                                                    >
-                                                        {fieldState.error?.message ?? (selectedNames.join(", ") || " ")}
-                                                    </Typography>
+                                                    )}
                                                     <FieldSelectionDialog
                                                         open={fieldPickerOpen}
                                                         fields={availableFields || []}
                                                         hideActiveFilter
-                                                        // This dialog itself is already open inside another Dialog
-                                                        // (MetricFormDialog) — without disablePortal, both render as
-                                                        // independent top-level modals under <body>, and their
-                                                        // separate aria-hidden bookkeeping on #root can race when one
-                                                        // closes, intermittently swallowing the next click (e.g. the
-                                                        // month form's Save button) until a second click works.
-                                                        disablePortal
+                                                        // Rendered through its own portal like any stacked MUI
+                                                        // dialog. With disablePortal it sat *inside* this dialog
+                                                        // while MUI's modal manager (container = <body>) aria-hid
+                                                        // this dialog's root — i.e. the picker's own ancestor — so
+                                                        // focusing the picker tripped Chrome's "Blocked aria-hidden"
+                                                        // warning and hid the picker from screen readers.
                                                         handleClose={(selection) => {
-                                                            if (selection) onChange(selection.map((s) => s.id));
+                                                            // Adds to the fields already listed, like ActivityFields.
+                                                            if (selection) onChange([...new Set([...(value || []), ...selection.map((s) => s.id)])]);
                                                             setFieldPickerOpen(false);
                                                         }}
                                                     />

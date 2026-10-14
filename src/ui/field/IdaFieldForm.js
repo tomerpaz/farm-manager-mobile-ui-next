@@ -113,6 +113,7 @@ const IdaFieldForm = () => {
     const { data: site } = useGetSiteQuery(fieldSiteId, { skip: !fieldSiteId || String(fieldSiteId) === '0' });
 
     const [polygonJson, fieldLat, fieldLng, fieldZoom, color] = useWatch({ control, name: ['polygon', 'lat', 'lng', 'zoom', 'color'] });
+    const startDate = useWatch({ control, name: 'startDate' });
     const polygonPoints = useMemo(() => {
         const points = safeParseJson(polygonJson);
         return Array.isArray(points) && points.length > 2 ? points : null;
@@ -325,39 +326,50 @@ const IdaFieldForm = () => {
                                         />
                                     </Box>
 
-                                    {/* FIX: Explicitly clamp the flex structure and set minWidth: 0 on the parent container element */}
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                                        <Controller
-                                            name="endDate"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <DatePicker
-                                                    label={text.end || "End Date"}
-                                                    closeOnSelect
-                                                    showToolbar={false}
-                                                    localeText={{
-                                                        cancelButtonLabel: text.cancel,
-                                                        clearButtonLabel: text.clear,
-                                                        okButtonLabel: text.save
-                                                    }}
-                                                    slotProps={{
-                                                        textField: {
-                                                            variant: 'outlined',
-                                                            fullWidth: true,
-                                                            sx: {
-                                                                '& .MuiInputBase-root': { fontSize: '1rem' },
-                                                                '& .MuiInputBase-input': { padding: '16px 14px' }
-                                                            }
-                                                        },
-                                                        actionBar: { actions: ["cancel"] }
-                                                    }}
-                                                    {...field}
-                                                    value={toPickerValue(field.value)}
-                                                    onChange={(v) => field.onChange(toDateOrNull(v))}
-                                                />
-                                            )}
-                                        />
-                                    </Box>
+                                    {/* A new field has no end date yet — only shown when editing. */}
+                                    {!isNewField && (
+                                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                                            <Controller
+                                                name="endDate"
+                                                control={control}
+                                                rules={{
+                                                    validate: (v) =>
+                                                        !v || !startDate || dayjs(v).isAfter(dayjs(startDate), 'day') ||
+                                                        text.endAfterStart || 'End date must be after the start date'
+                                                }}
+                                                render={({ field, fieldState: { error } }) => (
+                                                    <DatePicker
+                                                        label={text.end || "End Date"}
+                                                        // Earliest pickable end date: the day after the start.
+                                                        minDate={startDate ? dayjs(startDate).add(1, 'day') : undefined}
+                                                        closeOnSelect
+                                                        showToolbar={false}
+                                                        localeText={{
+                                                            cancelButtonLabel: text.cancel,
+                                                            clearButtonLabel: text.clear,
+                                                            okButtonLabel: text.save
+                                                        }}
+                                                        slotProps={{
+                                                            textField: {
+                                                                variant: 'outlined',
+                                                                fullWidth: true,
+                                                                error: !!error,
+                                                                helperText: error?.message,
+                                                                sx: {
+                                                                    '& .MuiInputBase-root': { fontSize: '1rem' },
+                                                                    '& .MuiInputBase-input': { padding: '16px 14px' }
+                                                                }
+                                                            },
+                                                            actionBar: { actions: ["cancel"] }
+                                                        }}
+                                                        {...field}
+                                                        value={toPickerValue(field.value)}
+                                                        onChange={(v) => field.onChange(toDateOrNull(v))}
+                                                    />
+                                                )}
+                                            />
+                                        </Box>
+                                    )}
                                 </Box>
 
                                 {/* Row 3: Autocomplete Select Inputs (Crop Genus & Product Category) locked side-by-side */}

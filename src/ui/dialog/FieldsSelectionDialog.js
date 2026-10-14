@@ -42,6 +42,8 @@ export const ROWS_PER_PAGE = 100;
 
 const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFilter, disablePortal }) => {
     const text = useSelector(selectLang);
+    // Alias is optional — drop the column when no field has one.
+    const showAlias = (fields || []).some((f) => f.alias != null && String(f.alias).trim() !== '');
     // const { data: user } = useGetUserDataQuery()
     const [filter, setFilter] = useState('');
 
@@ -154,7 +156,7 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFil
                                     />
                                 </TableCell>
                                 <TableCell sx={headerSx} >{text.field}</TableCell>
-                                <TableCell sx={headerSx}>{text.alias}</TableCell>
+                                {showAlias && <TableCell sx={headerSx}>{text.alias}</TableCell>}
                                 <TableCell sx={headerSx}>{text.crop}</TableCell>
                                 <TableCell sx={headerSx}>{text.variety}</TableCell>
                                 <TableCell sx={headerSx}>{text.site}</TableCell>
@@ -162,7 +164,7 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFil
                         </TableHead>
                         <TableBody>
                             {visableFields.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) =>
-                                <Row key={index} index={index} row={row} text={text} onClick={() => onSelectRow(row, index)} isItemSelected={isFieldSelected(row, selectFields)} />
+                                <Row key={index} index={index} row={row} text={text} onClick={() => onSelectRow(row, index)} isItemSelected={isFieldSelected(row, selectFields)} showAlias={showAlias} />
                             )}
                         </TableBody>
                     </Table>
@@ -195,7 +197,7 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFil
 
 }
 function Row(props) {
-    const { row, index, text, onClick, isItemSelected } = props;
+    const { row, index, text, onClick, isItemSelected, showAlias } = props;
     return (
         <Fragment>
             <TableRow style={{
@@ -210,7 +212,7 @@ function Row(props) {
                     />
                 </TableCell>
                 <TableCell sx={cellSx} >{row.name}</TableCell>
-                <TableCell sx={cellSx}>{row.alias}</TableCell>
+                {showAlias && <TableCell sx={cellSx}>{row.alias}</TableCell>}
                 <TableCell sx={cellSx} >{row.cropName}</TableCell>
                 <TableCell sx={cellSx}>{row.varietyName}</TableCell>
                 <TableCell sx={cellSx}>{row.siteName}</TableCell>

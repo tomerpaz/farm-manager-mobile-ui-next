@@ -279,5 +279,11 @@
   "color": "Farbe",
   "siteMap": "Standortkarte",
   "noFieldPolygons": "Für diesen Standort wurden noch keine Feldpolygone gezeichnet.",
-  "saveDraft": "Entwurf speichern"
+  "saveDraft": "Entwurf speichern",
+  "removeAll": "Alle entfernen",
+  "endAfterStart": "Das Enddatum muss nach dem Startdatum liegen",
+  "showLess": "Weniger anzeigen",
+  "showAllCount": "Alle anzeigen ({count})",
+  "productCategory": "Produktkategorie",
+  "cropGenus": "Kulturgattung"
 }

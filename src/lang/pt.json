@@ -275,5 +275,11 @@
   "color": "Cor",
   "siteMap": "Mapa do local",
   "noFieldPolygons": "Ainda não foram desenhados polígonos de campos para este local.",
-  "saveDraft": "Salvar rascunho"
+  "saveDraft": "Salvar rascunho",
+  "removeAll": "Remover tudo",
+  "endAfterStart": "A data de término deve ser posterior à de início",
+  "showLess": "Mostrar menos",
+  "showAllCount": "Mostrar tudo ({count})",
+  "productCategory": "Categoria de produto",
+  "cropGenus": "Gênero da cultura"
 }

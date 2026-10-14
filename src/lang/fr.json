@@ -279,5 +279,11 @@
   "color": "Couleur",
   "siteMap": "Carte du site",
   "noFieldPolygons": "Aucun polygone de parcelle n'a encore été dessiné pour ce site.",
-  "saveDraft": "Enregistrer le brouillon"
+  "saveDraft": "Enregistrer le brouillon",
+  "removeAll": "Tout supprimer",
+  "endAfterStart": "La date de fin doit être postérieure à la date de début",
+  "showLess": "Afficher moins",
+  "showAllCount": "Tout afficher ({count})",
+  "productCategory": "Catégorie de produit",
+  "cropGenus": "Genre de culture"
 }

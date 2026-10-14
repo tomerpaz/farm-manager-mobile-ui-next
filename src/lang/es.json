@@ -275,5 +275,11 @@
   "color": "Color",
   "siteMap": "Mapa del sitio",
   "noFieldPolygons": "Aún no se han dibujado polígonos de campos para este sitio.",
-  "saveDraft": "Guardar borrador"
+  "saveDraft": "Guardar borrador",
+  "removeAll": "Quitar todo",
+  "endAfterStart": "La fecha de fin debe ser posterior a la de inicio",
+  "showLess": "Mostrar menos",
+  "showAllCount": "Mostrar todo ({count})",
+  "productCategory": "Categoría de producto",
+  "cropGenus": "Género del cultivo"
 }

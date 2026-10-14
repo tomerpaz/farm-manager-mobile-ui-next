@@ -69,8 +69,8 @@ const METRICS = [
                 name: "resources", type: "resources", label: "Pesticides", labelKey: "pesticides", optionsFrom: "pesticides",
                 emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg",
             },
-            { name: "pests", type: "multiselect", label: "Pests", labelKey: "pests", optionsFrom: "pests" },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
+            { name: "pests", type: "multiselect", label: "Pests", labelKey: "pests", optionsFrom: "pests" },
         ],
     },
     {

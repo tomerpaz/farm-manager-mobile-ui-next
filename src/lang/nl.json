@@ -279,5 +279,11 @@
   "color": "Kleur",
   "siteMap": "Locatiekaart",
   "noFieldPolygons": "Er zijn nog geen perceelpolygonen getekend voor deze locatie.",
-  "saveDraft": "Concept opslaan"
+  "saveDraft": "Concept opslaan",
+  "removeAll": "Alles verwijderen",
+  "endAfterStart": "De einddatum moet na de begindatum liggen",
+  "showLess": "Minder tonen",
+  "showAllCount": "Alles tonen ({count})",
+  "productCategory": "Productcategorie",
+  "cropGenus": "Gewasgeslacht"
 }

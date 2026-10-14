@@ -279,5 +279,11 @@
   "color": "Colore",
   "siteMap": "Mappa del sito",
   "noFieldPolygons": "Non sono ancora stati disegnati poligoni dei campi per questo sito.",
-  "saveDraft": "Salva bozza"
+  "saveDraft": "Salva bozza",
+  "removeAll": "Rimuovi tutto",
+  "endAfterStart": "La data di fine deve essere successiva a quella di inizio",
+  "showLess": "Mostra meno",
+  "showAllCount": "Mostra tutto ({count})",
+  "productCategory": "Categoria di prodotto",
+  "cropGenus": "Genere della coltura"
 }

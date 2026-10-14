@@ -56,21 +56,25 @@ const SiteMap = () => {
     }
 
     return (
-        <Box sx={{ width: '100%' }}>
+        // One screen tall: title on top, the map filling everything below it.
+        // Desktop: a card with the usual margins. Mobile: minimal margins.
+        <Box sx={{ width: '100%', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
             <GoBackAppBar />
             <Box sx={{
-                width: '100% !important',
-                boxSizing: 'border-box !important',
-                maxWidth: { xs: '100% !important', sm: '1200px !important' },
-                margin: '0 auto !important',
-                px: { xs: 2, sm: 3 },
-                pt: { xs: 2, sm: 3 },
-                pb: { xs: 2, sm: 4 },
-                mt: { xs: 0, sm: '32px !important' },
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                boxSizing: 'border-box',
+                // Mobile: trim the app bar's 16px bottom margin down to 8px.
+                mt: { xs: -1, sm: 0 },
+                mx: { xs: 0, sm: 4 },
+                mb: { xs: 0, sm: 4 },
+                p: { xs: 1, sm: 3 },
                 borderRadius: { xs: 0, sm: 2 },
                 boxShadow: { xs: 0, sm: 2 }
             }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: { xs: 1, sm: 2 }, px: { xs: 1, sm: 0 } }}>
                     <GoBackDesktopButton />
                     <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                         <Typography
@@ -89,27 +93,33 @@ const SiteMap = () => {
                     </Box>
                 </Box>
 
-                {shapes.length === 0 && (
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
-                        {text.noFieldPolygons || 'No field polygons have been drawn for this site yet.'}
-                    </Typography>
-                )}
-
                 <Box
                     dir="ltr"
                     sx={{
-                        // Viewport height minus the app bar, page padding and title,
-                        // so the whole map fits on screen without scrolling.
-                        height: { xs: 'calc(100dvh - 250px)', sm: 'calc(100dvh - 340px)' },
-                        minHeight: 320,
+                        position: 'relative',
+                        flex: 1,
+                        minHeight: 0,
                         borderRadius: 3,
                         overflow: 'hidden',
                         border: '1px solid rgba(0, 0, 0, 0.12)',
                         boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)'
                     }}
                 >
+                    {shapes.length === 0 && (
+                        // Floats over the map (above Leaflet's panes) instead of taking a row.
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
+                                bgcolor: 'background.paper', color: 'text.secondary', px: 1.5, py: 0.75, borderRadius: 2,
+                                boxShadow: 2, maxWidth: 'calc(100% - 120px)', textAlign: 'center'
+                            }}
+                        >
+                            {text.noFieldPolygons || 'No field polygons have been drawn for this site yet.'}
+                        </Typography>
+                    )}
                     <MapContainer
-                        style={{ height: '100%', width: '100%' }}
+                        style={{ position: 'absolute', inset: 0 }}
                         center={site?.lat != null && site?.lng != null && site.lat !== '' && site.lng !== '' ? [Number(site.lat), Number(site.lng)] : DEFAULT_COORDINATES}
                         zoom={mapZoom}
                         scrollWheelZoom={true}
