@@ -34,8 +34,16 @@ const MOBILE_BAR_HEIGHT = 'calc(78px + env(safe-area-inset-bottom))';
 
 const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { xs: 2, sm: 3 }, bleedBottom = 4 }) => (
     <>
-    {/* Holds the fixed bar's place on mobile; also cancels the card's bottom padding. */}
-    <Box sx={{ display: { xs: 'block', sm: 'none' }, flexShrink: 0, height: MOBILE_BAR_HEIGHT, mb: -at(bleedBottom, 'xs') }} />
+    {/* Holds the fixed bar's place on mobile; also cancels the card's bottom
+        padding and any gap a parent Stack adds above it. Margins go under
+        '&&' (doubled class) because MUI's Stack resets its children's margins
+        with a more specific selector, which would otherwise win. */}
+    <Box sx={{
+        display: { xs: 'block', sm: 'none' },
+        flexShrink: 0,
+        height: MOBILE_BAR_HEIGHT,
+        '&&': { mt: 0, mb: -at(bleedBottom, 'xs') },
+    }} />
     <Box
         sx={{
             position: { xs: 'fixed', sm: 'sticky' },
@@ -48,8 +56,11 @@ const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { 
             gap: 2,
             justifyContent: 'flex-end',
             alignItems: 'center',
-            mx: { xs: 0, sm: -at(bleedX, 'sm') },
-            mb: { xs: 0, sm: -at(bleedBottom, 'sm') },
+            // '&&' so a parent Stack's margin reset can't cancel the bleed.
+            '&&': {
+                mx: { xs: 0, sm: -at(bleedX, 'sm') },
+                mb: { xs: 0, sm: -at(bleedBottom, 'sm') },
+            },
             px: { xs: at(bleedX, 'xs'), sm: at(bleedX, 'sm') },
             py: 1.5,
             pb: 'calc(12px + env(safe-area-inset-bottom))',

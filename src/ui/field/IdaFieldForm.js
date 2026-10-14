@@ -8,7 +8,8 @@ import {
     TextField,
     Typography,
     Autocomplete,
-    MenuItem
+    MenuItem,
+    useMediaQuery
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -57,6 +58,10 @@ const IdaFieldForm = () => {
     const dispatch = useDispatch();
     const text = useSelector(selectLang);
     const mapZoom = useSelector(selectMapZoom);
+    // Phones get compact (40px) inputs so the map has room to be useful.
+    const isPhone = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+    const fieldSize = isPhone ? 'small' : 'medium';
+    const inputStyle = isPhone ? { fontSize: '1rem' } : { fontSize: '1rem', padding: '16px 14px' };
 
     // Active UI modal tracking states
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -230,12 +235,12 @@ const IdaFieldForm = () => {
                             flex: 1,
                             minHeight: 0,
                             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
-                            gridTemplateRows: { xs: 'auto minmax(0, 1fr)', md: 'minmax(0, 1fr)' },
+                            gridTemplateRows: { xs: 'auto 1fr', md: 'minmax(0, 1fr)' },
                             gridTemplateAreas: { xs: '"fields" "map"', md: '"fields map"' },
                             columnGap: 3,
                             rowGap: { xs: 2, sm: 2.5 },
                         }}>
-                            <Stack spacing={2.5} sx={{ gridArea: 'fields', minWidth: 0 }}>
+                            <Stack spacing={{ xs: 1.5, sm: 2.5 }} sx={{ gridArea: 'fields', minWidth: 0 }}>
 
                                 {/* Row 1: Name and Size permanently locked side-by-side (flex 3 to 1) */}
                                 <Box sx={{ display: "flex", flexDirection: "row", gap: 2, width: '100%' }}>
@@ -252,10 +257,11 @@ const IdaFieldForm = () => {
                                                     {...field}
                                                     label={text.name || "Name"}
                                                     variant="outlined"
+                                                    size={fieldSize}
                                                     fullWidth
                                                     error={!!error}
                                                     helperText={error?.message}
-                                                    slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }}
+                                                    slotProps={{ htmlInput: { style: inputStyle } }}
                                                 />
                                             )}
                                         />
@@ -274,11 +280,12 @@ const IdaFieldForm = () => {
                                                     {...field}
                                                     label={text.size || "Size (Area)"}
                                                     variant="outlined"
+                                                    size={fieldSize}
                                                     fullWidth
                                                     type="number"
                                                     error={!!error}
                                                     helperText={error?.message}
-                                                    slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }}
+                                                    slotProps={{ htmlInput: { style: inputStyle } }}
                                                 />
                                             )}
                                         />
@@ -308,12 +315,13 @@ const IdaFieldForm = () => {
                                                     slotProps={{
                                                         textField: {
                                                             variant: 'outlined',
+                                                            size: fieldSize,
                                                             fullWidth: true,
                                                             error: !!error,
                                                             helperText: error?.message,
                                                             sx: {
                                                                 '& .MuiInputBase-root': { fontSize: '1rem' },
-                                                                '& .MuiInputBase-input': { padding: '16px 14px' }
+                                                                '& .MuiInputBase-input': isPhone ? {} : { padding: '16px 14px' }
                                                             }
                                                         },
                                                         actionBar: { actions: ["cancel"] }
@@ -352,12 +360,13 @@ const IdaFieldForm = () => {
                                                         slotProps={{
                                                             textField: {
                                                                 variant: 'outlined',
+                                                                size: fieldSize,
                                                                 fullWidth: true,
                                                                 error: !!error,
                                                                 helperText: error?.message,
                                                                 sx: {
                                                                     '& .MuiInputBase-root': { fontSize: '1rem' },
-                                                                    '& .MuiInputBase-input': { padding: '16px 14px' }
+                                                                    '& .MuiInputBase-input': isPhone ? {} : { padding: '16px 14px' }
                                                                 }
                                                             },
                                                             actionBar: { actions: ["cancel"] }
@@ -387,7 +396,7 @@ const IdaFieldForm = () => {
                                                     isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                                     onChange={(_, data) => setValue('ggCropGenus', data)}
                                                     renderInput={(params) => (
-                                                        <TextField {...params} label={text.cropGenus || "Crop Genus"} variant="outlined" error={!!error} helperText={error?.message} />
+                                                        <TextField {...params} label={text.cropGenus || "Crop Genus"} variant="outlined" size={fieldSize} error={!!error} helperText={error?.message} />
                                                     )}
                                                 />
                                             )}
@@ -407,7 +416,7 @@ const IdaFieldForm = () => {
                                                     isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                                     onChange={(_, data) => setValue('ggProductCategory', data)}
                                                     renderInput={(params) => (
-                                                        <TextField {...params} label={text.productCategory || "Product Category"} variant="outlined" error={!!error} helperText={error?.message} />
+                                                        <TextField {...params} label={text.productCategory || "Product Category"} variant="outlined" size={fieldSize} error={!!error} helperText={error?.message} />
                                                     )}
                                                 />
                                             )}
@@ -428,6 +437,7 @@ const IdaFieldForm = () => {
                                                     select
                                                     label={text.type || "Type"}
                                                     variant="outlined"
+                                                    size={fieldSize}
                                                     fullWidth
                                                 >
                                                     <MenuItem value="openField">{text.openField || 'Open Field'}</MenuItem>
@@ -448,6 +458,7 @@ const IdaFieldForm = () => {
                                                     select
                                                     label={text.soilType || "Soil Type"}
                                                     variant="outlined"
+                                                    size={fieldSize}
                                                     fullWidth
                                                 >
                                                     <MenuItem value="soil">Soil</MenuItem>
@@ -460,16 +471,16 @@ const IdaFieldForm = () => {
 
                             </Stack>
 
-                            <Box sx={{ gridArea: 'map', minWidth: 0, minHeight: 0, display: 'flex' }}>
+                            <Box sx={{ gridArea: 'map', minWidth: 0, minHeight: { xs: 'auto', md: 0 }, display: 'flex' }}>
                                 {/* Row 5: Map shape — color picker + polygon drawing */}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 1.5 }, width: '100%', minHeight: 0 }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 1.5 }, width: '100%', minHeight: { xs: 'auto', md: 0 } }}>
                                     <FieldPolygonDraw
                                         polygon={polygonPoints}
                                         color={color || DEFAULT_COLOR}
                                         center={mapCenter}
                                         zoom={mapViewZoom}
                                         // No fixed height — the map fills whatever space is left.
-                                        minMapHeight={180}
+                                        minMapHeight={isPhone ? 240 : 180}
                                         text={text}
                                         onDraw={handlePolygonDraw}
                                         onRemove={() => setValue('polygon', null, { shouldDirty: true })}
@@ -478,7 +489,8 @@ const IdaFieldForm = () => {
                                         name="color"
                                         control={control}
                                         render={({ field: { value, onChange } }) => (
-                                            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                            // Phones: all swatches share one row, spread edge to edge (shrinking if needed).
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: { xs: 'nowrap', sm: 'wrap' }, justifyContent: { xs: 'space-between', sm: 'flex-start' }, gap: { xs: 0.5, sm: 1 }, pb: { xs: 0.75, sm: 0 } }}>
                                                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mr: 0.5, display: { xs: 'none', sm: 'block' } }}>
                                                     {text.color || 'Color'}
                                                 </Typography>
@@ -490,7 +502,7 @@ const IdaFieldForm = () => {
                                                         aria-label={c}
                                                         onClick={() => onChange(c)}
                                                         sx={{
-                                                            width: 28, height: 28, p: 0, borderRadius: '50%', cursor: 'pointer',
+                                                            flex: { xs: '1 1 0', sm: '0 0 auto' }, minWidth: 0, maxWidth: 28, width: { sm: 28 }, height: 'auto', aspectRatio: '1', p: 0, borderRadius: '50%', cursor: 'pointer',
                                                             bgcolor: c,
                                                             border: '2px solid',
                                                             borderColor: value?.toLowerCase() === c ? 'text.primary' : 'transparent',
@@ -506,7 +518,7 @@ const IdaFieldForm = () => {
                                                         <Box
                                                             component="label"
                                                             sx={{
-                                                                position: 'relative', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer',
+                                                                position: 'relative', flex: { xs: '1 1 0', sm: '0 0 auto' }, minWidth: 0, maxWidth: 28, width: { sm: 28 }, height: 'auto', aspectRatio: '1', borderRadius: '50%', cursor: 'pointer',
                                                                 background: isCustom
                                                                     ? value
                                                                     : 'conic-gradient(#e53935, #fdd835, #43a047, #00acc1, #1e88e5, #8e24aa, #e53935)',

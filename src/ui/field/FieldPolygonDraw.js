@@ -73,46 +73,44 @@ const FieldPolygonDraw = ({ polygon, color, center, zoom, height, minMapHeight =
     };
 
     const pathOptions = { color, fillColor: color, fillOpacity: FILL_OPACITY, weight: 3 };
-    const buttonSx = { textTransform: 'none', borderRadius: 2, fontWeight: 600 };
+    // Buttons float over the map, so give the non-filled ones a solid
+    // background and every one a shadow to stay readable on imagery.
+    const buttonSx = { textTransform: 'none', borderRadius: 2, fontWeight: 600, boxShadow: 2 };
+    const overlayButtonSx = { ...buttonSx, bgcolor: 'background.paper', '&:hover': { bgcolor: 'grey.100' } };
+
+    const controls = drawing ? (
+        <>
+            <Button size="small" variant="outlined" startIcon={<Undo />} sx={overlayButtonSx}
+                disabled={points.length === 0} onClick={() => setPoints((prev) => prev.slice(0, -1))}>
+                {text.undo || 'Undo'}
+            </Button>
+            <Button size="small" variant="outlined" startIcon={<Clear />} sx={overlayButtonSx}
+                disabled={points.length === 0} onClick={() => setPoints([])}>
+                {text.clear || 'Clear'}
+            </Button>
+            <Button size="small" variant="outlined" color="inherit" sx={overlayButtonSx} onClick={cancelDrawing}>
+                {text.cancel || 'Cancel'}
+            </Button>
+            <Button size="small" variant="contained" startIcon={<Check />} sx={buttonSx}
+                disabled={points.length < 3} onClick={finishDrawing}>
+                {text.finish || 'Finish'}
+            </Button>
+        </>
+    ) : (
+        <>
+            <Button size="small" variant="contained" startIcon={<Draw />} sx={buttonSx} onClick={startDrawing}>
+                {polygon ? (text.redrawPolygon || 'Redraw') : (text.drawPolygon || 'Draw polygon')}
+            </Button>
+            {polygon && (
+                <Button size="small" variant="outlined" color="secondary" startIcon={<DeleteOutlined />} sx={overlayButtonSx} onClick={onRemove}>
+                    {text.deletePolygon || 'Remove polygon'}
+                </Button>
+            )}
+        </>
+    );
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: fill ? 1 : undefined, minHeight: 0 }}>
-            {drawing ? (
-                <>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        <Button size="small" variant="outlined" startIcon={<Undo />} sx={buttonSx}
-                            disabled={points.length === 0} onClick={() => setPoints((prev) => prev.slice(0, -1))}>
-                            {text.undo || 'Undo'}
-                        </Button>
-                        <Button size="small" variant="outlined" startIcon={<Clear />} sx={buttonSx}
-                            disabled={points.length === 0} onClick={() => setPoints([])}>
-                            {text.clear || 'Clear'}
-                        </Button>
-                        <Box sx={{ flex: 1 }} />
-                        <Button size="small" variant="text" color="inherit" sx={buttonSx} onClick={cancelDrawing}>
-                            {text.cancel || 'Cancel'}
-                        </Button>
-                        <Button size="small" variant="contained" disableElevation startIcon={<Check />} sx={buttonSx}
-                            disabled={points.length < 3} onClick={finishDrawing}>
-                            {text.finish || 'Finish'}
-                        </Button>
-                    </Box>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                        {text.tapMapToDraw || "Tap the map to add the field's corners"}
-                    </Typography>
-                </>
-            ) : (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    <Button size="small" variant="contained" disableElevation startIcon={<Draw />} sx={buttonSx} onClick={startDrawing}>
-                        {polygon ? (text.redrawPolygon || 'Redraw') : (text.drawPolygon || 'Draw polygon')}
-                    </Button>
-                    {polygon && (
-                        <Button size="small" variant="outlined" color="secondary" startIcon={<DeleteOutlined />} sx={buttonSx} onClick={onRemove}>
-                            {text.deletePolygon || 'Remove polygon'}
-                        </Button>
-                    )}
-                </Box>
-            )}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: fill ? 1 : undefined }}>
             <Box
                 dir="ltr"
                 sx={{
@@ -162,6 +160,27 @@ const FieldPolygonDraw = ({ polygon, color, center, zoom, height, minMapHeight =
                         ))}
                     <MapClick onClick={handleMapClick} />
                 </MapContainer>
+
+                {/* Draw controls float along the map's top edge — right-aligned,
+                    clear of Leaflet's zoom/locate/search column on the left.
+                    They sit outside the Leaflet container, so tapping them
+                    never adds a polygon corner. */}
+                <Box sx={{
+                    position: 'absolute', top: 10, right: 10, left: 56, zIndex: 1000,
+                    display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 0.75,
+                    pointerEvents: 'none', '& > *': { pointerEvents: 'auto' },
+                }}>
+                    {controls}
+                </Box>
+                {drawing && (
+                    <Typography variant="caption" sx={{
+                        position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
+                        bgcolor: 'background.paper', color: 'text.secondary', px: 1.25, py: 0.5, borderRadius: 2, boxShadow: 2,
+                        maxWidth: 'calc(100% - 24px)', textAlign: 'center', pointerEvents: 'none',
+                    }}>
+                        {text.tapMapToDraw || "Tap the map to add the field's corners"}
+                    </Typography>
+                )}
             </Box>
 
         </Box>
