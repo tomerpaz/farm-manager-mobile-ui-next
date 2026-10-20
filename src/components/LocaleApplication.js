@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
 import { CacheProvider } from '@emotion/react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -15,6 +16,13 @@ import 'dayjs/locale/de';
 import { selectLang } from '../features/app/appSlice';
 import { useSelector } from 'react-redux';
 import { prefixer } from 'stylis';
+
+// Date pickers show a 2-digit year (e.g. 21/10/26). Keeps each locale's own
+// day/month order and separator — only YYYY becomes YY.
+const shortYearDateFormats = (locale) => {
+    const localeFormat = dayjs.Ls[locale]?.formats?.L || 'MM/DD/YYYY';
+    return { keyboardDate: localeFormat.replace('YYYY', 'YY') };
+};
 
 // Create rtl cache
 // const cacheRtl = createCache({
@@ -68,11 +76,13 @@ const LocaleApplication = (props) => {
     }, [lang]);
 
 
+    const dateFormats = useMemo(() => shortYearDateFormats(dayjsLocaleValue), [dayjsLocaleValue]);
+
     return cacheRtl ?
         <CacheProvider value={cacheRtl}>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dayjsLocaleValue}  {...props} />
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dayjsLocaleValue} dateFormats={dateFormats} {...props} />
         </CacheProvider> :
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dayjsLocaleValue}  {...props} />
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dayjsLocaleValue} dateFormats={dateFormats} {...props} />
 
 }
 export default LocaleApplication;
