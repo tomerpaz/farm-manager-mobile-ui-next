@@ -282,6 +282,8 @@
   "saveDraft": "Entwurf speichern",
   "removeAll": "Alle entfernen",
   "endAfterStart": "Das Enddatum muss nach dem Startdatum liegen",
+  "areaExceedsSiteFree": "Die Fläche übersteigt die freie Fläche des Standorts zum Startdatum",
+  "siteFreeArea": "Frei",
   "showLess": "Weniger anzeigen",
   "showAllCount": "Alle anzeigen ({count})",
   "productCategory": "Produktkategorie",

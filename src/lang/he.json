@@ -282,6 +282,8 @@
     "saveDraft": "שמור טיוטה",
     "removeAll": "הסר הכל",
     "endAfterStart": "תאריך הסיום חייב להיות אחרי תאריך ההתחלה",
+    "areaExceedsSiteFree": "השטח גדול מהשטח הפנוי באתר בתאריך ההתחלה",
+    "siteFreeArea": "שטח פנוי",
     "showLess": "הצג פחות",
     "showAllCount": "הצג הכל ({count})",
     "productCategory": "קטגוריית מוצר",

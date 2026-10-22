@@ -282,6 +282,8 @@
   "saveDraft": "Salva bozza",
   "removeAll": "Rimuovi tutto",
   "endAfterStart": "La data di fine deve essere successiva a quella di inizio",
+  "areaExceedsSiteFree": "La superficie supera l'area libera del sito alla data di inizio",
+  "siteFreeArea": "Libero",
   "showLess": "Mostra meno",
   "showAllCount": "Mostra tutto ({count})",
   "productCategory": "Categoria di prodotto",

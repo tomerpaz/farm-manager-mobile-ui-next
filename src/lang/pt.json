@@ -278,6 +278,8 @@
   "saveDraft": "Salvar rascunho",
   "removeAll": "Remover tudo",
   "endAfterStart": "A data de término deve ser posterior à de início",
+  "areaExceedsSiteFree": "A área excede a área livre do local na data de início",
+  "siteFreeArea": "Livre",
   "showLess": "Mostrar menos",
   "showAllCount": "Mostrar tudo ({count})",
   "productCategory": "Categoria de produto",

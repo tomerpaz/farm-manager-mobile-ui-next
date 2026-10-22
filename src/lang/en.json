@@ -282,6 +282,8 @@
   "saveDraft": "Save Draft",
   "removeAll": "Remove all",
   "endAfterStart": "End date must be after the start date",
+  "areaExceedsSiteFree": "Size exceeds the site's free area at the start date",
+  "siteFreeArea": "Free",
   "showLess": "Show less",
   "showAllCount": "Show all ({count})",
   "productCategory": "Product Category",

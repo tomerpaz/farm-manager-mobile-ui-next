@@ -282,6 +282,8 @@
   "saveDraft": "Enregistrer le brouillon",
   "removeAll": "Tout supprimer",
   "endAfterStart": "La date de fin doit être postérieure à la date de début",
+  "areaExceedsSiteFree": "La surface dépasse la surface libre du site à la date de début",
+  "siteFreeArea": "Libre",
   "showLess": "Afficher moins",
   "showAllCount": "Tout afficher ({count})",
   "productCategory": "Catégorie de produit",

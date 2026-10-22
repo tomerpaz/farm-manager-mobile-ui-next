@@ -19,6 +19,13 @@ export const sitesApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [Sites_TAG
             query: (siteId) => `/api/farm/site/${siteId}`,
             providesTags: [Site_TAG]
         }),
+        // Site area not taken by other fields on the date; pass fieldId to exclude that field.
+        getSiteFreeArea: builder.query({
+            query: ({ siteId, date, fieldId }) => ({
+                url: `/api/farm/site/${siteId}/free-area/${date}`,
+                params: fieldId ? { field: fieldId } : undefined,
+            }),
+        }),
         createSite: builder.mutation({
             query: args => ({
                 url: '/api/farm/site',
@@ -51,6 +58,8 @@ export const sitesApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [Sites_TAG
 export const {
     useGetSitesQuery,
     useGetSiteQuery,
+    useGetSiteFreeAreaQuery,
+    useLazyGetSiteFreeAreaQuery,
     useCreateSiteMutation,
     useUpdateSiteMutation,
     useDeleteSiteMutation

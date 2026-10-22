@@ -278,6 +278,8 @@
   "saveDraft": "Guardar borrador",
   "removeAll": "Quitar todo",
   "endAfterStart": "La fecha de fin debe ser posterior a la de inicio",
+  "areaExceedsSiteFree": "La superficie supera el área libre del sitio en la fecha de inicio",
+  "siteFreeArea": "Libre",
   "showLess": "Mostrar menos",
   "showAllCount": "Mostrar todo ({count})",
   "productCategory": "Categoría de producto",

@@ -282,6 +282,8 @@
   "saveDraft": "Concept opslaan",
   "removeAll": "Alles verwijderen",
   "endAfterStart": "De einddatum moet na de begindatum liggen",
+  "areaExceedsSiteFree": "De oppervlakte overschrijdt de vrije ruimte van de locatie op de begindatum",
+  "siteFreeArea": "Vrij",
   "showLess": "Minder tonen",
   "showAllCount": "Alles tonen ({count})",
   "productCategory": "Productcategorie",

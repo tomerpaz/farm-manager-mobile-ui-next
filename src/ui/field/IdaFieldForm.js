@@ -26,7 +26,7 @@ import {
     useUpdateFieldMutation,
     safeParseJson
 } from '../../features/fields/fieldsApiSlice';
-import { useGetSiteQuery } from '../../features/sites/sitesApiSlice';
+import { useGetSiteFreeAreaQuery, useGetSiteQuery, useLazyGetSiteFreeAreaQuery } from '../../features/sites/sitesApiSlice';
 import FieldPolygonDraw from './FieldPolygonDraw';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
@@ -75,6 +75,7 @@ const IdaFieldForm = () => {
     const [createField] = useCreateFieldMutation();
     const [updateField] = useUpdateFieldMutation();
     const [deleteField] = useDeleteFieldMutation();
+    const [getSiteFreeArea] = useLazyGetSiteFreeAreaQuery();
 
     // Safely normalise initial field states
     const getCleanFieldDefaults = (rawFieldData) => {
@@ -102,7 +103,7 @@ const IdaFieldForm = () => {
     };
 
     // Form initialization hook
-    const { control, handleSubmit, setValue, reset } = useForm({
+    const { control, handleSubmit, setValue, setError, reset, formState: { errors } } = useForm({
         defaultValues: getCleanFieldDefaults(isNewField ? {} : field),
     });
 
@@ -119,6 +120,12 @@ const IdaFieldForm = () => {
 
     const [polygonJson, fieldLat, fieldLng, fieldZoom, color] = useWatch({ control, name: ['polygon', 'lat', 'lng', 'zoom', 'color'] });
     const startDate = useWatch({ control, name: 'startDate' });
+    // Free site area at the chosen start date, shown under the Size input.
+    const hasStartDate = !!startDate && dayjs(startDate).isValid();
+    const { data: freeArea } = useGetSiteFreeAreaQuery(
+        { siteId: fieldSiteId, date: hasStartDate ? asLocalDate(dayjs(startDate).toDate(), true) : null, fieldId: field?.id },
+        { skip: !hasStartDate || !fieldSiteId || String(fieldSiteId) === '0' }
+    );
     const polygonPoints = useMemo(() => {
         const points = safeParseJson(polygonJson);
         return Array.isArray(points) && points.length > 2 ? points : null;
@@ -155,6 +162,13 @@ const IdaFieldForm = () => {
             data.ggProductCategoryId = data.ggProductCategory?.id || null;
             data.startDate = data.startDate ? asLocalDate(data.startDate, true) : null;
             data.endDate = data.endDate ? asLocalDate(data.endDate, true) : null;
+
+            // The field can't be larger than the site area still free at its start date.
+            const freeArea = await getSiteFreeArea({ siteId: data.siteId, date: data.startDate, fieldId: data.id }).unwrap();
+            if (Number(data.area) > Number(freeArea)) {
+                setError('area', { message: `${text.areaExceedsSiteFree || "Size exceeds the site's free area at the start date"} (${freeArea})` });
+                return;
+            }
 
             if (data.id) {
                 await updateField(data).unwrap();
@@ -222,6 +236,16 @@ const IdaFieldForm = () => {
                             {isNewField ? (text.createRecord || "New Field") : (field?.name || "Loading Field...")}
                         </Typography>
                     </Box>
+
+                    {/* Size error, or the site's free area at the start date */}
+                    {(errors.area?.message || (hasStartDate && freeArea != null)) && (
+                        <Typography
+                            variant="body2"
+                            sx={{ ml: 'auto', alignSelf: 'flex-end', textAlign: 'end', fontWeight: 600, color: errors.area ? 'error.main' : 'text.secondary' }}
+                        >
+                            {errors.area?.message || `${text.siteFreeArea || 'Free'}: ${freeArea}`}
+                        </Typography>
+                    )}
                 </Box>
                 {/* Main Structural Inputs Form */}
                 <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -283,8 +307,8 @@ const IdaFieldForm = () => {
                                                     size={fieldSize}
                                                     fullWidth
                                                     type="number"
+                                                    // Message is shown in the header row, not under the input.
                                                     error={!!error}
-                                                    helperText={error?.message}
                                                     slotProps={{ htmlInput: { style: inputStyle } }}
                                                 />
                                             )}
