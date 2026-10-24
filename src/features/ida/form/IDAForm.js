@@ -19,7 +19,7 @@ import {
     useGetPestsQuery,
     useUpdateIdaMonthRecordMutation,
 } from "../idaApiSlice";
-import { getMonthName } from "../../../ui/FarmUtil";
+import { getMonthName, isMobile } from "../../../ui/FarmUtil";
 import Loading from "../../../components/Loading";
 import GoBackAppBar from "../../../appbar/content/GoBackAppBar";
 import GoBackDesktopButton from "../../../components/ui/GoBackDesktopButton";
@@ -46,7 +46,7 @@ const GENERAL = "GENERAL";
 // submit time. `resources` keeps GGElement's own shape.
 //
 // Each schema entry describes one input: {name, type, label, unit, required,
-// column, optionsFrom, allOption, defaultToFormDate}. `type` drives both the
+// column, optionsFrom, allOption, defaultToFormDate, group}. `type` drives both the
 // dialog control and the table cell (date | number | select | multiselect |
 // fields | resources | text). `column: false` keeps a field editable without cluttering
 // the summary table. titleKey/labelKey/emptyLabelKey are src/lang/*.json
@@ -62,15 +62,18 @@ const METRICS = [
         totalUnit: "kg",
         schema: [
             { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
-            // An empty list declares "No Active Ingredient" for the fields,
-            // so the date gets the same forced/locked treatment the old id-0
-            // "None" option had. Each row only takes a resource and its amount.
+            // "No Active Ingredient" is an explicit checkbox (noneCheckbox):
+            // ticking it empties the list, disables adding rows and gives the
+            // date the same forced/locked treatment the old id-0 "None" option
+            // had; unticked, at least one row is required. It's saved as an
+            // empty list. Each row only takes a resource and its amount.
             {
                 name: "resources", type: "resources", label: "Pesticides", labelKey: "pesticides", optionsFrom: "pesticides",
-                emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg",
+                emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg",
             },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
-            { name: "pests", type: "multiselect", label: "Pests", labelKey: "pests", optionsFrom: "pests" },
+            // group: shares a dialog panel with the other "details" fields (the note).
+            { name: "pests", type: "multiselect", label: "Pests", labelKey: "pests", optionsFrom: "pests", group: "details" },
         ],
     },
     {
@@ -84,9 +87,10 @@ const METRICS = [
             { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
             {
                 // Each row's unit comes from the fertilizer's own usage unit
-                // (unitFromResource), with kg as the fallback.
+                // (unitFromResource), with kg as the fallback. "No NPK" is a
+                // noneCheckbox, same as activeIngredients' "No Active Ingredient".
                 name: "resources", type: "resources", label: "Fertilizers", labelKey: "fertilizers", optionsFrom: "fertilizers",
-                emptyLabel: "No NPK", emptyLabelKey: "noNpk", zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
+                emptyLabel: "No NPK", emptyLabelKey: "noNpk", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
             },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
         ],
@@ -184,26 +188,37 @@ const METRICS = [
         id: "general",
         title: "General", titleKey: "general",
         dateField: "date",
-        totalField: "amount",
-        // No single unit here (unlike fertilizers' fixed "kg") — general
-        // resources carry their own unit (kg/lit/unit), shown per resource
-        // row, and the summary total is left unlabeled since rows can mix units.
+        // The amount lives on each resource row (like fertilizers) — the total
+        // sums those, per unit, since general resources carry their own unit
+        // (kg/lit/unit) and rows can mix them.
+        totalField: "resources",
         totalUnit: "",
         schema: [
             { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
             // Unlike fertilizers/activeIngredients, an empty list isn't a
             // "None" declaration here — a general resource application is
             // either logged or it isn't, so at least one row is required.
-            { name: "resources", type: "resources", label: "Resources", labelKey: "resources", required: true, optionsFrom: "generalResources" },
+            // One line per row: the resource and its amount, in the resource's own unit.
+            {
+                name: "resources", type: "resources", label: "Resources", labelKey: "resources", required: true, optionsFrom: "generalResources",
+                rowFields: ["amount"], rowUnit: "", unitFromResource: true,
+            },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
-            { name: "amount", type: "number", label: "Amount", labelKey: "amountLabel", required: true },
         ],
     },
 ].map((m) => ({
     ...m,
     // Every metric gets an optional free-text note, kept out of the summary
     // table (it's a detail you open the row to read, not scan a column for).
-    schema: [...m.schema, { name: "note", type: "text", label: "Note", labelKey: "note", column: false, multiline: true }],
+    // In the panel-styled dialogs (any metric with a fields table) it sits in a
+    // "details" panel — with pests, where the metric has them.
+    schema: [
+        ...m.schema,
+        {
+            name: "note", type: "text", label: "Note", labelKey: "note", column: false, multiline: true,
+            ...(m.schema.some((f) => f.group === "details" || f.type === "fields") ? { group: "details" } : {}),
+        },
+    ],
 }));
 
 const EMPTY_RECORD = METRICS.reduce((acc, m) => ({ ...acc, [m.id]: [] }), {});
@@ -211,7 +226,8 @@ const METRIC_IDS = METRICS.map((m) => m.id);
 
 // The fertilizer/pesticide lists lead with a "none" entry (id 0) — never a
 // valid resource row, since an empty resources list is what means "none"
-// now. It's split off here and its label reused for the empty state.
+// now. It's split off here; its (untranslated) server name is only a
+// fallback for a field with no translated emptyLabel.
 const resolveSchema = (schema, dataSources, t) =>
     schema.map((spec) => {
         const f = {
@@ -225,7 +241,7 @@ const resolveSchema = (schema, dataSources, t) =>
         return {
             ...f,
             options: options.filter((o) => o.id !== 0),
-            emptyLabel: options.find((o) => o.id === 0)?.name || f.emptyLabel,
+            emptyLabel: f.emptyLabel || options.find((o) => o.id === 0)?.name,
         };
     });
 
@@ -270,7 +286,7 @@ function validateMandatoryMetrics(formData, availableFields, zeroOptionLabels, t
         if (uncovered.length > 0) {
             errors[metricId] = t(
                 "needsFieldCoverage",
-                'Needs a record for: {fields}. If nothing was applied, add an entry with no rows ("{none}").',
+                'Needs a record for: {fields}. If nothing was applied, add an entry with "{none}" checked.',
                 { fields: uncovered.map((f) => f.name).join(", "), none: zeroLabel }
             );
         }
@@ -388,9 +404,9 @@ function IDAForm() {
             formData,
             availableFields,
             {
-                activeIngredients:
-                    dataSources.pesticides.find((p) => p.id === 0)?.name || t("noActiveIngredient", "No Active Ingredient"),
-                fertilizers: dataSources.fertilizers.find((f) => f.id === 0)?.name || t("noNpk", "No NPK"),
+                // Translated first — the server's id-0 names are English only.
+                activeIngredients: t("noActiveIngredient", "No Active Ingredient"),
+                fertilizers: t("noNpk", "No NPK"),
             },
             t
         );
@@ -486,6 +502,7 @@ function IDAForm() {
     };
 
     const half = Math.ceil(METRICS.length / 2);
+    const phone = isMobile();
 
     return (
         <Box component="form" sx={{ display: "flex", flex: 1 }} onSubmit={submitAs(false)} noValidate>
@@ -593,19 +610,25 @@ function IDAForm() {
                         </Alert>
                     )}
 
-                    {/* Docked to the bottom of the viewport so Save stays reachable without scrolling */}
+                    {/* Docked to the bottom of the viewport so Save stays reachable without scrolling.
+                        On a phone it's fixed (not sticky) — sticky only docks while the form
+                        overflows, so a short form (e.g. landscape, two columns) left it
+                        mid-screen. Keyed on the device, not a breakpoint, since a landscape
+                        phone is wider than sm. The spacer holds its place in the flow. */}
+                    {phone && <Box sx={{ height: "calc(78px + env(safe-area-inset-bottom))", mb: -4 }} />}
                     <Box
                         sx={{
-                            position: "sticky",
+                            position: phone ? "fixed" : "sticky",
                             bottom: 0,
+                            ...(phone ? { left: 0, right: 0 } : {}),
                             zIndex: (theme) => theme.zIndex.appBar,
                             display: "flex",
                             flexWrap: "wrap",
                             gap: 2,
                             justifyContent: "flex-end",
                             alignItems: "center",
-                            mx: { xs: -2, sm: -4 },
-                            mb: -4,
+                            mx: phone ? 0 : { xs: -2, sm: -4 },
+                            mb: phone ? 0 : -4,
                             px: { xs: 2, sm: 4 },
                             py: 1.5,
                             pb: "calc(12px + env(safe-area-inset-bottom))",
@@ -613,8 +636,8 @@ function IDAForm() {
                             borderTop: "2px solid",
                             borderColor: "divider",
                             boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.08)",
-                            borderBottomLeftRadius: { xs: 0, sm: 8 },
-                            borderBottomRightRadius: { xs: 0, sm: 8 },
+                            borderBottomLeftRadius: phone ? 0 : { xs: 0, sm: 8 },
+                            borderBottomRightRadius: phone ? 0 : { xs: 0, sm: 8 },
                         }}
                     >
                         <Button

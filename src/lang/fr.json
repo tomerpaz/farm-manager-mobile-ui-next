@@ -237,7 +237,7 @@
   "noActiveIngredient": "Aucune substance active",
   "noNpk": "Aucun NPK",
   "needsOneRecord": "Au moins un enregistrement est nécessaire avant de finaliser.",
-  "needsFieldCoverage": "Un enregistrement est nécessaire pour : {fields}. Si rien n'a été appliqué, ajoutez une entrée sans lignes (« {none} »).",
+  "needsFieldCoverage": "Un enregistrement est nécessaire pour : {fields}. Si rien n'a été appliqué, ajoutez une entrée en cochant « {none} ».",
   "saveFailed": "Impossible d'enregistrer les données de ce mois. Veuillez réessayer.",
   "noFieldsForMonth": "Aucune parcelle disponible pour ce mois.",
   "noFieldsWarning": "Aucune parcelle n'est disponible pour ce mois : impossible d'enregistrer des données ou de sauvegarder cette matrice tant qu'aucune parcelle n'existe.",
@@ -267,6 +267,7 @@
   "selectAtLeastOneField": "Sélectionnez au moins une parcelle",
   "confirm": "Confirmer",
   "addAtLeastOneRow": "Ajoutez au moins une ligne",
+  "addRowOrNone": "Ajoutez au moins une ligne, ou cochez \"{none}\"",
   "selectResource": "Sélectionnez une ressource",
   "removeRow": "Supprimer la ligne",
   "removeRowAria": "Supprimer la ligne {n}",
@@ -286,6 +287,7 @@
   "siteFreeArea": "Libre",
   "showLess": "Afficher moins",
   "showAllCount": "Tout afficher ({count})",
+  "moreCount": "+{count} de plus",
   "productCategory": "Catégorie de produit",
   "cropGenus": "Genre de culture"
 }

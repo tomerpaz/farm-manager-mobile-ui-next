@@ -233,7 +233,7 @@
   "noActiveIngredient": "Sin ingrediente activo",
   "noNpk": "Sin NPK",
   "needsOneRecord": "Se necesita al menos un registro antes de poder finalizar.",
-  "needsFieldCoverage": "Se necesita un registro para: {fields}. Si no se aplicó nada, agregue una entrada sin filas (\"{none}\").",
+  "needsFieldCoverage": "Se necesita un registro para: {fields}. Si no se aplicó nada, agregue una entrada marcando \"{none}\".",
   "saveFailed": "No se pudieron guardar los registros de este mes. Inténtelo de nuevo.",
   "noFieldsForMonth": "No hay campos disponibles para seleccionar este mes.",
   "noFieldsWarning": "No hay campos disponibles para este mes: no se pueden registrar datos ni guardar esta matriz hasta que exista al menos un campo.",
@@ -263,6 +263,7 @@
   "selectAtLeastOneField": "Seleccione al menos un campo",
   "confirm": "Confirmar",
   "addAtLeastOneRow": "Agregue al menos una fila",
+  "addRowOrNone": "Agregue al menos una fila, o marque \"{none}\"",
   "selectResource": "Seleccione un recurso",
   "removeRow": "Eliminar fila",
   "removeRowAria": "Eliminar fila {n}",
@@ -282,6 +283,7 @@
   "siteFreeArea": "Libre",
   "showLess": "Mostrar menos",
   "showAllCount": "Mostrar todo ({count})",
+  "moreCount": "+{count} más",
   "productCategory": "Categoría de producto",
   "cropGenus": "Género del cultivo"
 }

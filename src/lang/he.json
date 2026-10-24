@@ -237,7 +237,7 @@
     "noActiveIngredient": "ללא חומר פעיל",
     "noNpk": "ללא NPK",
     "needsOneRecord": "נדרשת לפחות רשומה אחת לפני שניתן לסיים.",
-    "needsFieldCoverage": "נדרשת רשומה עבור: {fields}. אם לא יושם דבר, הוסף רשומה ללא שורות (\"{none}\").",
+    "needsFieldCoverage": "נדרשת רשומה עבור: {fields}. אם לא יושם דבר, הוסף רשומה וסמן \"{none}\".",
     "saveFailed": "לא ניתן היה לשמור את רשומות החודש. נסה שוב.",
     "noFieldsForMonth": "אין חלקות זמינות לבחירה בחודש זה.",
     "noFieldsWarning": "אין חלקות זמינות לחודש זה — לא ניתן לרשום רשומות או לשמור את המטריצה עד שתוגדר לפחות חלקה אחת.",
@@ -267,6 +267,7 @@
     "selectAtLeastOneField": "בחר לפחות חלקה אחת",
     "confirm": "אישור",
     "addAtLeastOneRow": "הוסף לפחות שורה אחת",
+    "addRowOrNone": "הוסף לפחות שורה אחת, או סמן \"{none}\"",
     "selectResource": "בחר משאב",
     "removeRow": "הסר שורה",
     "removeRowAria": "הסר שורה {n}",
@@ -286,6 +287,7 @@
     "siteFreeArea": "שטח פנוי",
     "showLess": "הצג פחות",
     "showAllCount": "הצג הכל ({count})",
+    "moreCount": "+{count} נוספות",
     "productCategory": "קטגוריית מוצר",
     "cropGenus": "סוג גידול"
 }

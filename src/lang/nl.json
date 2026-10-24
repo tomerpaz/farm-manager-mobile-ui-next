@@ -237,7 +237,7 @@
   "noActiveIngredient": "Geen werkzame stof",
   "noNpk": "Geen NPK",
   "needsOneRecord": "Er is minstens één registratie nodig voordat dit kan worden afgerond.",
-  "needsFieldCoverage": "Er is een registratie nodig voor: {fields}. Als er niets is toegepast, voeg dan een invoer zonder regels toe (\"{none}\").",
+  "needsFieldCoverage": "Er is een registratie nodig voor: {fields}. Als er niets is toegepast, voeg dan een invoer toe met \"{none}\" aangevinkt.",
   "saveFailed": "De registraties van deze maand konden niet worden opgeslagen. Probeer het opnieuw.",
   "noFieldsForMonth": "Geen percelen beschikbaar voor deze maand.",
   "noFieldsWarning": "Er zijn geen percelen beschikbaar voor deze maand — registraties en deze matrix kunnen pas worden opgeslagen als er minstens één perceel bestaat.",
@@ -267,6 +267,7 @@
   "selectAtLeastOneField": "Selecteer minstens één perceel",
   "confirm": "Bevestigen",
   "addAtLeastOneRow": "Voeg minstens één regel toe",
+  "addRowOrNone": "Voeg minstens één regel toe, of vink \"{none}\" aan",
   "selectResource": "Selecteer een middel",
   "removeRow": "Regel verwijderen",
   "removeRowAria": "Regel {n} verwijderen",
@@ -286,6 +287,7 @@
   "siteFreeArea": "Vrij",
   "showLess": "Minder tonen",
   "showAllCount": "Alles tonen ({count})",
+  "moreCount": "+{count} meer",
   "productCategory": "Productcategorie",
   "cropGenus": "Gewasgeslacht"
 }

@@ -237,7 +237,7 @@
   "noActiveIngredient": "Nessun principio attivo",
   "noNpk": "Nessun NPK",
   "needsOneRecord": "Serve almeno una registrazione prima di poter finalizzare.",
-  "needsFieldCoverage": "Serve una registrazione per: {fields}. Se non è stato applicato nulla, aggiungi una voce senza righe (\"{none}\").",
+  "needsFieldCoverage": "Serve una registrazione per: {fields}. Se non è stato applicato nulla, aggiungi una voce selezionando \"{none}\".",
   "saveFailed": "Impossibile salvare le registrazioni di questo mese. Riprova.",
   "noFieldsForMonth": "Nessun appezzamento disponibile per questo mese.",
   "noFieldsWarning": "Nessun appezzamento disponibile per questo mese: non è possibile registrare dati né salvare questa matrice finché non esiste almeno un appezzamento.",
@@ -267,6 +267,7 @@
   "selectAtLeastOneField": "Seleziona almeno un appezzamento",
   "confirm": "Conferma",
   "addAtLeastOneRow": "Aggiungi almeno una riga",
+  "addRowOrNone": "Aggiungi almeno una riga, oppure seleziona \"{none}\"",
   "selectResource": "Seleziona una risorsa",
   "removeRow": "Rimuovi riga",
   "removeRowAria": "Rimuovi riga {n}",
@@ -286,6 +287,7 @@
   "siteFreeArea": "Libero",
   "showLess": "Mostra meno",
   "showAllCount": "Mostra tutto ({count})",
+  "moreCount": "+{count} in più",
   "productCategory": "Categoria di prodotto",
   "cropGenus": "Genere della coltura"
 }

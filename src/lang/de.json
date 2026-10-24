@@ -237,7 +237,7 @@
   "noActiveIngredient": "Kein Wirkstoff",
   "noNpk": "Kein NPK",
   "needsOneRecord": "Vor dem Abschließen ist mindestens ein Eintrag erforderlich.",
-  "needsFieldCoverage": "Ein Eintrag ist erforderlich für: {fields}. Wenn nichts ausgebracht wurde, fügen Sie einen Eintrag ohne Zeilen hinzu („{none}“).",
+  "needsFieldCoverage": "Ein Eintrag ist erforderlich für: {fields}. Wenn nichts ausgebracht wurde, fügen Sie einen Eintrag hinzu und kreuzen Sie „{none}“ an.",
   "saveFailed": "Die Einträge dieses Monats konnten nicht gespeichert werden. Bitte erneut versuchen.",
   "noFieldsForMonth": "Für diesen Monat sind keine Parzellen verfügbar.",
   "noFieldsWarning": "Für diesen Monat sind keine Parzellen verfügbar – Einträge können erst erfasst und diese Matrix erst gespeichert werden, wenn mindestens eine Parzelle existiert.",
@@ -267,6 +267,7 @@
   "selectAtLeastOneField": "Mindestens eine Parzelle auswählen",
   "confirm": "Bestätigen",
   "addAtLeastOneRow": "Mindestens eine Zeile hinzufügen",
+  "addRowOrNone": "Mindestens eine Zeile hinzufügen oder \"{none}\" ankreuzen",
   "selectResource": "Ressource auswählen",
   "removeRow": "Zeile entfernen",
   "removeRowAria": "Zeile {n} entfernen",
@@ -286,6 +287,7 @@
   "siteFreeArea": "Frei",
   "showLess": "Weniger anzeigen",
   "showAllCount": "Alle anzeigen ({count})",
+  "moreCount": "+{count} weitere",
   "productCategory": "Produktkategorie",
   "cropGenus": "Kulturgattung"
 }

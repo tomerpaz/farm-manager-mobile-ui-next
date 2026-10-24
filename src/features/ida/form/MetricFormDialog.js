@@ -20,12 +20,13 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Tooltip,
 } from "@mui/material";
-import { Delete, ExpandLess, ExpandMore } from "@mui/icons-material";
+import { Delete, UnfoldLess, UnfoldMore } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers";
 import FieldSelectionDialog from "../../../ui/dialog/FieldsSelectionDialog";
 import DialogAppBar from "../../../ui/dialog/DialogAppBar";
-import ResourceRowsField from "./ResourceRowsField";
+import ResourceRowsField, { sectionButtonSx, sectionPanelSx } from "./ResourceRowsField";
 import useIdaText from "./useIdaText";
 import { isMobile } from "../../../ui/FarmUtil";
 import { saveButtonSx } from "../../../components/ui/FormActionBar";
@@ -43,6 +44,10 @@ const toIso = (v) => (v && dayjs(v).isValid() ? dayjs(v).toISOString() : null);
 // with allOption: true.
 const ALL_ID = 0;
 
+// A resources field with noneCheckbox keeps its "none" checkbox in the
+// dialog form under this name — dialog-only, never part of the saved record.
+const noneNameFor = (f) => `${f.name}None`;
+
 const emptyValueFor = (f) => {
     if (f.type === "date") return null;
     if (f.type === "select" || f.type === "autocomplete") return f.allOption ? ALL_ID : "";
@@ -50,16 +55,27 @@ const emptyValueFor = (f) => {
     return "";
 };
 
-const FIELD_ROWS_COLLAPSED = 3;
+const FIELD_ROWS_COLLAPSED = 2;
+
+// In the dialog the field picker sits right below the date (the first date
+// field) — the schema order still drives the summary table's columns.
+const dialogOrder = (schema) => {
+    const fields = schema.filter((f) => f.type === "fields");
+    const dateIndex = schema.findIndex((f) => f.type === "date");
+    if (!fields.length || dateIndex < 0) return schema;
+    const rest = schema.filter((f) => f.type !== "fields");
+    return [...rest.slice(0, dateIndex + 1), ...fields, ...rest.slice(dateIndex + 1)];
+};
 
 const toNumberOrNull = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
 
 // Trigger fields fire on a specific value (`when`: one value or a list,
 // 0 by default) — except a resources list, which fires when it's empty
-// ("no fertilizer / no active ingredient"). Number inputs hold strings
+// ("no fertilizer / no active ingredient"), or, with noneCheckbox, when its
+// "none" checkbox is ticked. Number inputs hold strings
 // ("0"), so they're compared numerically, and an empty input never counts as 0.
 const isTriggered = (f, value, when = f.linkTriggerValue ?? 0) => {
-    if (f.type === "resources") return (value?.length ?? 0) === 0;
+    if (f.type === "resources") return f.noneCheckbox ? value === true : (value?.length ?? 0) === 0;
     const values = Array.isArray(when) ? when : [when];
     if (f.type === "number") {
         return value !== "" && value !== null && value !== undefined && values.includes(Number(value));
@@ -69,12 +85,16 @@ const isTriggered = (f, value, when = f.linkTriggerValue ?? 0) => {
 
 // Every auto-zero rule in the schema: a field's own zeroLinksTo (fired by
 // linkTriggerValue) plus any extra zeroLinks: [{ when, to }] entries, for a
-// field whose different values lock different fields.
+// field whose different values lock different fields. `name` is the form
+// value the trigger watches — the "none" checkbox for a noneCheckbox field.
 const zeroLinkRules = (schema) =>
-    schema.flatMap((f) => [
-        ...(f.zeroLinksTo ? [{ field: f, to: f.zeroLinksTo, when: f.linkTriggerValue ?? 0, with: f.zeroLinksWith || [] }] : []),
-        ...(f.zeroLinks || []).map((r) => ({ field: f, to: r.to, when: r.when ?? 0, with: r.with || [] })),
-    ]);
+    schema.flatMap((f) => {
+        const name = f.noneCheckbox ? noneNameFor(f) : f.name;
+        return [
+            ...(f.zeroLinksTo ? [{ field: f, name, to: f.zeroLinksTo, when: f.linkTriggerValue ?? 0, with: f.zeroLinksWith || [] }] : []),
+            ...(f.zeroLinks || []).map((r) => ({ field: f, name, to: r.to, when: r.when ?? 0, with: r.with || [] })),
+        ];
+    });
 
 // A metric record is described declaratively as a list of field specs
 // (name/type/label/unit/options/required) — see IDAForm's METRICS config.
@@ -94,9 +114,18 @@ export default function MetricFormDialog({
     maxDate,
     availableFields,
 }) {
-    const defaultValues = Object.fromEntries(schema.map((f) => [f.name, emptyValueFor(f)]));
+    const defaultValues = Object.fromEntries(
+        schema.flatMap((f) => [[f.name, emptyValueFor(f)], ...(f.noneCheckbox ? [[noneNameFor(f), false]] : [])])
+    );
     const { control, handleSubmit, reset, setValue } = useForm({ defaultValues });
     const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
+    const hasFieldsTable = schema.some((f) => f.type === "fields");
+    // In fields dialogs the (first) date sits in the Fields panel header rather than on its own.
+    const headerDate = hasFieldsTable ? schema.find((f) => f.type === "date" && !f.hidden) : null;
+    // On a phone (fullScreen) the panel dialogs drop DialogContent's padding so
+    // the section panels run edge to edge — square, since they touch the screen
+    // edges. Desktop keeps the padded, rounded look.
+    const edgeToEdge = hasFieldsTable && isMobile();
     // The selected-fields table shows only the first FIELD_ROWS_COLLAPSED rows
     // until expanded (same idea as ActivityFields' TRASHHOLD).
     const [fieldsExpanded, setFieldsExpanded] = useState(false);
@@ -115,6 +144,9 @@ export default function MetricFormDialog({
             } else {
                 values[f.name] = initialData?.[f.name] ?? emptyValueFor(f);
             }
+            // Unticked for a new entry; a saved entry with no rows was a
+            // "none" declaration, so it reopens ticked.
+            if (f.noneCheckbox) values[noneNameFor(f)] = !!initialData && (initialData[f.name]?.length ?? 0) === 0;
         });
         reset(values);
     }, [open, initialData, defaultDate, reset, schema]);
@@ -132,7 +164,7 @@ export default function MetricFormDialog({
     // re-run on every keystroke elsewhere in the dialog.
     const rules = useMemo(() => zeroLinkRules(schema), [schema]);
     const watchedNames = useMemo(
-        () => [...new Set(rules.flatMap((r) => [r.field.name, ...r.with]))],
+        () => [...new Set(rules.flatMap((r) => [r.name, ...r.with]))],
         [rules]
     );
     const watchedValues = useWatch({ control, name: watchedNames });
@@ -141,7 +173,7 @@ export default function MetricFormDialog({
         const valueOf = (name) => watchedValues[watchedNames.indexOf(name)];
         return rules.filter(
             (r) =>
-                isTriggered(r.field, valueOf(r.field.name), r.when) &&
+                isTriggered(r.field, valueOf(r.name), r.when) &&
                 r.with.every((name) => {
                     const partner = schema.find((s) => s.name === name);
                     return partner && isTriggered(partner, valueOf(name));
@@ -242,7 +274,14 @@ export default function MetricFormDialog({
             open={open}
             onClose={onClose}
             // Resource rows need room for a picker plus up to five numbers per row.
-            maxWidth={schema.some((f) => f.type === "resources" && (f.rowFields?.length ?? 5) > 1) ? "sm" : "xs"}
+            // The selected-fields table needs room for its five columns.
+            maxWidth={
+                hasFieldsTable
+                    ? "md"
+                    : schema.some((f) => f.type === "resources" && (f.rowFields?.length ?? 5) > 1)
+                      ? "sm"
+                      : "xs"
+            }
             fullWidth
             fullScreen={isMobile()}
             // Without this, closing (Confirm/Cancel) restores focus to the
@@ -260,7 +299,15 @@ export default function MetricFormDialog({
             // ate that first click. Closing instantly removes that window;
             // the opening fade is untouched.
             transitionDuration={{ enter: 225, exit: 0 }}
-            slotProps={{ paper: { elevation: 3 } }}
+            // Fields dialogs get a fixed height on desktop (mobile is fullScreen), so
+            // adding fields/rows or "Show all" scrolls DialogContent instead of
+            // resizing the window. Capped to the viewport minus MUI's 32px margins.
+            slotProps={{
+                paper: {
+                    elevation: 3,
+                    sx: hasFieldsTable && !isMobile() ? { height: "min(800px, calc(100% - 64px))" } : undefined,
+                },
+            }}
         >
             <DialogAppBar
                 onClose={onClose}
@@ -278,10 +325,41 @@ export default function MetricFormDialog({
                 noValidate
                 sx={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minHeight: 0 }}
             >
-                <DialogContent dividers sx={{ pt: 1, pb: 2 }}>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 1 }}>
-                        {schema.map((f) => {
+                <DialogContent dividers sx={edgeToEdge ? { p: 0 } : { pt: 1, pb: 2 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: hasFieldsTable ? 2 : 3,
+                            pt: edgeToEdge ? 0 : 1,
+                            // Each section panel is a direct child here (Controller renders no DOM).
+                            ...(edgeToEdge ? { "& > *": { borderRadius: 0 } } : {}),
+                        }}
+                    >
+                        {/* Named so a group's first field can render the whole group (fields
+                            sharing `group`, e.g. pests + note) in one panel; inGroup is only
+                            ever `true` from that call — map's own 2nd arg is the index. */}
+                        {dialogOrder(schema).map(function renderField(f, inGroup) {
                             if (f.hidden) return null;
+                            // Rendered inside the Fields panel header instead (see below).
+                            if (f === headerDate && inGroup !== true) return null;
+                            if (f.group && inGroup !== true) {
+                                const members = schema.filter((s) => s.group === f.group && !s.hidden);
+                                if (members[0] !== f) return null;
+                                return (
+                                    <Box
+                                        key={`group-${f.group}`}
+                                        sx={{
+                                            ...sectionPanelSx,
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 3,
+                                        }}
+                                    >
+                                        {members.map((m) => renderField(m, true))}
+                                    </Box>
+                                );
+                            }
                             if (f.type === "date") {
                                 return (
                                     <Controller
@@ -305,10 +383,14 @@ export default function MetricFormDialog({
                                                     textField: {
                                                         size: "medium",
                                                         fullWidth: true,
+                                                        // Capped only in the wider (md) fields dialogs on desktop, so it
+                                                        // stays date-sized there; on mobile (fullScreen) it stays full width.
+                                                        sx: hasFieldsTable && !isMobile() ? { maxWidth: 280 } : undefined,
                                                         error: !!fieldState.error,
+                                                        // No reserved blank line — it read as an extra gap above the next section.
                                                         helperText: disabledByZero.has(f.name)
                                                             ? autoSetHint
-                                                            : fieldState.error?.message ?? " ",
+                                                            : fieldState.error?.message,
                                                     },
                                                 }}
                                             />
@@ -479,15 +561,14 @@ export default function MetricFormDialog({
                                             const areaUnit = user?.areaUnit ? t(user.areaUnit, user.areaUnit) : "";
                                             const totalArea = selected.reduce((sum, af) => sum + (Number(af.area) || 0), 0);
                                             return (
-                                                <Box>
-                                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                                        <Badge badgeContent={value?.length || 0} color="info">
+                                                <Box sx={sectionPanelSx}>
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <Badge badgeContent={value?.length || 0} color="info" sx={{ flexShrink: 0 }}>
                                                             <Button
-                                                                variant="contained"
-                                                                disableElevation
+                                                                variant="outlined"
                                                                 size="large"
                                                                 color={fieldState.error ? "error" : "primary"}
-                                                                sx={{ textTransform: "none" }}
+                                                                sx={sectionButtonSx}
                                                                 // Drop focus first: opening the nested picker aria-hides
                                                                 // this part of the dialog, and Chrome blocks that (and
                                                                 // warns) while a hidden element still holds focus.
@@ -499,74 +580,106 @@ export default function MetricFormDialog({
                                                                 {f.label}
                                                             </Button>
                                                         </Badge>
-                                                        <IconButton
-                                                            color="secondary"
-                                                            aria-label={t("removeAll", "Remove all")}
-                                                            disabled={!value?.length}
-                                                            onClick={() => onChange([])}
-                                                        >
-                                                            <Delete />
-                                                        </IconButton>
+                                                        {selected.length > FIELD_ROWS_COLLAPSED && (
+                                                            // Icon only (label in the tooltip/aria-label); same color as the remove-all bin beside it.
+                                                            <Tooltip
+                                                                title={fieldsExpanded
+                                                                    ? t("showLess", "Show less")
+                                                                    : t("showAllCount", "Show all ({count})", { count: selected.length })}
+                                                            >
+                                                                <IconButton
+                                                                    color="secondary"
+                                                                    aria-label={fieldsExpanded
+                                                                        ? t("showLess", "Show less")
+                                                                        : t("showAllCount", "Show all ({count})", { count: selected.length })}
+                                                                    onClick={() => setFieldsExpanded((x) => !x)}
+                                                                    sx={{ ml: 1 }}
+                                                                >
+                                                                    {fieldsExpanded ? <UnfoldLess /> : <UnfoldMore />}
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        )}
+                                                        {/* Clears every selected field — kept beside Show all (the
+                                                            list's own actions) rather than in the row icons' column.
+                                                            The span keeps the tooltip working while it's disabled. */}
+                                                        <Tooltip title={t("removeAll", "Remove all")}>
+                                                            <span style={{ marginInlineEnd: "auto" }}>
+                                                                <IconButton
+                                                                    color="secondary"
+                                                                    aria-label={t("removeAll", "Remove all")}
+                                                                    disabled={!value?.length}
+                                                                    onClick={() => onChange([])}
+                                                                >
+                                                                    <Delete />
+                                                                </IconButton>
+                                                            </span>
+                                                        </Tooltip>
+                                                        {/* The record's date shares this header (it applies to these
+                                                            fields) instead of taking a panel of its own. Always on the
+                                                            Fields button's line: it takes the leftover width, up to
+                                                            280px, and shrinks (minWidth 0) rather than wrapping. */}
+                                                        {headerDate && (
+                                                            <Box sx={{ flex: "1 1 0", minWidth: 0, maxWidth: 280 }}>
+                                                                {renderField(headerDate, true)}
+                                                            </Box>
+                                                        )}
                                                     </Box>
                                                     {fieldState.error && (
                                                         <Typography variant="caption" sx={{ display: "block", mt: 0.5, color: "error.main" }}>
                                                             {fieldState.error.message}
                                                         </Typography>
                                                     )}
-                                                    {selected.length > 0 && (
-                                                        <TableContainer sx={{ mt: 1 }}>
-                                                            <Table size="small">
-                                                                <TableHead>
-                                                                    <TableRow>
-                                                                        <TableCell sx={headerSx}>{t("field", "Field")}</TableCell>
-                                                                        <TableCell sx={headerSx}>{t("productCategory", "Product Category")}</TableCell>
-                                                                        <TableCell sx={headerSx}>{t("cropGenus", "Crop Genus")}</TableCell>
-                                                                        <TableCell sx={headerSx}>{areaUnit}</TableCell>
-                                                                        <TableCell sx={headerSx} />
+                                                    {/* Headers show even before any field is picked; rows/total only once there are some. */}
+                                                    <TableContainer sx={{ mt: 1 }}>
+                                                        <Table size="small">
+                                                            <TableHead>
+                                                                <TableRow>
+                                                                    <TableCell sx={headerSx}>{t("field", "Field")}</TableCell>
+                                                                    <TableCell sx={headerSx}>{t("productCategory", "Product Category")}</TableCell>
+                                                                    <TableCell sx={headerSx}>{t("cropGenus", "Crop Genus")}</TableCell>
+                                                                    <TableCell sx={headerSx}>{areaUnit}</TableCell>
+                                                                    <TableCell sx={headerSx} />
+                                                                </TableRow>
+                                                            </TableHead>
+                                                            <TableBody>
+                                                                {(fieldsExpanded ? selected : selected.slice(0, FIELD_ROWS_COLLAPSED)).map((af) => (
+                                                                    <TableRow key={af.id}>
+                                                                        <TableCell sx={cellSx}>{af.name}</TableCell>
+                                                                        <TableCell sx={cellSx}>{af.cropName}</TableCell>
+                                                                        <TableCell sx={cellSx}>{af.varietyName}</TableCell>
+                                                                        <TableCell sx={cellSx}>
+                                                                            {af.area != null && af.area !== "" ? Number(af.area).toFixed(2) : ""}
+                                                                        </TableCell>
+                                                                        <TableCell sx={{ ...cellSx, width: 40 }} align="right">
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                color="secondary"
+                                                                                aria-label={t("removeRow", "Remove row")}
+                                                                                onClick={() => onChange(value.filter((id) => id !== af.id))}
+                                                                            >
+                                                                                <Delete fontSize="small" />
+                                                                            </IconButton>
+                                                                        </TableCell>
                                                                     </TableRow>
-                                                                </TableHead>
-                                                                <TableBody>
-                                                                    {(fieldsExpanded ? selected : selected.slice(0, FIELD_ROWS_COLLAPSED)).map((af) => (
-                                                                        <TableRow key={af.id}>
-                                                                            <TableCell sx={cellSx}>{af.name}</TableCell>
-                                                                            <TableCell sx={cellSx}>{af.cropName}</TableCell>
-                                                                            <TableCell sx={cellSx}>{af.varietyName}</TableCell>
-                                                                            <TableCell sx={cellSx}>
-                                                                                {af.area != null && af.area !== "" ? Number(af.area).toFixed(2) : ""}
-                                                                            </TableCell>
-                                                                            <TableCell sx={{ ...cellSx, width: 40 }} align="right">
-                                                                                <IconButton
-                                                                                    size="small"
-                                                                                    color="secondary"
-                                                                                    aria-label={t("removeRow", "Remove row")}
-                                                                                    onClick={() => onChange(value.filter((id) => id !== af.id))}
-                                                                                >
-                                                                                    <Delete fontSize="small" />
-                                                                                </IconButton>
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))}
+                                                                ))}
+                                                                {/* The total below covers every field, hidden ones too — say so. */}
+                                                                {!fieldsExpanded && selected.length > FIELD_ROWS_COLLAPSED && (
+                                                                    <TableRow hover sx={{ cursor: "pointer" }} onClick={() => setFieldsExpanded(true)}>
+                                                                        <TableCell sx={{ ...cellSx, color: "text.secondary" }} colSpan={5}>
+                                                                            {t("moreCount", "+{count} more", { count: selected.length - FIELD_ROWS_COLLAPSED })}
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                )}
+                                                                {selected.length > 0 && (
                                                                     <TableRow>
                                                                         <TableCell sx={headerSx} colSpan={3}>{`${t("total", "Total")} ${areaUnit}`}</TableCell>
                                                                         <TableCell sx={headerSx}>{totalArea.toFixed(2)}</TableCell>
                                                                         <TableCell sx={headerSx} />
                                                                     </TableRow>
-                                                                </TableBody>
-                                                            </Table>
-                                                        </TableContainer>
-                                                    )}
-                                                    {selected.length > FIELD_ROWS_COLLAPSED && (
-                                                        <Button
-                                                            size="small"
-                                                            onClick={() => setFieldsExpanded((x) => !x)}
-                                                            startIcon={fieldsExpanded ? <ExpandLess /> : <ExpandMore />}
-                                                            sx={{ textTransform: "none", mt: 0.5 }}
-                                                        >
-                                                            {fieldsExpanded
-                                                                ? t("showLess", "Show less")
-                                                                : t("showAllCount", "Show all ({count})", { count: selected.length })}
-                                                        </Button>
-                                                    )}
+                                                                )}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </TableContainer>
                                                     <FieldSelectionDialog
                                                         open={fieldPickerOpen}
                                                         fields={availableFields || []}
@@ -600,6 +713,7 @@ export default function MetricFormDialog({
                                         options={f.options || []}
                                         required={f.required}
                                         emptyLabel={f.emptyLabel}
+                                        noneName={f.noneCheckbox ? noneNameFor(f) : undefined}
                                         rowFields={f.rowFields}
                                         rowUnit={f.rowUnit}
                                         unitFromResource={f.unitFromResource}

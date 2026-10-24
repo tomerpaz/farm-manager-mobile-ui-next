@@ -233,7 +233,7 @@
   "noActiveIngredient": "Sem ingrediente ativo",
   "noNpk": "Sem NPK",
   "needsOneRecord": "É necessário pelo menos um registro antes de finalizar.",
-  "needsFieldCoverage": "É necessário um registro para: {fields}. Se nada foi aplicado, adicione uma entrada sem linhas (\"{none}\").",
+  "needsFieldCoverage": "É necessário um registro para: {fields}. Se nada foi aplicado, adicione uma entrada marcando \"{none}\".",
   "saveFailed": "Não foi possível salvar os registros deste mês. Tente novamente.",
   "noFieldsForMonth": "Não há talhões disponíveis para selecionar neste mês.",
   "noFieldsWarning": "Não há talhões disponíveis para este mês — não é possível registrar dados nem salvar esta matriz até que exista pelo menos um talhão.",
@@ -263,6 +263,7 @@
   "selectAtLeastOneField": "Selecione pelo menos um talhão",
   "confirm": "Confirmar",
   "addAtLeastOneRow": "Adicione pelo menos uma linha",
+  "addRowOrNone": "Adicione pelo menos uma linha, ou marque \"{none}\"",
   "selectResource": "Selecione um recurso",
   "removeRow": "Remover linha",
   "removeRowAria": "Remover linha {n}",
@@ -282,6 +283,7 @@
   "siteFreeArea": "Livre",
   "showLess": "Mostrar menos",
   "showAllCount": "Mostrar tudo ({count})",
+  "moreCount": "+{count} a mais",
   "productCategory": "Categoria de produto",
   "cropGenus": "Gênero da cultura"
 }

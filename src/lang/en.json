@@ -237,7 +237,7 @@
   "noActiveIngredient": "No Active Ingredient",
   "noNpk": "No NPK",
   "needsOneRecord": "Needs at least one record before this can be finalized.",
-  "needsFieldCoverage": "Needs a record for: {fields}. If nothing was applied, add an entry with no rows (\"{none}\").",
+  "needsFieldCoverage": "Needs a record for: {fields}. If nothing was applied, add an entry with \"{none}\" checked.",
   "saveFailed": "Could not save this month's records. Please try again.",
   "noFieldsForMonth": "No fields available to select for this month.",
   "noFieldsWarning": "No fields are available for this month — records can't be logged and this matrix can't be saved until at least one field exists.",
@@ -267,6 +267,7 @@
   "selectAtLeastOneField": "Select at least one field",
   "confirm": "Confirm",
   "addAtLeastOneRow": "Add at least one row",
+  "addRowOrNone": "Add at least one row, or check \"{none}\"",
   "selectResource": "Select a resource",
   "removeRow": "Remove row",
   "removeRowAria": "Remove row {n}",
@@ -286,6 +287,7 @@
   "siteFreeArea": "Free",
   "showLess": "Show less",
   "showAllCount": "Show all ({count})",
+  "moreCount": "+{count} more",
   "productCategory": "Product Category",
   "cropGenus": "Crop Genus"
 }

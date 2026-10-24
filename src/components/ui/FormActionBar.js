@@ -1,11 +1,13 @@
 import { Box, Button } from '@mui/material';
+import { isMobile, useIsMobile } from '../../ui/FarmUtil';
 
 // Footer action bar shared by the record forms (same look as IDAForm's).
-// Mobile: fixed to the bottom of the screen however short the form is, with
-// an in-flow spacer of the same height so the last field isn't hidden under
-// it. Desktop: sticky at the bottom of the form card, bleeding out to its
-// edges. `bleedX`/`bleedBottom` must match the card's horizontal / bottom
-// padding (theme spacing units).
+// Phone (either orientation) or a window narrower than sm: fixed to the
+// bottom of the screen however short the form is, with an in-flow spacer of
+// the same height so the last field isn't hidden under it. Desktop: sticky
+// at the bottom of the form card, bleeding out to its edges.
+// `bleedX`/`bleedBottom` must match the card's horizontal / bottom padding
+// (theme spacing units).
 export const saveButtonSx = {
     textTransform: 'none',
     borderRadius: 2,
@@ -32,23 +34,31 @@ const at = (v, bp) => (typeof v === 'object' ? v[bp] ?? v.xs : v);
 // padding + 2px border, plus the iPhone home-indicator inset.
 const MOBILE_BAR_HEIGHT = 'calc(78px + env(safe-area-inset-bottom))';
 
-const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { xs: 2, sm: 3 }, bleedBottom = 4 }) => (
+const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { xs: 2, sm: 3 }, bleedBottom = 4 }) => {
+    // Fixed on a phone in any orientation (a landscape phone is wider than
+    // sm, so the breakpoint alone left the bar sticky — mid-screen on a short
+    // form) and on any window narrower than sm; sticky otherwise.
+    const narrow = useIsMobile();
+    const fixed = narrow || isMobile();
+    // The card's own padding at the current width, which the bar bleeds over.
+    const bleed = (v) => ({ xs: -at(v, 'xs'), sm: -at(v, 'sm') });
+    return (
     <>
-    {/* Holds the fixed bar's place on mobile; also cancels the card's bottom
+    {/* Holds the fixed bar's place; also cancels the card's bottom
         padding and any gap a parent Stack adds above it. Margins go under
         '&&' (doubled class) because MUI's Stack resets its children's margins
         with a more specific selector, which would otherwise win. */}
-    <Box sx={{
-        display: { xs: 'block', sm: 'none' },
-        flexShrink: 0,
-        height: MOBILE_BAR_HEIGHT,
-        '&&': { mt: 0, mb: -at(bleedBottom, 'xs') },
-    }} />
+    {fixed && (
+        <Box sx={{
+            flexShrink: 0,
+            height: MOBILE_BAR_HEIGHT,
+            '&&': { mt: 0, mb: bleed(bleedBottom) },
+        }} />
+    )}
     <Box
         sx={{
-            position: { xs: 'fixed', sm: 'sticky' },
-            left: { xs: 0, sm: 'auto' },
-            right: { xs: 0, sm: 'auto' },
+            position: fixed ? 'fixed' : 'sticky',
+            ...(fixed ? { left: 0, right: 0 } : {}),
             bottom: 0,
             zIndex: (theme) => theme.zIndex.appBar,
             display: 'flex',
@@ -57,10 +67,7 @@ const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { 
             justifyContent: 'flex-end',
             alignItems: 'center',
             // '&&' so a parent Stack's margin reset can't cancel the bleed.
-            '&&': {
-                mx: { xs: 0, sm: -at(bleedX, 'sm') },
-                mb: { xs: 0, sm: -at(bleedBottom, 'sm') },
-            },
+            '&&': fixed ? { mx: 0, mb: 0 } : { mx: bleed(bleedX), mb: bleed(bleedBottom) },
             px: { xs: at(bleedX, 'xs'), sm: at(bleedX, 'sm') },
             py: 1.5,
             pb: 'calc(12px + env(safe-area-inset-bottom))',
@@ -68,8 +75,8 @@ const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { 
             borderTop: '2px solid',
             borderColor: 'divider',
             boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.08)',
-            borderBottomLeftRadius: { xs: 0, sm: 8 },
-            borderBottomRightRadius: { xs: 0, sm: 8 },
+            borderBottomLeftRadius: fixed ? 0 : 8,
+            borderBottomRightRadius: fixed ? 0 : 8,
         }}
     >
         {onDelete && (
@@ -84,6 +91,7 @@ const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { 
         </Button>
     </Box>
     </>
-);
+    );
+};
 
 export default FormActionBar;

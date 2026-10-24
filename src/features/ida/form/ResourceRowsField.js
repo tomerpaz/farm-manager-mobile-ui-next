@@ -1,15 +1,18 @@
 import { Controller, useFieldArray, useFormState, useWatch } from "react-hook-form";
 import {
     Autocomplete,
+    Badge,
     Box,
     Button,
+    Checkbox,
+    FormControlLabel,
     IconButton,
     InputAdornment,
-    Paper,
     TextField,
     Tooltip,
     Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Add, Delete } from "@mui/icons-material";
 import useIdaText from "./useIdaText";
 
@@ -21,6 +24,24 @@ const NUMBER_FIELDS = [
     { name: "k", label: "K" },
     { name: "amount", label: "Amount", labelKey: "amountLabel", unitFromResource: true },
 ];
+
+// A section's title button (Fields, Pesticides, ...): outlined on a white
+// fill, so the dialog's filled Confirm stays the one primary action.
+export const sectionButtonSx = { textTransform: "none", bgcolor: "background.paper", "&:hover": { bgcolor: "background.paper" } };
+
+// Soft tinted panel that groups a dialog section (Fields, a resource list)
+// so sections read apart without adding more border lines. A faint
+// translucent tint of the text color (lighter than action.hover's 0.04), so
+// it works in light and dark themes. Inputs inside get a solid white fill
+// (MUI X v9 pickers render MuiPickersOutlinedInput, not MuiOutlinedInput),
+// and digits are fixed-width so number columns line up.
+export const sectionPanelSx = {
+    bgcolor: (theme) => alpha(theme.palette.text.primary, 0.025),
+    borderRadius: 2,
+    p: 2,
+    fontVariantNumeric: "tabular-nums",
+    "& .MuiOutlinedInput-root, & .MuiPickersOutlinedInput-root": { bgcolor: "background.paper" },
+};
 
 export const EMPTY_RESOURCE_ROW = { resource: null, qty: "", n: "", p: "", k: "", amount: "" };
 
@@ -47,7 +68,10 @@ const validateNumber = (v, required, t) => {
 // keeps useFieldArray's generated key from overwriting that `id`.
 // `rowFields` limits which number inputs a row shows (all by default); when
 // it's just ["amount"], that amount is the element's amount and is required.
-export default function ResourceRowsField({ control, name, label, options, required, emptyLabel, rowFields, rowUnit, unitFromResource }) {
+// `noneName` adds an emptyLabel checkbox ("No Active Ingredient") bound to
+// that form value: ticked, the rows are cleared and Add is disabled;
+// unticked, at least one row is required.
+export default function ResourceRowsField({ control, name, label, options, required, emptyLabel, noneName, rowFields, rowUnit, unitFromResource }) {
     const t = useIdaText();
     const numberFields = rowFields ? NUMBER_FIELDS.filter((nf) => rowFields.includes(nf.name)) : NUMBER_FIELDS;
     const amountOnly = numberFields.length === 1 && numberFields[0].name === "amount";
@@ -59,29 +83,71 @@ export default function ResourceRowsField({ control, name, label, options, requi
             validate: (rows) => !required || (rows?.length ?? 0) > 0 || t("addAtLeastOneRow", "Add at least one row"),
         },
     });
-    const { errors } = useFormState({ control, name });
+    const { errors } = useFormState({ control, name: noneName ? [name, noneName] : name });
     const rows = useWatch({ control, name }) || [];
-    const listError = errors?.[name]?.root?.message;
+    // Hooks can't be conditional, so without a checkbox this just re-watches `name`.
+    const noneValue = useWatch({ control, name: noneName ?? name });
+    const noneChecked = !!noneName && noneValue === true;
+    const listError = errors?.[name]?.root?.message || (noneName && errors?.[noneName]?.message);
 
     return (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    {label}
-                </Typography>
-                <Button
-                    size="small"
-                    variant="contained"
-                    disableElevation
-                    startIcon={<Add />}
-                    onClick={() => append({ ...EMPTY_RESOURCE_ROW })}
-                    sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2, px: 1.5 }}
-                >
-                    {t("add", "Add")}
-                </Button>
+        <Box
+            sx={{
+                ...sectionPanelSx,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+            }}
+        >
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mb: 0.5 }}>
+                {/* The list's title is its add button — styled like the dialog's Fields button. */}
+                <Badge badgeContent={fields.length} color="info">
+                    <Button
+                        variant="outlined"
+                        size="large"
+                        color={listError ? "error" : "primary"}
+                        startIcon={<Add />}
+                        disabled={noneChecked}
+                        onClick={() => append({ ...EMPTY_RESOURCE_ROW })}
+                        sx={sectionButtonSx}
+                    >
+                        {label}
+                    </Button>
+                </Badge>
+                {noneName && (
+                    <Controller
+                        control={control}
+                        name={noneName}
+                        rules={{
+                            validate: (checked, values) =>
+                                checked ||
+                                (values[name]?.length ?? 0) > 0 ||
+                                t("addRowOrNone", 'Add at least one row, or check "{none}"', { none: emptyLabel }),
+                        }}
+                        render={({ field: { value, onChange, ref } }) => (
+                            <FormControlLabel
+                                sx={{ ml: "auto", mr: 0 }}
+                                control={
+                                    <Checkbox
+                                        // MUI v9 dropped Checkbox's inputRef — the ref goes on the input slot.
+                                        slotProps={{ input: { ref } }}
+                                        size="small"
+                                        checked={!!value}
+                                        onChange={(e) => {
+                                            if (e.target.checked) remove();
+                                            onChange(e.target.checked);
+                                        }}
+                                    />
+                                }
+                                label={<Typography variant="body2">{emptyLabel}</Typography>}
+                            />
+                        )}
+                    />
+                )}
             </Box>
 
-            {fields.length === 0 && (
+            {/* With the checkbox, an unticked empty list isn't "none" yet — only show its error. */}
+            {fields.length === 0 && (!noneName || listError) && (
                 <Typography variant="body2" sx={{ color: listError ? "error.main" : "text.secondary" }}>
                     {listError || emptyLabel || t("none", "None")}
                 </Typography>
@@ -123,7 +189,10 @@ export default function ResourceRowsField({ control, name, label, options, requi
                     />
                 );
                 return (
-                    <Paper key={row.key} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                    // Amount-only rows (pesticides/fertilizers) sit straight on the tinted
+                    // panel with white inputs. Multi-number rows (General) keep a white
+                    // card to hold the picker and its number grid together.
+                    <Box key={row.key} sx={amountOnly ? undefined : { p: 1.5, borderRadius: 2, bgcolor: "background.paper" }}>
                         <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
                             <Controller
                                 control={control}
@@ -174,7 +243,7 @@ export default function ResourceRowsField({ control, name, label, options, requi
                                 {numberFields.map(renderNumber)}
                             </Box>
                         )}
-                    </Paper>
+                    </Box>
                 );
             })}
 
