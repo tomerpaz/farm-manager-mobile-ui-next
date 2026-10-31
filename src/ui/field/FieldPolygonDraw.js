@@ -2,12 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import L from 'leaflet';
 import { Box, Button, Typography } from '@mui/material';
 import { Check, Clear, DeleteOutlined, Draw, Undo } from '@mui/icons-material';
-import { CircleMarker, MapContainer, Polygon, Polyline, useMapEvents } from 'react-leaflet';
+import { CircleMarker, MapContainer, Pane, Polygon, Polyline, useMapEvents } from 'react-leaflet';
 import SatelliteMapProvider from '../../components/map/SatelliteMapProvider';
 import GeoLocation from '../../components/GeoLocation';
 import AddressSearchControl from '../../components/map/AddressSearchControl';
 
 const FILL_OPACITY = 0.5;
+const OTHER_PATH_OPTIONS = { color: '#000', fillColor: '#000', fillOpacity: 0.25, weight: 2 };
 const round = (v) => Number(v.toFixed(6));
 
 const MapClick = ({ onClick }) => {
@@ -20,7 +21,8 @@ const MapClick = ({ onClick }) => {
 // its center and the resulting zoom. `polygon` is an array of [lat, lng]
 // points — the same (unclosed) shape the web app's draw control saves.
 // Without a `height` the map fills whatever space its parent gives it.
-const FieldPolygonDraw = ({ polygon, color, center, zoom, height, minMapHeight = 320, text, onDraw, onRemove }) => {
+// `otherPolygons` (the site's other fields) are drawn in black for reference.
+const FieldPolygonDraw = ({ polygon, otherPolygons = [], color, center, zoom, height, minMapHeight = 320, text, onDraw, onRemove }) => {
     const [map, setMap] = useState(null);
     const [drawing, setDrawing] = useState(false);
     const [points, setPoints] = useState([]);
@@ -137,6 +139,13 @@ const FieldPolygonDraw = ({ polygon, color, center, zoom, height, minMapHeight =
                     <SatelliteMapProvider />
                     <GeoLocation />
                     <AddressSearchControl onLocationSelect={handleAddressSelect} />
+                    {/* Own pane under Leaflet's overlay pane (z-index 400), so the
+                        other fields stay behind this one whatever order they load in. */}
+                    <Pane name="otherFields" style={{ zIndex: 350 }}>
+                        {otherPolygons.map((positions, i) => (
+                            <Polygon key={i} positions={positions} pathOptions={OTHER_PATH_OPTIONS} interactive={false} />
+                        ))}
+                    </Pane>
                     {/* The saved polygon stays visible while a new one is drawn
                         over it; nothing here is interactive, so taps reach the map. */}
                     {polygon && (

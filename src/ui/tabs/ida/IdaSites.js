@@ -179,11 +179,11 @@ const IdaSites = () => {
                   <Button
                     variant="outlined"
                     color="success"
-                    aria-label={text?.siteMap || "Site Map"}
+                    startIcon={<MapIcon fontSize="small" />}
                     onClick={() => navigate(`/site/${value.id}/map`)}
-                    sx={{ ...cardButtonSx, minWidth: 38, px: 0, ml: 1, mr: value.ggId ? 0 : 2 }}
+                    sx={{ ...cardButtonSx, px: { xs: 1.5, sm: 2 }, ml: 1, mr: value.ggId ? 0 : 2 }}
                   >
-                    <MapIcon fontSize="small" />
+                    {text?.map || "Map"}
                   </Button>
                 </Tooltip>
 

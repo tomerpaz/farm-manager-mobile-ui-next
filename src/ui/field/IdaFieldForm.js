@@ -23,6 +23,7 @@ import {
     useCreateFieldMutation,
     useDeleteFieldMutation,
     useGetFieldQuery,
+    useGetFieldsBySiteQuery,
     useUpdateFieldMutation,
     safeParseJson
 } from '../../features/fields/fieldsApiSlice';
@@ -35,6 +36,7 @@ import FormActionBar from '../../components/ui/FormActionBar';
 const parseISO = (v) => dayjs(v).toDate()
 
 const DEFAULT_COLOR = '#43a047';
+const MAX_OTHER_POLYGONS = 50;
 // Crop-associated colors, picked to stay distinct from each other and
 // readable at 50% fill over satellite imagery.
 const COLOR_PRESETS = [
@@ -81,6 +83,7 @@ const IdaFieldForm = () => {
         return {
             id: rawFieldData?.id || null,
             name: rawFieldData?.name ?? '',
+            alias: rawFieldData?.alias ?? '',
             area: rawFieldData?.area ?? '',
             endDate: rawFieldData?.endDate ? parseISO(rawFieldData.endDate) : null,
             startDate: rawFieldData?.startDate ? parseISO(rawFieldData.startDate) : null,
@@ -125,6 +128,8 @@ const IdaFieldForm = () => {
         { siteId: fieldSiteId, date: hasStartDate ? asLocalDate(dayjs(startDate).toDate(), true) : null, fieldId: field?.id },
         { skip: !hasStartDate || !fieldSiteId || String(fieldSiteId) === '0' }
     );
+    // The site's other fields, drawn in black around this one for reference.
+    const { data: siteFields } = useGetFieldsBySiteQuery(fieldSiteId, { skip: !fieldSiteId || String(fieldSiteId) === '0' });
     const polygonPoints = useMemo(() => {
         const points = safeParseJson(polygonJson);
         return Array.isArray(points) && points.length > 2 ? points : null;
@@ -139,6 +144,17 @@ const IdaFieldForm = () => {
         mapCenter = [Number(site.lat), Number(site.lng)];
     }
     const mapViewZoom = (polygonPoints && fieldZoom) || mapZoom;
+    // Only the MAX_OTHER_POLYGONS fields nearest the map center, so a large
+    // site doesn't flood the map with layers.
+    const [centerLat, centerLng] = mapCenter;
+    const otherPolygons = useMemo(() => (siteFields ?? [])
+        .filter((f) => String(f.id) !== String(field?.id))
+        .map((f) => safeParseJson(f.polygon))
+        .filter((points) => Array.isArray(points) && points.length > 2)
+        .map((points) => ({ points, distance: L.latLngBounds(points).getCenter().distanceTo([centerLat, centerLng]) }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, MAX_OTHER_POLYGONS)
+        .map(({ points }) => points), [siteFields, field?.id, centerLat, centerLng]);
 
     const handlePolygonDraw = ({ polygon, lat, lng, zoom }) => {
         setValue('polygon', JSON.stringify(polygon), { shouldDirty: true });
@@ -264,9 +280,9 @@ const IdaFieldForm = () => {
                         }}>
                             <Stack spacing={{ xs: 1.5, sm: 2.5 }} sx={{ gridArea: 'fields', minWidth: 0 }}>
 
-                                {/* Row 1: Name and Size permanently locked side-by-side (flex 3 to 1) */}
+                                {/* Row 1: Name, Alias and Size permanently locked side-by-side (flex 2 : 1.5 : 1) */}
                                 <Box sx={{ display: "flex", flexDirection: "row", gap: 2, width: '100%' }}>
-                                    <Box sx={{ flex: 3, minWidth: 0 }}>
+                                    <Box sx={{ flex: 2, minWidth: 0 }}>
                                         <Controller
                                             name="name"
                                             control={control}
@@ -283,6 +299,23 @@ const IdaFieldForm = () => {
                                                     fullWidth
                                                     error={!!error}
                                                     helperText={error?.message}
+                                                    slotProps={{ htmlInput: { style: inputStyle } }}
+                                                />
+                                            )}
+                                        />
+                                    </Box>
+
+                                    <Box sx={{ flex: 1.5, minWidth: 0 }}>
+                                        <Controller
+                                            name="alias"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <TextField
+                                                    {...field}
+                                                    label={text.alias || "Alias"}
+                                                    variant="outlined"
+                                                    size={fieldSize}
+                                                    fullWidth
                                                     slotProps={{ htmlInput: { style: inputStyle } }}
                                                 />
                                             )}
@@ -498,6 +531,7 @@ const IdaFieldForm = () => {
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 1.5 }, width: '100%', minHeight: { xs: 'auto', md: 0 } }}>
                                     <FieldPolygonDraw
                                         polygon={polygonPoints}
+                                        otherPolygons={otherPolygons}
                                         color={color || DEFAULT_COLOR}
                                         center={mapCenter}
                                         zoom={mapViewZoom}

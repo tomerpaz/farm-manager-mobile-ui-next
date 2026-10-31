@@ -1,13 +1,13 @@
 import {
     createEntityAdapter
 } from "@reduxjs/toolkit";
-import { apiSlice, Sites_TAG } from "../../app/api/apiSlice";
+import { apiSlice, Sites_TAG, SiteFields_TAG } from "../../app/api/apiSlice";
 import { Site_TAG } from "../auth/authApiSlice";
 
 
 export const sitesAdapter = createEntityAdapter()
 
-export const sitesApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [Sites_TAG, Site_TAG] }).injectEndpoints({
+export const sitesApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [Sites_TAG, Site_TAG, SiteFields_TAG] }).injectEndpoints({
 
     endpoints: builder => ({
         getSites: builder.query({
@@ -25,6 +25,8 @@ export const sitesApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [Sites_TAG
                 url: `/api/farm/site/${siteId}/free-area/${date}`,
                 params: fieldId ? { field: fieldId } : undefined,
             }),
+            // Depends on the site's fields — refetched when one is saved or deleted.
+            providesTags: [SiteFields_TAG],
         }),
         createSite: builder.mutation({
             query: args => ({
