@@ -354,7 +354,7 @@ const SiteForm = () => {
               body={text.deleteFormBody || "Are you sure you want to drop this site reference permanently?"}
               okText={text.delete || "Delete"}
               cancelText={text.cancel || "Cancel"}
-              color="secondary"
+              color="primary"
             />
           )}
         </Box>

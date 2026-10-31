@@ -82,8 +82,9 @@ const FormActionBar = ({ saveLabel, onDelete, deleteLabel, onCancel, cancelLabel
         }}
     >
         {onDelete && (
-            // Kept at the opposite end from Save so it isn't hit by mistake.
-            <Button type="button" variant="outlined" color="secondary" size="large" onClick={onDelete} disabled={disabled}
+            // Kept at the opposite end from Save so it isn't hit by mistake. Same
+            // outlined green as Cancel, so the bar has one secondary-button style.
+            <Button type="button" variant="outlined" color="success" size="large" onClick={onDelete} disabled={disabled}
                 sx={{ ...secondaryButtonSx, mr: 'auto' }}>
                 {deleteLabel}
             </Button>

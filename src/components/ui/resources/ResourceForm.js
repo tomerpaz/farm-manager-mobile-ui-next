@@ -454,7 +454,7 @@ const ResourceForm = () => {
                         body={text?.deleteFormBody || "Are you sure you want to drop this resource reference permanently?"}
                         okText={text?.delete || "Delete"}
                         cancelText={text?.cancel || "Cancel"}
-                        color="secondary"
+                        color="primary"
                     />
                 )}
             </Box>

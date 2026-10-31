@@ -12,11 +12,12 @@ import {
 import { Add, Agriculture, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
 
 import { selectLang } from "../../features/app/appSlice";
-import { useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
+import { safeParseJson, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
 import { useGetSiteQuery } from '../../features/sites/sitesApiSlice';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
+import FieldShapeThumb, { ESRI_ATTRIBUTION } from '../field/FieldShapeThumb';
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString("en-AU") : null);
 
@@ -163,6 +164,8 @@ const SiteFieldList = () => {
                                     onClick={() => navigate(`/site/${siteId}/field/${value.id}`)}
                                     sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 2, px: 2.5 }}
                                 >
+                                    {/* Mini map: the field's polygon outline in its own color. */}
+                                    <FieldShapeThumb points={safeParseJson(value.polygon)} color={value.color} />
                                     <Box sx={{ flex: 1, minWidth: 0 }}>
                                         <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }} noWrap>
                                             {value.name}
@@ -178,12 +181,19 @@ const SiteFieldList = () => {
                                             </Box>
                                         )}
                                     </Box>
-                                    <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0 }} />
+                                    <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                                 </CardActionArea>
                             </Card>
                         );
                     })}
                 </Box>
+
+                {/* The thumbnails' satellite tiles are Esri's, which require attribution. */}
+                {isFieldsSuccess && fields?.some((f) => f.polygon) && (
+                    <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'end', mt: 1 }}>
+                        {ESRI_ATTRIBUTION}
+                    </Typography>
+                )}
 
                 {/* Empty Fallback State Area */}
                 {isFieldsSuccess && fields?.length === 0 && (

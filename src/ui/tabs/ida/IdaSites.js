@@ -172,7 +172,7 @@ const IdaSites = () => {
                     )}
                   </Box>
 
-                  <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0 }} />
+                  <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                 </CardActionArea>
 
                 <Tooltip title={text?.siteMap || "Site Map"}>
