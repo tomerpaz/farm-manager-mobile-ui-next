@@ -3,6 +3,15 @@ import { apiSlice, Pests_TAG, CropGenera_TAG, ProductCategories_TAG } from "../.
 export const IdaSystem_TAG = 'IdaSystem';
 export const GGYearData_TAG = 'GGYearData';
 export const Executors_TAG = 'Executors';
+export const Settings_TAG = 'Settings';
+
+// Business-level settings (server ConfigParam rows, one per type) — e.g.
+// AUTO_PRECIPITATION. The value is always a string ("true"/"false" for flags).
+export const AUTO_PRECIPITATION = 'AUTO_PRECIPITATION';
+// Per user. PUT "true"/"false" opts in/out; GET (and the opt-in PUT) return
+// the ConfigParam with `value` = the user's inbox address — empty body when
+// opted out.
+export const INBOX_EMAIL = 'INBOX_EMAIL';
 
 export const idaApiSlice = apiSlice
     .enhanceEndpoints({
@@ -11,7 +20,8 @@ export const idaApiSlice = apiSlice
             ProductCategories_TAG,
             IdaSystem_TAG,
             GGYearData_TAG,
-            Executors_TAG
+            Executors_TAG,
+            Settings_TAG
         ]
     })
     .injectEndpoints({
@@ -63,6 +73,22 @@ export const idaApiSlice = apiSlice
                 invalidatesTags: [GGYearData_TAG,]
 
             }),
+
+            // ConfigParam { type, value, ... } — or null when never saved.
+            getSettings: builder.query({
+                query: (type) => `/api/farm/settings/${type}`,
+                providesTags: (result, error, type) => [{ type: Settings_TAG, id: type }],
+            }),
+
+            // Upserts the business's one setting of this type; only type and value are read.
+            setSettings: builder.mutation({
+                query: ({ type, value }) => ({
+                    url: `/api/farm/settings`,
+                    method: 'PUT',
+                    body: { type, value },
+                }),
+                invalidatesTags: (result, error, { type }) => [{ type: Settings_TAG, id: type }],
+            }),
         })
     });
 
@@ -71,8 +97,9 @@ export const {
     useGetProductCategoriesQuery,
     useGetIdaSystemDataQuery,
     useGetGGYearDataQuery,
-    useGetPestsQuery,
     useGetExecutorsQuery,
     useUpdateIdaMonthRecordMutation,
-    useCreateIdaMonthRecordMutation
+    useCreateIdaMonthRecordMutation,
+    useGetSettingsQuery,
+    useSetSettingsMutation
 } = idaApiSlice;

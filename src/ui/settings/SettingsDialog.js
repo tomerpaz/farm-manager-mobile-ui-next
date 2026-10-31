@@ -1,13 +1,14 @@
 import React from 'react'
-import { Box, Checkbox, Dialog, DialogContent, FormControlLabel, IconButton, MenuItem, Select, Typography } from '@mui/material'
+import { Alert, Box, Checkbox, Dialog, DialogContent, FormControlLabel, IconButton, Link, MenuItem, Select, Tooltip, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux';
 import { selectLang, selectOpenSettings, selectShowInventory, selectShowPlans, setLang, setOpenSettings, setShowInventory, setShowPlans } from '../../features/app/appSlice';
-import { DesktopWindowsOutlined, MobileFriendlyOutlined } from '@mui/icons-material';
+import { ContentCopy, DesktopWindowsOutlined, MobileFriendlyOutlined } from '@mui/icons-material';
 import { getUserLang } from '../../router/UserRoutes';
 import { isInventoryPossible, isMobile, isPlansPossible } from '../FarmUtil';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import DialogAppBar from '../dialog/DialogAppBar';
 import { Transition } from '../Util';
+import { AUTO_PRECIPITATION, INBOX_EMAIL, useGetSettingsQuery, useSetSettingsMutation } from '../../features/ida/idaApiSlice';
 
 const flagMap = [
     { id: 'en', flag: 'GB', label: 'English', emoji: '🇬🇧' },
@@ -34,6 +35,24 @@ const SettingsDialog = () => {
     const isPlans = isUserSuccess ? isPlansPossible(user.userConf) : false;
     // GLOBALG.A.P. Number of the user's business — shown for reference only.
     const ggn = isUserSuccess ? user.ggn : null;
+    const isIda = isUserSuccess && (user.userConf || []).some(e => e.type === 'IDA');
+
+    // IDA only: let the server fill precipitation automatically from Open-Meteo.
+    // Stored server-side as the business's AUTO_PRECIPITATION setting ("true"/"false");
+    // unchecked until it's been saved once.
+    const { data: autoPrecipitation } = useGetSettingsQuery(AUTO_PRECIPITATION, { skip: !isIda });
+    const [setSettings, { isLoading: isSavingSettings }] = useSetSettingsMutation();
+    const autoPrecipitationOn = autoPrecipitation?.value === 'true';
+
+    // IDA only: a personal inbox address. Opted in = the GET returns a
+    // ConfigParam whose value is the address itself (not "true"); opted out =
+    // empty body. Own mutation instance so saving one setting doesn't
+    // disable the other's checkbox.
+    const { data: inboxEmail, isFetching: isFetchingInbox } = useGetSettingsQuery(INBOX_EMAIL, { skip: !isIda });
+    const [setInboxSetting, { isLoading: isSavingInbox }] = useSetSettingsMutation();
+    const inboxAddress = inboxEmail?.value || null;
+    const [inboxError, setInboxError] = React.useState(null);
+    const [inboxCopied, setInboxCopied] = React.useState(false);
 
     const showInventory = useSelector(selectShowInventory);
     const showPlans = useSelector(selectShowPlans);
@@ -55,6 +74,32 @@ const SettingsDialog = () => {
     const handlePlansChange = () => {
         dispatch(setShowPlans(!showPlans));
         dispatch(setOpenSettings(false));
+    }
+
+    // Stays open (unlike the local toggles above) so the saved state is visible.
+    const handleAutoPrecipitationChange = (e) => {
+        setSettings({ type: AUTO_PRECIPITATION, value: String(e.target.checked) });
+    }
+
+    // Also stays open — opting in is how the user gets to see (and copy) the address.
+    const handleInboxEmailChange = async (e) => {
+        setInboxError(null);
+        setInboxCopied(false);
+        try {
+            await setInboxSetting({ type: INBOX_EMAIL, value: String(e.target.checked) }).unwrap();
+        } catch (err) {
+            setInboxError(err?.data?.msg || text.inboxEmailError || 'Could not update the inbox email. Please try again.');
+        }
+    }
+
+    const handleCopyInbox = async () => {
+        try {
+            await navigator.clipboard.writeText(inboxAddress);
+            setInboxCopied(true);
+        } catch {
+            // Clipboard can be blocked (insecure context, permissions) — the
+            // address is still selectable on screen.
+        }
     }
 
     // const handleNewActivityGeoChange = () => {
@@ -106,6 +151,63 @@ const SettingsDialog = () => {
                     <Box sx={{ marginTop: 2 }}>
                         <Typography variant="caption" color="text.secondary">GGN</Typography>
                         <Typography variant="body1">{ggn}</Typography>
+                    </Box>
+                }
+                {isIda &&
+                    <Box
+                        sx={{
+                            marginTop: 2,
+                            display: 'flex',
+                            flexDirection: 'row'
+                        }}>
+                        <FormControlLabel
+                            control={<Checkbox checked={autoPrecipitationOn} disabled={isSavingSettings} onChange={handleAutoPrecipitationChange} />}
+                            // Only the source name is the link ({source} in the translated text, so
+                            // each language places it). A link inside a <label> doesn't toggle the
+                            // checkbox — it just opens the site.
+                            label={(() => {
+                                const [before, after = ''] = (text.precipitationBySource || 'Precipitation by {source}').split('{source}');
+                                return (
+                                    <>
+                                        {before}
+                                        <Link href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo.com</Link>
+                                        {after}
+                                    </>
+                                );
+                            })()}
+                        />
+                    </Box>
+                }
+                {isIda &&
+                    <Box sx={{ marginTop: 2 }}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={!!inboxAddress}
+                                    disabled={isSavingInbox || isFetchingInbox}
+                                    onChange={handleInboxEmailChange}
+                                />
+                            }
+                            label={text.personalInboxEmail || 'Personal inbox email'}
+                        />
+                        {inboxAddress &&
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, paddingInlineStart: 4 }}>
+                                {/* Selectable as a fallback when the clipboard isn't available. */}
+                                <Typography variant="body2" sx={{ userSelect: 'all', wordBreak: 'break-all' }}>
+                                    {inboxAddress}
+                                </Typography>
+                                <Tooltip title={inboxCopied ? (text.copied || 'Copied') : (text.copy || 'Copy')}>
+                                    <IconButton size="small" aria-label={text.copy || 'Copy'} onClick={handleCopyInbox}>
+                                        <ContentCopy fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
+                        }
+                        {inboxError &&
+                            <Alert severity="error" sx={{ marginTop: 1 }} onClose={() => setInboxError(null)}>
+                                {inboxError}
+                            </Alert>
+                        }
                     </Box>
                 }
                 {isPlans &&

@@ -34,7 +34,9 @@ const at = (v, bp) => (typeof v === 'object' ? v[bp] ?? v.xs : v);
 // padding + 2px border, plus the iPhone home-indicator inset.
 const MOBILE_BAR_HEIGHT = 'calc(78px + env(safe-area-inset-bottom))';
 
-const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { xs: 2, sm: 3 }, bleedBottom = 4 }) => {
+// `onCancel` adds a Cancel button beside Save on desktop only — on a phone
+// (fixed bar) the app bar's back arrow already does that job.
+const FormActionBar = ({ saveLabel, onDelete, deleteLabel, onCancel, cancelLabel, disabled, bleedX = { xs: 2, sm: 3 }, bleedBottom = 4 }) => {
     // Fixed on a phone in any orientation (a landscape phone is wider than
     // sm, so the breakpoint alone left the bar sticky — mid-screen on a short
     // form) and on any window narrower than sm; sticky otherwise.
@@ -84,6 +86,11 @@ const FormActionBar = ({ saveLabel, onDelete, deleteLabel, disabled, bleedX = { 
             <Button type="button" variant="outlined" color="secondary" size="large" onClick={onDelete} disabled={disabled}
                 sx={{ ...secondaryButtonSx, mr: 'auto' }}>
                 {deleteLabel}
+            </Button>
+        )}
+        {onCancel && !fixed && (
+            <Button type="button" variant="outlined" color="success" size="large" onClick={onCancel} sx={secondaryButtonSx}>
+                {cancelLabel}
             </Button>
         )}
         <Button type="submit" variant="contained" color="success" size="large" disabled={disabled} sx={saveButtonSx}>

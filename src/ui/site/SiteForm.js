@@ -26,7 +26,6 @@ import { DEFAULT_COORDINATES } from '../FarmUtil';
 import ActionApprovalDialog from '../../components/ui/ActionApprovalDialog';
 import Loading from '../../components/Loading';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
-import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
 import FormActionBar from '../../components/ui/FormActionBar';
 
 const SiteForm = () => {
@@ -183,7 +182,6 @@ const SiteForm = () => {
 
           {/* Header Layout */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-            <GoBackDesktopButton />
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography
@@ -336,8 +334,11 @@ const SiteForm = () => {
               </Box>
 
               {/* Row 4: Docked Save/Delete bar */}
+              {/* Desktop: Cancel beside Save replaces the old back arrow by the title. */}
               <FormActionBar
                 saveLabel={text.save || 'Save'}
+                cancelLabel={text.cancel || 'Cancel'}
+                onCancel={handleGoBack}
                 deleteLabel={text.delete || 'Delete'}
                 onDelete={site?.id && site?.deletable === true ? () => setDeleteOpen(true) : undefined}
               />

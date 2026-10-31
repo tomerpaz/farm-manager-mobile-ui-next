@@ -16,13 +16,13 @@ import {
     useCreateIdaMonthRecordMutation,
     useGetGGYearDataQuery,
     useGetIdaSystemDataQuery,
-    useGetPestsQuery,
     useUpdateIdaMonthRecordMutation,
 } from "../idaApiSlice";
+import { useGetPestsQuery } from "../../pests/pestsApiSlice";
 import { getMonthName, isMobile } from "../../../ui/FarmUtil";
 import Loading from "../../../components/Loading";
 import GoBackAppBar from "../../../appbar/content/GoBackAppBar";
-import GoBackDesktopButton from "../../../components/ui/GoBackDesktopButton";
+import { secondaryButtonSx } from "../../../components/ui/FormActionBar";
 import { useGetResourcesQuery } from "../../resources/resourcesApiSlice";
 import MetricFieldArray from "./MetricFieldArray";
 import MetricPanel from "./MetricPanel";
@@ -525,7 +525,6 @@ function IDAForm() {
                     }}
                 >
                     <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2, mb: 4 }}>
-                        <GoBackDesktopButton />
                         <Box sx={{ display: "flex", flexDirection: "column" }}>
                             <Typography
                                 variant="overline"
@@ -640,6 +639,23 @@ function IDAForm() {
                             borderBottomRightRadius: phone ? 0 : { xs: 0, sm: 8 },
                         }}
                     >
+                        {/* Desktop only, like FormActionBar's Cancel: it replaces the old back
+                            arrow by the title; on a phone (or a window narrower than sm) the
+                            app bar's back arrow does this. Kept furthest from Save. */}
+                        {!phone && (
+                            <Button
+                                type="button"
+                                variant="outlined"
+                                color="success"
+                                size="large"
+                                onClick={handleGoBack}
+                                disabled={isSubmitting}
+                                sx={{ ...secondaryButtonSx, display: { xs: "none", sm: "inline-flex" } }}
+                            >
+                                {t("cancel", "Cancel")}
+                            </Button>
+                        )}
+
                         <Button
                             type="button"
                             variant="outlined"

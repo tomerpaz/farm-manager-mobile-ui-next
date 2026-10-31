@@ -36,3 +36,17 @@ code {
 
 
 
+
+/* No up/down spinner arrows on any number input, app-wide — values are
+   typed (inputMode="decimal" brings up the numeric keypad on phones), and
+   the arrows were easy to nudge by mistake. Keyboard arrow keys still work. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

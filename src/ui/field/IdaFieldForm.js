@@ -30,7 +30,6 @@ import { useGetSiteFreeAreaQuery, useGetSiteQuery, useLazyGetSiteFreeAreaQuery }
 import FieldPolygonDraw from './FieldPolygonDraw';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
-import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
 import FormActionBar from '../../components/ui/FormActionBar';
 
 const parseISO = (v) => dayjs(v).toDate()
@@ -220,7 +219,6 @@ const IdaFieldForm = () => {
 
                 {/* Header Layout */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: { xs: 1.5, sm: 3 } }}>
-                    <GoBackDesktopButton />
 
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Typography
@@ -571,8 +569,11 @@ const IdaFieldForm = () => {
                         </Box>
 
                         {/* Docked Save/Delete bar */}
+                        {/* Desktop: Cancel beside Save replaces the old back arrow by the title. */}
                         <FormActionBar
                             saveLabel={text.save || 'Save'}
+                            cancelLabel={text.cancel || 'Cancel'}
+                            onCancel={() => navigate(-1)}
                             deleteLabel={text.delete || 'Delete'}
                             onDelete={field?.id && field?.deletable === true ? () => setDeleteOpen(true) : undefined}
                         />

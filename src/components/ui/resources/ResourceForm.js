@@ -16,7 +16,6 @@ import { selectLang, setSnackbar } from '../../../features/app/appSlice';
 import ActionApprovalDialog from '../../../components/ui/ActionApprovalDialog';
 import Loading from '../../../components/Loading';
 import GoBackAppBar from '../../../appbar/content/GoBackAppBar'
-import GoBackDesktopButton from '../../../components/ui/GoBackDesktopButton'
 import FormActionBar from '../../../components/ui/FormActionBar'
 
 import {
@@ -186,7 +185,6 @@ const ResourceForm = () => {
 
                 {/* Title Block Layout Container */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-                    <GoBackDesktopButton />
 
 
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -436,8 +434,11 @@ const ResourceForm = () => {
                         </Box>
 
                         {/* Docked Save/Delete bar */}
+                        {/* Desktop: Cancel beside Save replaces the old back arrow by the title. */}
                         <FormActionBar
                             saveLabel={text?.save || 'Save'}
+                            cancelLabel={text?.cancel || 'Cancel'}
+                            onCancel={handleGoBack}
                             deleteLabel={text?.delete || 'Delete'}
                             onDelete={!isNewRecord && resource?.deletable === true ? () => setDeleteOpen(true) : undefined}
                         />
