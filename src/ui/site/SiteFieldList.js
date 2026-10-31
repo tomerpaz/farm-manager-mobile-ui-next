@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from "react-router";
 import { useSelector } from 'react-redux';
 import {
@@ -12,7 +13,7 @@ import {
 import { Add, Agriculture, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
 
 import { selectLang } from "../../features/app/appSlice";
-import { safeParseJson, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
+import { safeParseJson, clearJustAddedFieldId, getJustAddedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
 import { useGetSiteQuery } from '../../features/sites/sitesApiSlice';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
@@ -27,7 +28,15 @@ const SiteFieldList = () => {
     const text = useSelector(selectLang);
 
     // Queries
-    const { data: fields, isSuccess: isFieldsSuccess, isLoading: isFieldsLoading } = useGetFieldsBySiteQuery(siteId);
+    const { data: siteFields, isSuccess: isFieldsSuccess, isLoading: isFieldsLoading } = useGetFieldsBySiteQuery(siteId);
+    // A field just created is shown first for this visit only; the next visit
+    // (or reload) lists it in the server's order again.
+    const [justAddedId] = useState(getJustAddedFieldId);
+    useEffect(clearJustAddedFieldId, []);
+    const fields = useMemo(() => {
+        const added = siteFields?.find((f) => f.id === justAddedId);
+        return added ? [added, ...siteFields.filter((f) => f !== added)] : siteFields;
+    }, [siteFields, justAddedId]);
     const { data: siteData, isSuccess: isSiteSuccess } = useGetSiteQuery(siteId);
     const { data: cropGenera = [] } = useGetCropGeneraQuery();
     const { data: productCategories = [] } = useGetProductCategoriesQuery();

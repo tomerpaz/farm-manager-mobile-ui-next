@@ -5,6 +5,7 @@ import {
     Button,
     Card,
     CardActionArea,
+    Chip,
     Fab,
     Typography,
     Skeleton,
@@ -138,12 +139,16 @@ const ResourceList = () => {
                     ))}
 
                     {/* ACTIVE DATA RENDERING MAP */}
-                    {isResourcesSuccess && resources?.map((value) => (
+                    {isResourcesSuccess && resources?.map((value) => {
+                        // Inactive resources are greyed out with a dashed border and an "Inactive" chip.
+                        const inactive = value.active === false;
+                        return (
                         <Card
                             key={value.id}
                             elevation={0}
                             sx={{
-                                bgcolor: 'rgba(46, 125, 50, 0.03)',
+                                bgcolor: inactive ? 'action.hover' : 'rgba(46, 125, 50, 0.03)',
+                                borderStyle: inactive ? 'dashed !important' : undefined,
                                 border: '1px solid rgba(0, 0, 0, 0.08)',
                                 borderRadius: 2.5,
                                 overflow: 'hidden',
@@ -168,15 +173,15 @@ const ResourceList = () => {
                                         height: 44,
                                         borderRadius: '50%',
                                         flexShrink: 0,
-                                        bgcolor: 'rgba(46, 125, 50, 0.1)',
-                                        color: 'success.main'
+                                        bgcolor: inactive ? 'action.selected' : 'rgba(46, 125, 50, 0.1)',
+                                        color: inactive ? 'text.disabled' : 'success.main'
                                     }}
                                 >
                                     {resourceIcon}
                                 </Box>
 
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                                    <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }} noWrap>
+                                    <Typography variant="body1" sx={{ fontWeight: 600, color: inactive ? 'text.secondary' : 'text.primary' }} noWrap>
                                         {value.name}
                                     </Typography>
                                     {resourceType === 'general' && value.category && (
@@ -186,10 +191,15 @@ const ResourceList = () => {
                                     )}
                                 </Box>
 
+                                {inactive && (
+                                    <Chip label={text?.inactive || "Inactive"} size="small" variant="outlined" sx={{ flexShrink: 0, fontWeight: 600, color: 'text.secondary' }} />
+                                )}
+
                                 <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                             </CardActionArea>
                         </Card>
-                    ))}
+                        );
+                    })}
                 </Box>
 
                 {/* Empty Fallback State Area */}

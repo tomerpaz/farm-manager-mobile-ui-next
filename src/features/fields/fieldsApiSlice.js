@@ -24,6 +24,12 @@ export function safeParseJson(json) {
 }
 
 
+// The field created last, so the site's field list can show it first once —
+// the list reads it on mount and clears it right after.
+let justAddedFieldId = null;
+export const getJustAddedFieldId = () => justAddedFieldId;
+export const clearJustAddedFieldId = () => { justAddedFieldId = null; };
+
 export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG, SiteFields_TAG, Field_TAG] }).injectEndpoints({
 
     endpoints: builder => ({
@@ -59,7 +65,14 @@ export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG
                 body: { ...args },
 
             }),
-            invalidatesTags: [Field_TAG, SiteFields_TAG]
+            invalidatesTags: [Field_TAG, SiteFields_TAG],
+            async onQueryStarted(args, { queryFulfilled }) {
+                try {
+                    justAddedFieldId = (await queryFulfilled).data?.id ?? null;
+                } catch {
+                    // Failed create — nothing to highlight.
+                }
+            },
 
         }),
         updateField: builder.mutation({
