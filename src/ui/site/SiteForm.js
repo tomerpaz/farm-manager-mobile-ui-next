@@ -194,7 +194,7 @@ const SiteForm = () => {
                 variant="h4"
                 sx={{ fontWeight: 800, fontSize: { xs: '1.35rem', sm: '1.85rem' }, color: 'text.primary', letterSpacing: '-0.02em' }}
               >
-                {isNewSite ? (text.createRecord || "New Site") : (site?.name || "Loading Site...")}
+                {isNewSite ? (text.newSite || "New Site") : (site?.name || "Loading Site...")}
               </Typography>
               {(site?.ggGeoName || site?.ggGeoCountry) && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>

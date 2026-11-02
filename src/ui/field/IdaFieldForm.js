@@ -247,7 +247,7 @@ const IdaFieldForm = () => {
                             variant="h4"
                             sx={{ fontWeight: 800, fontSize: { xs: '1.35rem', sm: '1.85rem' }, color: 'text.primary', letterSpacing: '-0.02em' }}
                         >
-                            {isNewField ? (text.createRecord || "New Field") : (field?.name || "Loading Field...")}
+                            {isNewField ? (text.newField || "New Field") : (field?.name || "Loading Field...")}
                         </Typography>
                     </Box>
 

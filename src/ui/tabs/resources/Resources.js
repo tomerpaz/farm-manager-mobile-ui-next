@@ -9,15 +9,17 @@ import {
 import { Category, ChevronRight, Grass, Groups } from '@mui/icons-material';
 
 import { selectLang } from '../../../features/app/appSlice';
+import useWorkerLabels from '../../../features/resources/useWorkerLabels';
 
 const Resources = () => {
   const text = useSelector(selectLang);
   const navigate = useNavigate();
+  const workerLabels = useWorkerLabels();
 
   // Unified resource routing list structure dataset metadata mapping matrix
   const resourceItems = [
     { id: 'fertilizers', name: text?.fertilizers || 'Fertilizers', path: '/resources/fertilizer', icon: <Grass /> },
-    { id: 'managers', name: text?.managers || 'Managers', path: '/resources/worker', icon: <Groups /> },
+    { id: 'managers', name: workerLabels.many, path: '/resources/worker', icon: <Groups /> },
     { id: 'general', name: text?.general || 'General', path: '/resources/general', icon: <Category /> }
   ];
 

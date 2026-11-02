@@ -7,10 +7,11 @@ import {
     Card,
     CardActionArea,
     Fab,
+    Tooltip,
     Typography,
     Skeleton
 } from "@mui/material";
-import { Add, Agriculture, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
+import { Add, Agriculture, PictureAsPdf, TableChart, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
 
 import { selectLang } from "../../features/app/appSlice";
 import { safeParseJson, clearJustAddedFieldId, getJustAddedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
@@ -19,6 +20,8 @@ import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../featu
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
 import FieldShapeThumb, { ESRI_ATTRIBUTION } from '../field/FieldShapeThumb';
+import { exportFieldsToPdf, exportFieldsToXlsx } from './fieldListReport';
+import { FieldSearchBox, useFieldFilter } from './FieldSearch';
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString("en-AU") : null);
 
@@ -41,9 +44,27 @@ const SiteFieldList = () => {
     const { data: cropGenera = [] } = useGetCropGeneraQuery();
     const { data: productCategories = [] } = useGetProductCategoriesQuery();
 
+    // Free-text filter over what each card shows (see FieldSearch).
+    const [query, setQuery] = useState('');
+    const visibleFields = useFieldFilter(fields, query);
+
     const siteName = isSiteSuccess && siteData ? siteData.name : "";
 
     const handleAddField = () => navigate(`/site/${siteId}/field/0`);
+
+    // Exports what the list currently shows, search filter included.
+    const exportLookups = { cropGenera, productCategories };
+    const canExport = isFieldsSuccess && visibleFields?.length > 0;
+    const handleExportPdf = () => {
+        // Opened synchronously so it counts as a user-gesture popup.
+        const reportWindow = window.open('', '_blank');
+        exportFieldsToPdf(visibleFields, siteName, text, exportLookups, reportWindow).catch((err) => {
+            console.error('Failed to export fields PDF:', err);
+            reportWindow?.close();
+        });
+    };
+    const handleExportXlsx = () => exportFieldsToXlsx(visibleFields, siteName, text, exportLookups);
+    const exportButtonSx = { textTransform: 'none', fontWeight: 700, borderRadius: 1.5, px: { xs: 1.25, sm: 2 }, height: 36, minWidth: 0 };
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -106,7 +127,24 @@ const SiteFieldList = () => {
                         </Box>
                     </Box>
 
-                    {/* Right Side: Desktop-only Add Button */}
+                    {/* Right Side: exports (all screens) + desktop-only Add Button */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                    <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
+                        <span>
+                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={handleExportPdf}
+                                startIcon={<PictureAsPdf sx={{ color: canExport ? '#B7261C' : undefined }} />} sx={exportButtonSx}>
+                                PDF
+                            </Button>
+                        </span>
+                    </Tooltip>
+                    <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
+                        <span>
+                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={handleExportXlsx}
+                                startIcon={<TableChart sx={{ color: canExport ? '#175C35' : undefined }} />} sx={exportButtonSx}>
+                                Excel
+                            </Button>
+                        </span>
+                    </Tooltip>
                     <Button
                         variant="contained"
                         color="success"
@@ -122,7 +160,12 @@ const SiteFieldList = () => {
                     >
                         {text?.addFieldBtn || "Add Field"}
                     </Button>
+                    </Box>
                 </Box>
+
+                {isFieldsSuccess && fields?.length > 0 && (
+                    <FieldSearchBox value={query} onChange={setQuery} text={text} sx={{ mb: 2 }} />
+                )}
 
                 {/* Main Fields List Box */}
                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
@@ -141,7 +184,7 @@ const SiteFieldList = () => {
                     ))}
 
                     {/* ACTIVE DATA RENDERING MAP */}
-                    {isFieldsSuccess && fields?.map((value) => {
+                    {isFieldsSuccess && visibleFields?.map((value) => {
                         const startDateLabel = formatDate(value.startDate);
                         const cropGenusName = cropGenera.find((g) => g.id === value.ggCropGenusId)?.name;
                         const productCategoryName = productCategories.find((c) => c.id === value.ggProductCategoryId)?.name;
@@ -198,8 +241,8 @@ const SiteFieldList = () => {
                 </Box>
 
                 {/* The thumbnails' satellite tiles are Esri's, which require attribution. */}
-                {isFieldsSuccess && fields?.some((f) => f.polygon) && (
-                    <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'end', mt: 1 }}>
+                {isFieldsSuccess && visibleFields?.some((f) => f.polygon) && (
+                    <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'end', mt: 0.5, fontSize: '0.625rem', lineHeight: 1.2, opacity: 0.75 }}>
                         {ESRI_ATTRIBUTION}
                     </Typography>
                 )}
@@ -208,6 +251,11 @@ const SiteFieldList = () => {
                 {isFieldsSuccess && fields?.length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4, py: 2 }}>
                         {text?.noFieldsMessage || "No fields found. Click the button to add one."}
+                    </Typography>
+                )}
+                {isFieldsSuccess && fields?.length > 0 && visibleFields?.length === 0 && (
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4, py: 2 }}>
+                        {(text?.noMatchingFields || 'No fields match "{query}".').replace('{query}', query.trim())}
                     </Typography>
                 )}
 

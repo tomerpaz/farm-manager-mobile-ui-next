@@ -7,40 +7,41 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { getMonthName } from "../../FarmUtil";
 import GlobalGapSvg from "../../../icons/gg/GlobalGapSvg";
 
-// jsPDF has no Unicode BiDi support — it draws characters strictly in the
-// order given, so Hebrew (stored logically, meant to read right-to-left)
-// comes out visually backwards, and a run of Hebrew embedded next to Latin
-// text or digits (a field name like "100 כרמל") throws off the surrounding
-// runs too. This is the standard workaround: split into runs of RTL vs
-// everything-else, reverse each RTL run's own characters (so it reads
-// correctly), then reverse the run order (since the line is RTL-dominant
-// once it contains Hebrew) so the whole thing lays out right-to-left. Pure
-// LTR/neutral strings (the vast majority of cells) are untouched.
-const RTL_CHAR = /[֐-׿]/;
-function toPdfBidiText(value) {
-    const text = String(value ?? "");
-    if (!RTL_CHAR.test(text)) return text;
-
-    const runs = [];
-    let current = "";
-    let currentIsRtl = null;
-    for (const ch of text) {
-        const isRtl = RTL_CHAR.test(ch);
-        if (currentIsRtl === null || isRtl === currentIsRtl) {
-            current += ch;
-        } else {
-            runs.push({ text: current, isRtl: currentIsRtl });
-            current = ch;
-        }
-        currentIsRtl = isRtl;
+// jsPDF draws glyphs strictly left to right, and its bundled BiDi engine
+// runs on every doc.text() call — by default treating the input as already
+// visual, which reverses digit runs and Latin words next to Hebrew (a date
+// like 2026-11-02 came out as 20-11-6202). installBidiText makes it treat
+// text as logical instead (the order it's stored in) with the base direction
+// of each string's first strong character, as the Unicode BiDi algorithm
+// does — so "חלקות · 7 · 2026-11-02" and "100 כרמל" lay out right-to-left with
+// their numbers intact, and Latin-only strings are left untouched. It wraps
+// doc.text, so autoTable's cells go through it too.
+const RTL_CHAR = /[\u0590-\u05FF]/;
+const STRONG_CHAR = /[\u0590-\u05FFA-Za-z\u00C0-\u024F]/;
+const startsRtl = (value) => {
+    for (const ch of value) {
+        if (STRONG_CHAR.test(ch)) return RTL_CHAR.test(ch);
     }
-    if (current) runs.push({ text: current, isRtl: currentIsRtl });
+    return false;
+};
 
-    return runs
-        .map((run) => (run.isRtl ? [...run.text].reverse().join("") : run.text))
-        .reverse()
-        .join("");
+export function installBidiText(doc) {
+    const text = doc.text.bind(doc);
+    doc.text = (value, x, y, options, ...rest) => {
+        const joined = Array.isArray(value) ? value.join(" ") : String(value ?? "");
+        if (!RTL_CHAR.test(joined)) return text(value, x, y, options, ...rest);
+        return text(value, x, y, {
+            ...options,
+            isInputVisual: false,
+            isOutputVisual: true,
+            isInputRtl: startsRtl(joined),
+            isOutputRtl: false,
+        }, ...rest);
+    };
 }
+
+// Cell values go to jsPDF as plain strings; installBidiText does the reordering.
+export const toPdfBidiText = (value) => String(value ?? "");
 
 const formatDate = (v) => (v && dayjs(v).isValid() ? dayjs(v).format("YYYY-MM-DD HH:mm") : "");
 const formatDay = (v) => (v && dayjs(v).isValid() ? dayjs(v).format("YYYY-MM-DD") : "");
@@ -290,11 +291,11 @@ export function exportYearToXlsx(ggYearData, year, lang) {
 // A bit darker than a pastel tint (better contrast for white header text)
 // but still lighter than the app's usual #2e7d32 — across a report this
 // long, a very dark header on every table gets heavy fast.
-const PDF_GREEN = [67, 160, 71];
-const PDF_STRIPE = [240, 247, 240];
-const MARGIN = 14;
+export const PDF_GREEN = [67, 160, 71];
+export const PDF_STRIPE = [240, 247, 240];
+export const MARGIN = 14;
 // FarmManager_LogoWhite.png's natural aspect ratio (2126x341).
-const LOGO_ASPECT = 2126 / 341;
+export const LOGO_ASPECT = 2126 / 341;
 
 function loadImageElement(path) {
     return new Promise((resolve, reject) => {
@@ -310,7 +311,7 @@ function loadImageElement(path) {
 // non-transparent pixel to the given RGB (keeping each pixel's original
 // alpha, so anti-aliased edges stay smooth) and hands back a data URL, since
 // jsPDF's addImage needs image data rather than a plain file path anyway.
-async function recolorLogoDataUrl(path, [r, g, b]) {
+export async function recolorLogoDataUrl(path, [r, g, b]) {
     const img = await loadImageElement(path);
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
@@ -367,7 +368,8 @@ async function loadFontBase64(path) {
     return btoa(binary);
 }
 
-async function useHebrewCapableFont(doc) {
+export async function useHebrewCapableFont(doc) {
+    installBidiText(doc);
     const fontBase64 = await loadFontBase64("/fonts/Heebo.ttf").catch(() => null);
     if (!fontBase64) return false;
     doc.addFileToVFS("Heebo.ttf", fontBase64);

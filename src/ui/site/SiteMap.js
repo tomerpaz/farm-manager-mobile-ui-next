@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useSelector } from 'react-redux';
 import L from 'leaflet';
-import { Box, Typography } from '@mui/material';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
+import { Layers } from '@mui/icons-material';
 import { MapContainer, Polygon } from 'react-leaflet';
 
 import { selectLang, selectMapZoom } from '../../features/app/appSlice';
@@ -14,30 +15,49 @@ import GeoLocation from '../../components/GeoLocation';
 import Loading from '../../components/Loading';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
+import { FieldSearchBox, useFieldFilter } from './FieldSearch';
+import SiteMapLayersDialog, { useSiteMapLayers } from './SiteMapLayers';
+import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 
 const DEFAULT_COLOR = '#43a047';
 
 // All of a site's field polygons on one map, each in its own color (50%
-// fill) and labelled with the field name; tapping one opens that field.
+// fill) and labelled with the lines picked in the Layers dialog (name by
+// default; alias, product category, crop genus); tapping one opens that field.
 const SiteMap = () => {
     const { siteId } = useParams();
     const navigate = useNavigate();
     const text = useSelector(selectLang);
     const mapZoom = useSelector(selectMapZoom);
     const [map, setMap] = useState(null);
+    const [layersOpen, setLayersOpen] = useState(false);
+    const [layers, toggleLayer] = useSiteMapLayers();
+    const { data: cropGenera = [] } = useGetCropGeneraQuery();
+    const { data: productCategories = [] } = useGetProductCategoriesQuery();
+
+    // IDA fields store the product category as their crop and the crop genus
+    // as their variety — fall back to those names, as the field list export does.
+    const labelLines = (field) => [
+        layers.name && field.name,
+        layers.alias && field.alias,
+        layers.productCategory && (productCategories.find((c) => c.id === field.ggProductCategoryId)?.name ?? field.cropName),
+        layers.cropGenus && (cropGenera.find((g) => g.id === field.ggCropGenusId)?.name ?? field.varietyName),
+    ].filter(Boolean);
 
     const { data: fields, isLoading: isFieldsLoading } = useGetFieldsBySiteQuery(siteId);
     const { data: site, isLoading: isSiteLoading } = useGetSiteQuery(siteId);
 
-    const shapes = useMemo(
-        () =>
-            (fields || [])
-                .map((f) => ({ field: f, points: safeParseJson(f.polygon) }))
-                .filter(({ points }) => Array.isArray(points) && points.length > 2),
-        [fields]
-    );
+    // Same free-text filter as the field list; only matching polygons are drawn.
+    const [query, setQuery] = useState('');
+    const visibleFields = useFieldFilter(fields, query);
 
-    // Fit every polygon in view; with none, fall back to the site's location.
+    const toShapes = (list) => (list || [])
+        .map((f) => ({ field: f, points: safeParseJson(f.polygon) }))
+        .filter(({ points }) => Array.isArray(points) && points.length > 2);
+    const allShapes = useMemo(() => toShapes(fields), [fields]);
+    const shapes = useMemo(() => toShapes(visibleFields), [visibleFields]);
+
+    // Fit every shown polygon in view; with none, fall back to the site's location.
     useEffect(() => {
         if (!map) return;
         if (shapes.length > 0) {
@@ -74,7 +94,7 @@ const SiteMap = () => {
                 borderRadius: { xs: 0, sm: 2 },
                 boxShadow: { xs: 0, sm: 2 }
             }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: { xs: 1, sm: 2 }, px: { xs: 1, sm: 0 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 1.5, rowGap: 1, mb: { xs: 1, sm: 2 }, px: { xs: 1, sm: 0 } }}>
                     <GoBackDesktopButton />
                     <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                         <Typography
@@ -91,6 +111,23 @@ const SiteMap = () => {
                             {site?.name || ''}
                         </Typography>
                     </Box>
+                    {/* Next to the title on desktop, its own row on phones. */}
+                    {/* Search + Layers: next to the title on desktop, their own row on phones. */}
+                    {allShapes.length > 0 && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginInlineStart: { sm: 'auto' }, width: { xs: '100%', sm: 'auto' } }}>
+                            <FieldSearchBox value={query} onChange={setQuery} text={text}
+                                sx={{ width: { xs: '100%', sm: 280 } }} />
+                            <Tooltip title={text.layers || 'Layers'}>
+                                <IconButton
+                                    aria-label={text.layers || 'Layers'}
+                                    onClick={() => setLayersOpen(true)}
+                                    sx={{ flexShrink: 0, border: 1, borderColor: 'divider', borderRadius: 1, width: 40, height: 40 }}
+                                >
+                                    <Layers />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                    )}
                 </Box>
 
                 <Box
@@ -110,12 +147,14 @@ const SiteMap = () => {
                         <Typography
                             variant="body2"
                             sx={{
-                                position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
+                                position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1100,
                                 bgcolor: 'background.paper', color: 'text.secondary', px: 1.5, py: 0.75, borderRadius: 2,
                                 boxShadow: 2, maxWidth: 'calc(100% - 120px)', textAlign: 'center'
                             }}
                         >
-                            {text.noFieldPolygons || 'No field polygons have been drawn for this site yet.'}
+                            {allShapes.length === 0
+                                ? (text.noFieldPolygons || 'No field polygons have been drawn for this site yet.')
+                                : (text.noMatchingFields || 'No fields match "{query}".').replace('{query}', query.trim())}
                         </Typography>
                     )}
                     <MapContainer
@@ -136,11 +175,12 @@ const SiteMap = () => {
                                     pathOptions={{ color, fillColor: color, fillOpacity: 0.5, weight: 3 }}
                                     eventHandlers={{ click: () => navigate(`/site/${siteId}/field/${field.id}`) }}
                                 >
-                                    <MapToolTip textArr={[field.name]} />
+                                    {labelLines(field).length > 0 && <MapToolTip textArr={labelLines(field)} />}
                                 </Polygon>
                             );
                         })}
                     </MapContainer>
+                    <SiteMapLayersDialog open={layersOpen} onClose={() => setLayersOpen(false)} layers={layers} onToggle={toggleLayer} text={text} />
                 </Box>
             </Box>
         </Box>

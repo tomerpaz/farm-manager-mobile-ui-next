@@ -17,6 +17,7 @@ import ActionApprovalDialog from '../../../components/ui/ActionApprovalDialog';
 import Loading from '../../../components/Loading';
 import GoBackAppBar from '../../../appbar/content/GoBackAppBar'
 import FormActionBar from '../../../components/ui/FormActionBar'
+import useWorkerLabels from '../../../features/resources/useWorkerLabels';
 
 import {
     useGetResourceQuery,
@@ -28,6 +29,7 @@ import {
 const ResourceForm = () => {
     const navigate = useNavigate();
     const { resourceType, resourceId } = useParams();
+    const workerLabels = useWorkerLabels();
     const dispatch = useDispatch();
     const text = useSelector(selectLang);
 
@@ -46,6 +48,7 @@ const ResourceForm = () => {
         const baseDefaults = {
             id: rawData?.id || null,
             name: rawData?.name ?? '',
+            // No input for it — kept so saving doesn't clear an existing code.
             code: rawData?.code ?? '',
             active: rawData?.active ?? true,
             type: resourceType.toUpperCase()
@@ -156,9 +159,15 @@ const ResourceForm = () => {
 
     const getSubTitleText = () => {
         if (resourceType === 'fertilizer') return text?.fertilizer || "Fertilizer Details";
-        if (resourceType === 'worker') return text?.worker || "Worker/Manager Details";
+        if (resourceType === 'worker') return workerLabels.one;
         if (resourceType === 'general') return text?.general || "General Resource Details";
         return "";
+    };
+
+    const getNewTitleText = () => {
+        if (resourceType === 'fertilizer') return text?.newFertilizer || "New Fertilizer";
+        if (resourceType === 'worker') return workerLabels.newOne;
+        return text?.newResource || "New Resource";
     };
 
     return (
@@ -198,7 +207,7 @@ const ResourceForm = () => {
                             variant="h4"
                             sx={{ fontWeight: 800, fontSize: { xs: '1.35rem', sm: '1.85rem' }, color: 'text.primary', letterSpacing: '-0.02em' }}
                         >
-                            {isNewRecord ? (text.createRecord || "Create Resource") : (resource?.name || "Loading...")}
+                            {isNewRecord ? getNewTitleText() : (resource?.name || "Loading...")}
                         </Typography>
                     </Box>
                 </Box>
@@ -207,45 +216,23 @@ const ResourceForm = () => {
                 <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ width: '100%' }}>
                     <Stack spacing={3} sx={{ width: '100%' }}>
 
-                        {/* ROW 1: Common Parameters: Name + Code */}
-                        <Box sx={{ display: "flex", flexDirection: "row", gap: 2, width: '100%' }}>
-                            <Box sx={{ flex: 3, minWidth: 0 }}>
-                                <Controller
-                                    name="name"
-                                    control={control}
-                                    rules={{ required: text?.nameRequired || 'Name is required' }}
-                                    render={({ field, fieldState: { error } }) => (
-                                        <TextField
-                                            {...field}
-                                            label={text?.name || "Name"}
-                                            variant="outlined"
-                                            fullWidth
-                                            error={!!error}
-                                            helperText={error?.message}
-                                            slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }}
-                                        />
-                                    )}
+                        {/* ROW 1: Name */}
+                        <Controller
+                            name="name"
+                            control={control}
+                            rules={{ required: text?.nameRequired || 'Name is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                                <TextField
+                                    {...field}
+                                    label={text?.name || "Name"}
+                                    variant="outlined"
+                                    fullWidth
+                                    error={!!error}
+                                    helperText={error?.message}
+                                    slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }}
                                 />
-                            </Box>
-
-                            <Box sx={{ flex: 1, minWidth: 0 }}>
-                                <Controller
-                                    name="code"
-                                    control={control}
-                                    render={({ field, fieldState: { error } }) => (
-                                        <TextField
-                                            {...field}
-                                            label={text?.code || "Code"}
-                                            variant="outlined"
-                                            fullWidth
-                                            error={!!error}
-                                            helperText={error?.message}
-                                            slotProps={{ htmlInput: { style: { fontSize: '1rem', padding: '16px 14px' } } }}
-                                        />
-                                    )}
-                                />
-                            </Box>
-                        </Box>
+                            )}
+                        />
 
                         {resourceType === 'fertilizer' && (
                             <Fragment>
@@ -302,7 +289,7 @@ const ResourceForm = () => {
                                             control={control}
                                             rules={{ validate: validateNpk }}
                                             render={({ field, fieldState: { error } }) => (
-                                                <TextField {...field} label="N (%)" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
+                                                <TextField {...field} label="N" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
                                             )}
                                         />
                                     </Box>
@@ -312,7 +299,7 @@ const ResourceForm = () => {
                                             control={control}
                                             rules={{ validate: validateNpk }}
                                             render={({ field, fieldState: { error } }) => (
-                                                <TextField {...field} label="P (%)" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
+                                                <TextField {...field} label="P" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
                                             )}
                                         />
                                     </Box>
@@ -322,7 +309,7 @@ const ResourceForm = () => {
                                             control={control}
                                             rules={{ validate: validateNpk }}
                                             render={({ field, fieldState: { error } }) => (
-                                                <TextField {...field} label="K (%)" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
+                                                <TextField {...field} label="K" variant="outlined" fullWidth type="number" error={!!error} helperText={error?.message} slotProps={{ htmlInput: { min: 0, step: '0.01', style: { fontSize: '1rem', padding: '16px 14px' } } }} />
                                             )}
                                         />
                                     </Box>

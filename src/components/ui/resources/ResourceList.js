@@ -16,7 +16,8 @@ import { selectLang } from "../../../features/app/appSlice";
 import { useGetResourcesQuery } from '../../../features/resources/resourcesApiSlice'; // Adjust import path to your project
 import GoBackAppBar from '../../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../GoBackDesktopButton';
-import { FERTILIZER, WORKER } from '../../../ui/FarmUtil';
+import { FERTILIZER, GENERAL, WORKER } from '../../../ui/FarmUtil';
+import useWorkerLabels from '../../../features/resources/useWorkerLabels';
 
 const getResourceIcon = (resourceType) => {
     if (resourceType === FERTILIZER) return <Grass />;
@@ -29,20 +30,23 @@ const ResourceList = () => {
     const { resourceType } = useParams();
     const navigate = useNavigate();
     const text = useSelector(selectLang);
+    const workerLabels = useWorkerLabels();
 
     // 2. Dynamic query path hook execution passing resourceType directly
     const { data: resources, isSuccess: isResourcesSuccess, isLoading: isResourcesLoading } = useGetResourcesQuery({ type: resourceType });
 
     const handleAddResource = () => navigate(`/resource/${resourceType}/0`);
 
-    // Compute dynamic layout headers based on your URL parameters
+    // The route's type is lowercase (/resources/fertilizer); the constants are uppercase.
+    const typeKey = resourceType?.toUpperCase();
     const getPageTitle = () => {
-        if (resourceType === FERTILIZER) return text?.fertilizers || "Fertilizers";
-        if (resourceType === WORKER) return text?.managers || "Managers";
+        if (typeKey === FERTILIZER) return text?.fertilizers || "Fertilizers";
+        if (typeKey === WORKER) return workerLabels.many;
+        if (typeKey === GENERAL) return text?.general || "General";
         return resourceType ? resourceType.charAt(0).toUpperCase() + resourceType.slice(1) : "";
     };
 
-    const resourceIcon = getResourceIcon(resourceType);
+    const resourceIcon = getResourceIcon(typeKey);
 
     return (
         <Box sx={{ width: '100%' }}>
