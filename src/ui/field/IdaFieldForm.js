@@ -121,11 +121,17 @@ const IdaFieldForm = () => {
     const { data: site } = useGetSiteQuery(fieldSiteId, { skip: !fieldSiteId || String(fieldSiteId) === '0' });
 
     const [polygonJson, fieldLat, fieldLng, fieldZoom, color] = useWatch({ control, name: ['polygon', 'lat', 'lng', 'zoom', 'color'] });
-    const startDate = useWatch({ control, name: 'startDate' });
-    // Free site area at the chosen start date, shown under the Size input.
+    const [startDate, endDate] = useWatch({ control, name: ['startDate', 'endDate'] });
+    // Free site area over the field's period, shown under the Size input.
     const hasStartDate = !!startDate && dayjs(startDate).isValid();
+    const hasEndDate = !!endDate && dayjs(endDate).isValid();
     const { data: freeArea } = useGetSiteFreeAreaQuery(
-        { siteId: fieldSiteId, date: hasStartDate ? asLocalDate(dayjs(startDate).toDate(), true) : null, fieldId: field?.id },
+        {
+            siteId: fieldSiteId,
+            date: hasStartDate ? asLocalDate(dayjs(startDate).toDate(), true) : null,
+            end: hasEndDate ? asLocalDate(dayjs(endDate).toDate(), true) : undefined,
+            fieldId: field?.id,
+        },
         { skip: !hasStartDate || !fieldSiteId || String(fieldSiteId) === '0' }
     );
     // The site's other fields, drawn in black around this one for reference.
@@ -178,10 +184,10 @@ const IdaFieldForm = () => {
             data.startDate = data.startDate ? asLocalDate(data.startDate, true) : null;
             data.endDate = data.endDate ? asLocalDate(data.endDate, true) : null;
 
-            // The field can't be larger than the site area still free at its start date.
-            const freeArea = await getSiteFreeArea({ siteId: data.siteId, date: data.startDate, fieldId: data.id }).unwrap();
+            // The field can't be larger than the site area still free at any point in its period.
+            const freeArea = await getSiteFreeArea({ siteId: data.siteId, date: data.startDate, end: data.endDate || undefined, fieldId: data.id }).unwrap();
             if (Number(data.area) > Number(freeArea)) {
-                setError('area', { message: `${text.areaExceedsSiteFree || "Size exceeds the site's free area at the start date"} (${freeArea})` });
+                setError('area', { message: `${text.areaExceedsSiteFree || "Size exceeds the site's free area during the field's period"} (${freeArea})` });
                 return;
             }
 
@@ -389,51 +395,48 @@ const IdaFieldForm = () => {
                                         />
                                     </Box>
 
-                                    {/* A new field has no end date yet — only shown when editing. */}
-                                    {!isNewField && (
-                                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                                            <Controller
-                                                name="endDate"
-                                                control={control}
-                                                rules={{
-                                                    validate: (v) =>
-                                                        !v || !startDate || dayjs(v).isAfter(dayjs(startDate), 'day') ||
-                                                        text.endAfterStart || 'End date must be after the start date'
-                                                }}
-                                                render={({ field, fieldState: { error } }) => (
-                                                    <DatePicker
-                                                        label={text.end || "End Date"}
-                                                        // Earliest pickable end date: the day after the start.
-                                                        minDate={startDate ? dayjs(startDate).add(1, 'day') : undefined}
-                                                        closeOnSelect
-                                                        showToolbar={false}
-                                                        localeText={{
-                                                            cancelButtonLabel: text.cancel,
-                                                            clearButtonLabel: text.clear,
-                                                            okButtonLabel: text.save
-                                                        }}
-                                                        slotProps={{
-                                                            textField: {
-                                                                variant: 'outlined',
-                                                                size: fieldSize,
-                                                                fullWidth: true,
-                                                                error: !!error,
-                                                                helperText: error?.message,
-                                                                sx: {
-                                                                    '& .MuiInputBase-root': { fontSize: '1rem' },
-                                                                    '& .MuiInputBase-input': isPhone ? {} : { padding: '16px 14px' }
-                                                                }
-                                                            },
-                                                            actionBar: { actions: ["cancel"] }
-                                                        }}
-                                                        {...field}
-                                                        value={toPickerValue(field.value)}
-                                                        onChange={(v) => field.onChange(toDateOrNull(v))}
-                                                    />
-                                                )}
-                                            />
-                                        </Box>
-                                    )}
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                        <Controller
+                                            name="endDate"
+                                            control={control}
+                                            rules={{
+                                                validate: (v) =>
+                                                    !v || !startDate || dayjs(v).isAfter(dayjs(startDate), 'day') ||
+                                                    text.endAfterStart || 'End date must be after the start date'
+                                            }}
+                                            render={({ field, fieldState: { error } }) => (
+                                                <DatePicker
+                                                    label={text.end || "End Date"}
+                                                    // Earliest pickable end date: the day after the start.
+                                                    minDate={startDate ? dayjs(startDate).add(1, 'day') : undefined}
+                                                    closeOnSelect
+                                                    showToolbar={false}
+                                                    localeText={{
+                                                        cancelButtonLabel: text.cancel,
+                                                        clearButtonLabel: text.clear,
+                                                        okButtonLabel: text.save
+                                                    }}
+                                                    slotProps={{
+                                                        textField: {
+                                                            variant: 'outlined',
+                                                            size: fieldSize,
+                                                            fullWidth: true,
+                                                            error: !!error,
+                                                            helperText: error?.message,
+                                                            sx: {
+                                                                '& .MuiInputBase-root': { fontSize: '1rem' },
+                                                                '& .MuiInputBase-input': isPhone ? {} : { padding: '16px 14px' }
+                                                            }
+                                                        },
+                                                        actionBar: { actions: ["cancel"] }
+                                                    }}
+                                                    {...field}
+                                                    value={toPickerValue(field.value)}
+                                                    onChange={(v) => field.onChange(toDateOrNull(v))}
+                                                />
+                                            )}
+                                        />
+                                    </Box>
                                 </Box>
 
                                 {/* Row 3: Autocomplete Select Inputs (Crop Genus & Product Category) locked side-by-side */}

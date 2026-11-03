@@ -19,11 +19,15 @@ export const sitesApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [Sites_TAG
             query: (siteId) => `/api/farm/site/${siteId}`,
             providesTags: [Site_TAG]
         }),
-        // Site area not taken by other fields on the date; pass fieldId to exclude that field.
+        // Smallest site area left by other fields at any point from date until
+        // end (open-ended when end is omitted); pass fieldId to exclude that field.
         getSiteFreeArea: builder.query({
-            query: ({ siteId, date, fieldId }) => ({
+            query: ({ siteId, date, end, fieldId }) => ({
                 url: `/api/farm/site/${siteId}/free-area/${date}`,
-                params: fieldId ? { field: fieldId } : undefined,
+                params: {
+                    ...(fieldId ? { field: fieldId } : {}),
+                    ...(end ? { end } : {}),
+                },
             }),
             // Depends on the site's fields — refetched when one is saved or deleted.
             providesTags: [SiteFields_TAG],

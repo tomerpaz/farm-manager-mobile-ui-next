@@ -250,8 +250,8 @@ const resolveSchema = (schema, dataSources, t) =>
 const filterByStartDate = (fields, cutoff) =>
     (fields ?? []).filter((f) => !f.startDate || new Date(f.startDate) <= cutoff);
 
-// Drafts can be left incomplete — a real submission can't. waterUse and
-// energyUsed just need one record each; activeIngredients/fertilizers are
+// Drafts can be left incomplete — a real submission can't. waterUse,
+// precipitation and energyUsed just need one record each; activeIngredients/fertilizers are
 // keyed per field (crop_id server-side), so every field needs its own
 // covering record — either a real application, or an entry with no resources
 // ("No Active Ingredient"/"No NPK") declaring nothing was applied.
@@ -265,6 +265,9 @@ function validateMandatoryMetrics(formData, availableFields, zeroOptionLabels, t
     const errors = {};
     if ((formData.waterUse || []).length === 0) {
         errors.waterUse = needsOne;
+    }
+    if ((formData.precipitation || []).length === 0) {
+        errors.precipitation = needsOne;
     }
     if ((formData.energyUsed || []).length === 0) {
         errors.energyUsed = needsOne;
@@ -415,6 +418,12 @@ function IDAForm() {
             // Expand every panel with a problem so the inline message is
             // actually visible instead of sitting collapsed off-screen.
             setExpanded((prev) => new Set([...prev, ...Object.keys(mandatoryErrors)]));
+            return;
+        }
+        // A new month with nothing entered would only store an empty record
+        // that the dashboard can't tell apart from an untouched month.
+        if (!existingRecord?.id && METRIC_IDS.every((id) => !formData[id]?.length)) {
+            setSubmitError(t("nothingToSave", "Nothing to save — add at least one entry first."));
             return;
         }
         const payload = toRecordPayload(formData, { id: existingRecord?.id, firstDayOfMonth });

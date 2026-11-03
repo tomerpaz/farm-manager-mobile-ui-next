@@ -34,13 +34,13 @@ import { exportYearToPdf, exportYearToXlsx } from './idaReport';
 import { useNavigate } from 'react-router';
 
 // One tile per metric per month. On mobile there's no room for a
-// "Fertilizer: OK" label next to three others plus the month button on a
-// single line, so it shrinks to an icon-only chip (color still carries
-// ok/pending, full detail stays one tap away via the tooltip) — that keeps
+// "Fertilizer" label next to three others plus the month button on a
+// single line, so it shrinks to an icon-only chip (the name stays one tap
+// away via the tooltip). The tile's color alone carries ok/pending — that keeps
 // every row compact enough that a whole month list fits without each row
 // eating the screen.
-const StatusIndicator = ({ icon, label, ok, isMobile, styles }) => (
-  <Tooltip title={`${label}: ${ok ? 'OK' : 'PEND'}`}>
+const StatusIndicator = ({ icon, label, isMobile, styles }) => (
+  <Tooltip title={label}>
     <Paper
       elevation={0}
       sx={{
@@ -63,7 +63,7 @@ const StatusIndicator = ({ icon, label, ok, isMobile, styles }) => (
       {icon}
       {!isMobile && (
         <Typography noWrap variant="subtitle2" sx={{ fontSize: '0.78rem', fontWeight: 800, color: 'inherit' }}>
-          {`${label}: ${ok ? 'OK' : 'PEND'}`}
+          {label}
         </Typography>
       )}
     </Paper>
@@ -93,11 +93,10 @@ const IdaDash = () => {
     );
   }
 
-  // A record with every metric list empty means someone created it and
-  // never actually entered anything — checked directly off the record's own
-  // content rather than its `status` string, since a freshly-created blank
-  // record can still come back with status 'draft' (the boolean `draft`
-  // flag defaults true), which would otherwise mask the empty case.
+  // A record with every metric list empty means someone saved it without
+  // entering anything — checked directly off the record's own content rather
+  // than its `status` string, since a blank record can still come back with
+  // status 'draft' (the boolean `draft` flag defaults true).
   const RECORD_METRIC_KEYS = [
     'waterUse', 'waterAbstracted', 'activeIngredients', 'fertilizers',
     'energyUsed', 'energyExportedOrGenerated', 'precipitations', 'general',
@@ -105,26 +104,30 @@ const IdaDash = () => {
   const isRecordEmpty = (record) =>
     !!record && RECORD_METRIC_KEYS.every((key) => !record[key]?.length);
 
+  // No record, or one saved with nothing in it — nothing to report yet.
+  const isMonthEmpty = (m) => {
+    const record = ggYearData?.months?.[m]?.records?.[0];
+    return !record || isRecordEmpty(record);
+  };
+
   
   // Soft, pastel tiles matching getIndicatorStyles' look rather than MUI's
   // raw success/warning/secondary palette colors, which read too saturated
-  // side-by-side. Four distinct states: no record at all yet is neutral (an
-  // untouched month isn't a problem); a record that exists but has no data
-  // in it *is* a problem, so it gets flagged rather than folded into the
-  // same neutral "empty" look as a month nobody has opened.
+  // side-by-side. A record saved with nothing in it carries no information,
+  // so it gets the same neutral look as a month nobody has opened.
   const getStatusConfig = (m) => {
     const status = ggYearData?.months?.[m]?.status;
     const record = ggYearData?.months?.[m]?.records?.[0];
-    const hasRecord = !!record;
+    const hasRecord = !!record && !isRecordEmpty(record);
 
-    if (hasRecord && isRecordEmpty(record)) {
+    if (!hasRecord) {
       return {
-        icon: <WarningAmber sx={{ fontSize: '1.15rem' }} />,
+        icon: <RadioButtonUnchecked sx={{ fontSize: '1.15rem' }} />,
         sx: {
-          bgcolor: 'rgba(198, 40, 40, 0.12)',
-          color: '#8c1c1c',
-          border: '1px solid rgba(198, 40, 40, 0.3)',
-          '&:hover': { bgcolor: 'rgba(198, 40, 40, 0.2)' },
+          bgcolor: 'transparent',
+          color: 'text.secondary',
+          border: '1.5px solid rgba(0, 0, 0, 0.16)',
+          '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.03)', borderColor: 'rgba(0, 0, 0, 0.28)' },
         },
       };
     }
@@ -150,32 +153,29 @@ const IdaDash = () => {
         },
       };
     }
-    if (hasRecord) {
-      return {
-        icon: <WarningAmber sx={{ fontSize: '1.15rem' }} />,
-        sx: {
-          bgcolor: 'rgba(198, 40, 40, 0.12)',
-          color: '#8c1c1c',
-          border: '1px solid rgba(198, 40, 40, 0.3)',
-          '&:hover': { bgcolor: 'rgba(198, 40, 40, 0.2)' },
-        },
-      };
-    }
     return {
-      icon: <RadioButtonUnchecked sx={{ fontSize: '1.15rem' }} />,
+      icon: <WarningAmber sx={{ fontSize: '1.15rem' }} />,
       sx: {
-        bgcolor: 'transparent',
-        color: 'text.secondary',
-        border: '1.5px solid rgba(0, 0, 0, 0.16)',
-        '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.03)', borderColor: 'rgba(0, 0, 0, 0.28)' },
+        bgcolor: 'rgba(198, 40, 40, 0.12)',
+        color: '#8c1c1c',
+        border: '1px solid rgba(198, 40, 40, 0.3)',
+        '&:hover': { bgcolor: 'rgba(198, 40, 40, 0.2)' },
       },
     };
   };
 
   // An unmet compliance metric is worth flagging, not soft-pedaling as
   // neutral — red for pending, solid (not pastel) green for OK so the two
-  // don't read as close variants of the same muted tone.
-  const getIndicatorStyles = (statusOk) => {
+  // don't read as close variants of the same muted tone. An empty month
+  // stays neutral, matching its month button, instead of a wall of red.
+  const getIndicatorStyles = (statusOk, empty) => {
+    if (empty) {
+      return {
+        bgcolor: 'transparent',
+        color: 'text.secondary',
+        border: '1px solid rgba(0, 0, 0, 0.16)',
+      };
+    }
     if (statusOk) {
       return {
         bgcolor: 'rgba(46, 125, 50, 0.14)',
@@ -288,6 +288,7 @@ const IdaDash = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => {
               const statusConfig = getStatusConfig(m);
+              const empty = isMonthEmpty(m);
               return (
                 <Card
                   key={m}
@@ -365,28 +366,28 @@ const IdaDash = () => {
                       label={text?.pesticides || "Pesticides"}
                       ok={ggYearData?.months?.[m]?.activeIngredientOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.activeIngredientOk)}
+                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.activeIngredientOk, empty)}
                     />
                     <StatusIndicator
                       icon={<Grass sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.fertilizer || "Fertilizer"}
                       ok={ggYearData?.months?.[m]?.fertilizerOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.fertilizerOk)}
+                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.fertilizerOk, empty)}
                     />
                     <StatusIndicator
                       icon={<WaterDrop sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.water || "Water"}
                       ok={ggYearData?.months?.[m]?.waterOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.waterOk)}
+                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.waterOk, empty)}
                     />
                     <StatusIndicator
                       icon={<OfflineBolt sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.energy || "Energy"}
                       ok={ggYearData?.months?.[m]?.energyOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.energyOk)}
+                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.energyOk, empty)}
                     />
                   </Box>
 
