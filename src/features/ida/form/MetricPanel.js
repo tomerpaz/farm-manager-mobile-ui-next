@@ -8,11 +8,11 @@ const accordionSx = {
     "&::before": { display: "none" },
 };
 
-export default function MetricPanel({ id, title, count, expanded, onChange, children }) {
+export default function MetricPanel({ id, title, count, missing, missingLabel, expanded, onChange, children }) {
     return (
         <Accordion
             elevation={0}
-            sx={accordionSx}
+            sx={{ ...accordionSx, ...(missing ? { borderColor: "error.main" } : {}) }}
             expanded={expanded}
             onChange={onChange}
         >
@@ -26,6 +26,7 @@ export default function MetricPanel({ id, title, count, expanded, onChange, chil
                     {title}
                 </Typography>
                 {count > 0 && <Chip size="small" label={count} color="success" variant="outlined" sx={{ ml: 1.5 }} />}
+                {missing && <Chip size="small" label={missingLabel} color="error" variant="outlined" sx={{ ml: 1.5 }} />}
             </AccordionSummary>
             <AccordionDetails
                 sx={{ p: { xs: 1.5, sm: 3 }, minWidth: 0, borderTop: "1px solid", borderColor: "divider", bgcolor: "background.default" }}

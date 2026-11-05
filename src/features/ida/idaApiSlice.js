@@ -1,7 +1,7 @@
-import { apiSlice, Pests_TAG, CropGenera_TAG, ProductCategories_TAG } from "../../app/api/apiSlice";
+import { apiSlice, Pests_TAG, CropGenera_TAG, ProductCategories_TAG, SiteFields_TAG } from "../../app/api/apiSlice";
 
 export const IdaSystem_TAG = 'IdaSystem';
-export const GGYearData_TAG = 'GGYearData';
+export const GGData_TAG = 'GGData';
 export const Executors_TAG = 'Executors';
 export const Settings_TAG = 'Settings';
 
@@ -19,7 +19,7 @@ export const idaApiSlice = apiSlice
             CropGenera_TAG,
             ProductCategories_TAG,
             IdaSystem_TAG,
-            GGYearData_TAG,
+            GGData_TAG,
             Executors_TAG,
             Settings_TAG
         ]
@@ -37,16 +37,19 @@ export const idaApiSlice = apiSlice
 
             getIdaSystemData: builder.query({
                 query: () => '/api/farm/gg/ida/system/data',
-                providesTags: [IdaSystem_TAG],
+                // SiteFields_TAG: holds the fields list, so saving a field refetches it.
+                providesTags: [IdaSystem_TAG, SiteFields_TAG],
             }),
 
-            getGGYearData: builder.query({
-                query: (year) => `/api/farm/gg/ida/${year}/data`,
-                providesTags: [GGYearData_TAG],
-                // providesTags: (result, error, year) => [
-                //   { type: GGYearData_TAG, id: year },
-                //   { type: GGYearData_TAG, id: 'LIST' }
-                // ],
+            // Months are keyed yyyyMM (see monthKey in ggRecordMapper). The server
+            // leaves out elements outside from/to and sites, and saving a month
+            // deletes elements left out of it, so never edit from a narrower load.
+            getGGData: builder.query({
+                query: ({ from, to, sites }) => ({
+                    url: '/api/farm/gg/ida/data',
+                    params: { from, to, ...(sites?.length ? { site: sites } : {}) },
+                }),
+                providesTags: [GGData_TAG],
             }),
             getExecutors: builder.query({
                 query: () => '/api/farm/gg/ida/executors',
@@ -60,7 +63,7 @@ export const idaApiSlice = apiSlice
                     body: { ...args },
 
                 }),
-                invalidatesTags: [GGYearData_TAG,]
+                invalidatesTags: [GGData_TAG,]
 
             }),
 
@@ -70,7 +73,7 @@ export const idaApiSlice = apiSlice
                     method: 'PUT',
                     body: data,
                 }),
-                invalidatesTags: [GGYearData_TAG,]
+                invalidatesTags: [GGData_TAG,]
 
             }),
 
@@ -96,7 +99,7 @@ export const {
     useGetCropGeneraQuery,
     useGetProductCategoriesQuery,
     useGetIdaSystemDataQuery,
-    useGetGGYearDataQuery,
+    useGetGGDataQuery,
     useGetExecutorsQuery,
     useUpdateIdaMonthRecordMutation,
     useCreateIdaMonthRecordMutation,

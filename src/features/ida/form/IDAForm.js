@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import dayjs from "dayjs";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router";
@@ -14,7 +15,7 @@ import {
 import { selectLang } from "../../app/appSlice";
 import {
     useCreateIdaMonthRecordMutation,
-    useGetGGYearDataQuery,
+    useGetGGDataQuery,
     useGetIdaSystemDataQuery,
     useUpdateIdaMonthRecordMutation,
 } from "../idaApiSlice";
@@ -26,7 +27,7 @@ import { secondaryButtonSx } from "../../../components/ui/FormActionBar";
 import { useGetResourcesQuery } from "../../resources/resourcesApiSlice";
 import MetricFieldArray from "./MetricFieldArray";
 import MetricPanel from "./MetricPanel";
-import { fromRecord, getExistingRecord, toRecordPayload } from "../ggRecordMapper";
+import { fromRecord, getExistingRecord, toRecordPayload, yearRange } from "../ggRecordMapper";
 import useIdaText from "./useIdaText";
 
 const WORKER = "WORKER";
@@ -61,7 +62,7 @@ const METRICS = [
         totalField: "resources",
         totalUnit: "kg",
         schema: [
-            { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
+            { name: "date", type: "date", withTime: true, label: "Date and End Hour", labelKey: "dateAndEndHour", required: true, defaultToFormDate: true },
             // "No Active Ingredient" is an explicit checkbox (noneCheckbox):
             // ticking it empties the list, disables adding rows and gives the
             // date the same forced/locked treatment the old id-0 "None" option
@@ -69,7 +70,7 @@ const METRICS = [
             // empty list. Each row only takes a resource and its amount.
             {
                 name: "resources", type: "resources", label: "Pesticides", labelKey: "pesticides", optionsFrom: "pesticides",
-                emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg",
+                emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
             },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
             // group: shares a dialog panel with the other "details" fields (the note).
@@ -245,10 +246,14 @@ const resolveSchema = (schema, dataSources, t) =>
         };
     });
 
-// A field with no startDate on record shouldn't be hidden from selection —
-// only exclude it once we can actually tell it starts after this month.
-const filterByStartDate = (fields, cutoff) =>
-    (fields ?? []).filter((f) => !f.startDate || new Date(f.startDate) <= cutoff);
+// A field with a missing date shouldn't be hidden from selection — only
+// exclude it once we can actually tell it starts after this month or ended before it.
+const filterByMonth = (fields, firstDay, lastDay) =>
+    (fields ?? []).filter(
+        (f) =>
+            (!f.startDate || !dayjs(f.startDate).isAfter(lastDay, "day")) &&
+            (!f.endDate || !dayjs(f.endDate).isBefore(firstDay, "day"))
+    );
 
 // Drafts can be left incomplete — a real submission can't. waterUse,
 // precipitation and energyUsed just need one record each; activeIngredients/fertilizers are
@@ -315,14 +320,14 @@ function IDAForm() {
     const { data: workers = [], isLoading: isWorkersLoading } = useGetResourcesQuery({ type: WORKER });
     const { data: generalResources = [] } = useGetResourcesQuery({ type: GENERAL });
     const { data: pests, isLoading: isPestsLoading } = useGetPestsQuery();
-    const { data: ggYearData, isLoading: isYearDataLoading } = useGetGGYearDataQuery(recordYear);
+    const { data: ggData, isLoading: isDataLoading } = useGetGGDataQuery(yearRange(recordYear));
     const [updateIdaMonthRecord, { isLoading: isUpdating }] = useUpdateIdaMonthRecordMutation();
     const [createIdaMonthRecord, { isLoading: isCreating }] = useCreateIdaMonthRecordMutation();
     const isSubmitting = isUpdating || isCreating;
 
     // A month can already have a saved GGRecord — Save must PUT to it (by
     // id) rather than POST a duplicate.
-    const existingRecord = getExistingRecord(ggYearData, recordMonth);
+    const existingRecord = getExistingRecord(ggData, recordYear, recordMonth);
 
     const { firstDayOfMonth, lastDayOfMonth, defaultDate } = useMemo(() => {
         const first = new Date(recordYear, recordMonth, 1);
@@ -340,7 +345,6 @@ function IDAForm() {
 
     const [expanded, setExpanded] = useState(() => new Set());
     const [submitError, setSubmitError] = useState(null);
-    const [metricErrors, setMetricErrors] = useState({});
 
     // Multiple panels can now stay open at once — with a two-column layout,
     // single-expand made opening a right-hand panel collapse a left-hand one
@@ -361,14 +365,14 @@ function IDAForm() {
         formState: { errors },
     } = useForm({ defaultValues: EMPTY_RECORD });
 
-    // useForm only reads defaultValues once, and ggYearData arrives async —
+    // useForm only reads defaultValues once, and ggData arrives async —
     // without this the form would stay blank even when the month already has
     // a saved record. Hydrate once so a later refetch (e.g. after saving)
     // can't clobber edits in progress. A brand-new month has no manager yet,
     // so default it to the first worker rather than leaving it blank.
     const hydrated = useRef(false);
     useEffect(() => {
-        if (!hydrated.current && !isYearDataLoading && !isWorkersLoading) {
+        if (!hydrated.current && !isDataLoading && !isWorkersLoading) {
             if (existingRecord) {
                 reset({ ...EMPTY_RECORD, ...fromRecord(existingRecord) });
             } else if (workers.length > 0) {
@@ -376,7 +380,7 @@ function IDAForm() {
             }
             hydrated.current = true;
         }
-    }, [existingRecord, isYearDataLoading, isWorkersLoading, workers, reset]);
+    }, [existingRecord, isDataLoading, isWorkersLoading, workers, reset]);
 
     const metricValues = useWatch({ control, name: METRIC_IDS });
 
@@ -391,8 +395,24 @@ function IDAForm() {
         // belongs to a *different* site — a field with no siteId shouldn't
         // vanish just because it can't be matched.
         const bySite = idaSystemData?.fields?.filter((f) => f.siteId == null || siteIds.has(f.siteId));
-        return filterByStartDate(bySite, lastDayOfMonth);
-    }, [idaSystemData, lastDayOfMonth]);
+        return filterByMonth(bySite, firstDayOfMonth, lastDayOfMonth);
+    }, [idaSystemData, firstDayOfMonth, lastDayOfMonth]);
+
+    // Translated first — the server's id-0 names are English only.
+    const zeroOptionLabels = useMemo(
+        () => ({
+            activeIngredients: t("noActiveIngredient", "No Active Ingredient"),
+            fertilizers: t("noNpk", "No NPK"),
+        }),
+        [t]
+    );
+
+    // What a final Save still needs, kept live so each panel is marked from the
+    // start (closed ones too) and clears as soon as its records are added.
+    const metricErrors = useMemo(() => {
+        const values = Object.fromEntries(METRIC_IDS.map((id, i) => [id, metricValues?.[i]]));
+        return validateMandatoryMetrics(values, availableFields, zeroOptionLabels, t);
+    }, [metricValues, availableFields, zeroOptionLabels, t]);
 
     const handleGoBack = () => navigate(-1);
 
@@ -403,17 +423,7 @@ function IDAForm() {
 
     const handleFormSubmit = async (formData) => {
         setSubmitError(null);
-        const mandatoryErrors = validateMandatoryMetrics(
-            formData,
-            availableFields,
-            {
-                // Translated first — the server's id-0 names are English only.
-                activeIngredients: t("noActiveIngredient", "No Active Ingredient"),
-                fertilizers: t("noNpk", "No NPK"),
-            },
-            t
-        );
-        setMetricErrors(mandatoryErrors);
+        const mandatoryErrors = validateMandatoryMetrics(formData, availableFields, zeroOptionLabels, t);
         if (Object.keys(mandatoryErrors).length > 0) {
             // Expand every panel with a problem so the inline message is
             // actually visible instead of sitting collapsed off-screen.
@@ -445,7 +455,7 @@ function IDAForm() {
         }
     };
 
-    if (isSystemLoading || isWorkersLoading || isPestsLoading || isYearDataLoading) {
+    if (isSystemLoading || isWorkersLoading || isPestsLoading || isDataLoading) {
         return (
             <Box sx={{ p: 4, display: "flex", justifyContent: "center", flex: 1 }}>
                 <Loading />
@@ -487,6 +497,8 @@ function IDAForm() {
                 id={metric.id}
                 title={t(metric.titleKey, metric.title)}
                 count={metricValues?.[indexInAll]?.length ?? 0}
+                missing={!!metricErrors[metric.id]}
+                missingLabel={t("required", "Required")}
                 expanded={expanded.has(metric.id)}
                 onChange={togglePanel(metric.id)}
             >

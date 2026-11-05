@@ -3,6 +3,7 @@ import TextFieldBase from "../../components/ui/TextField";
 import { useSelector } from "react-redux";
 import { selectLang } from "../../features/app/appSlice";
 import { Fragment, useState } from "react";
+import { useGetUserDataQuery } from "../../features/auth/authApiSlice";
 import { cellSx, headerSx, Transition } from "../Util";
 import { Search } from "@mui/icons-material";
 import { isMobile, isStringEmpty } from "../FarmUtil";
@@ -16,7 +17,8 @@ const filterActive = (field, active) => {
 }
 
 const filterField = (field, filter, cropId, active) => {
-    const isRelevant = filterActive(field, active)
+    // active is null when the caller already narrowed the list and hid the checkbox.
+    const isRelevant = active === null || filterActive(field, active)
 
     if (isStringEmpty(filter)) {
         return isRelevant && (cropId ? field.cropId === cropId : true);
@@ -27,8 +29,8 @@ const filterField = (field, filter, cropId, active) => {
             (field.name.toLowerCase().includes(val) ||
                 field.alias?.toLowerCase().includes(val) ||
                 field.siteName?.toLowerCase().includes(val) ||
-                field.cropName.toLowerCase().includes(val) ||
-                field.varietyName.toLowerCase().includes(val)
+                field.cropName?.toLowerCase().includes(val) ||
+                field.varietyName?.toLowerCase().includes(val)
             )
         )
     }
@@ -40,11 +42,15 @@ const isFieldSelected = (field, selectedFields) => {
 
 export const ROWS_PER_PAGE = 100;
 
-const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFilter, disablePortal }) => {
+// selectedFieldIds: fields to show checked each time the dialog opens. Callers
+// passing it get the full selection back on save, so unchecking removes a field.
+const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFilter, disablePortal, selectedFieldIds }) => {
     const text = useSelector(selectLang);
     // Alias is optional — drop the column when no field has one.
     const showAlias = (fields || []).some((f) => f.alias != null && String(f.alias).trim() !== '');
-    // const { data: user } = useGetUserDataQuery()
+    const { data: user } = useGetUserDataQuery();
+    // IDA fields keep the product category as their crop and the crop genus as their variety.
+    const isIda = (user?.userConf ?? []).some((e) => e.type === 'IDA');
     const [filter, setFilter] = useState('');
 
     const [page, setPage] = useState(0);
@@ -52,8 +58,16 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFil
     const [selectFields, setSelectedFields] = useState([]);
     const [active, setActive] = useState(true);
 
-    const visableFields = fields.filter(e => filterField(e, filter, cropId, active));
-    const visableSelectedFields = visableFields.filter(e => selectFields.includes(e));
+    const [wasOpen, setWasOpen] = useState(false);
+    if (open !== wasOpen) {
+        setWasOpen(open);
+        if (open && selectedFieldIds) {
+            setSelectedFields(fields.filter(f => selectedFieldIds.includes(f.id)));
+        }
+    }
+
+    const visableFields = fields.filter(e => filterField(e, filter, cropId, hideActiveFilter ? null : active));
+    const visableSelectedFields = visableFields.filter(e => isFieldSelected(e, selectFields));
     const numSelected = visableSelectedFields.length;
     const rowCount = visableFields.length;
     const showPegination = rowCount > ROWS_PER_PAGE;
@@ -157,8 +171,8 @@ const FieldSelectionDialog = ({ fields, open, handleClose, cropId, hideActiveFil
                                 </TableCell>
                                 <TableCell sx={headerSx} >{text.field}</TableCell>
                                 {showAlias && <TableCell sx={headerSx}>{text.alias}</TableCell>}
-                                <TableCell sx={headerSx}>{text.crop}</TableCell>
-                                <TableCell sx={headerSx}>{text.variety}</TableCell>
+                                <TableCell sx={headerSx}>{isIda ? text.productCategory : text.crop}</TableCell>
+                                <TableCell sx={headerSx}>{isIda ? text.cropGenus : text.variety}</TableCell>
                                 <TableCell sx={headerSx}>{text.site}</TableCell>
                             </TableRow>
                         </TableHead>

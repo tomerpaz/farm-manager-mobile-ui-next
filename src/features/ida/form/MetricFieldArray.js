@@ -24,8 +24,12 @@ import { resourceRowUnit } from "./ResourceRowsField";
 
 const CLOSED = { open: false, index: null, initialData: null };
 
-const formatDate = (value) =>
-    value ? new Date(value).toLocaleDateString("en-AU") : "—";
+const formatDate = (value, withTime) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    const day = date.toLocaleDateString("en-AU");
+    return withTime ? `${day} ${date.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit", hour12: false })}` : day;
+};
 
 const formatQty = (value, unit) => {
     if (value === null || value === undefined || value === "") return "—";
@@ -95,7 +99,7 @@ export default function MetricFieldArray({
 
     const formatCell = (f, field) => {
         const value = field[f.name];
-        if (f.type === "date") return formatDate(value);
+        if (f.type === "date") return formatDate(value, f.withTime);
         if (f.type === "number") {
             // unitFrom fields carry their unit on whichever option this
             // row's own select field points at, rather than a fixed
@@ -239,7 +243,7 @@ export default function MetricFieldArray({
                                 }}
                             >
                                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                                    {formatDate(field[dateField])}
+                                    {formatDate(field[dateField], schema.find((s) => s.name === dateField)?.withTime)}
                                 </Typography>
                                 {renderActions(field, index)}
                             </Box>

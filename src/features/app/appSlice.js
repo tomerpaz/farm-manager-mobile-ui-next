@@ -64,6 +64,7 @@ const appSlice = createSlice({
         visibleLayers: [],
         defaultScouter: isStringEmpty(scouterId) ? null : { id: scouterId, name: scouterName },
         idaMonthRecord: null,
+        reportGenerating: false,
         // showPestsLayer: false,
         // showTrapsLayer: false,
         // showIrrigationHeadsLayer: false,
@@ -128,6 +129,9 @@ const appSlice = createSlice({
 
         setActivityType: (state, action) => {
             state.activityType = action.payload
+        },
+        setReportGenerating: (state, action) => {
+            state.reportGenerating = action.payload;
         },
         setSnackbar: (state, action) => {
             state.snackbarMsg = action.payload.msg;
@@ -222,7 +226,7 @@ const appSlice = createSlice({
 export const { setCredentials, logOut, setLang, setCurrentYear, setAppBarDialogOpen, setFieldFreeTextFilter, setActivityFreeTextFilter,
     setStartDateFilter, setEndDateFilter,
     setFieldDashboardYear, setFieldsViewStatus,
-    setActivityType, setSnackbar, setOpenSettings, setInventoryFreeTextFilter,
+    setActivityType, setReportGenerating, setSnackbar, setOpenSettings, setInventoryFreeTextFilter,
     setInventoryDateFilter, setInventoryWarehouseFilter, setShowInventory, setShowPlans, setOpenLayers, setShowLayers, setEditLayer, setMapCenter, setMapZoom,
     setShowFieldAlias, setShowFieldName, setShowCropName, setNewActivityGeo, setAccuracy, setActiveGPS, setLongitude, setLatitude, setActivityParentFieldFilter, setActivityBaseFieldFilter, setActivitySiteFilter,
     setShowOfficialFieldId, setVisibleLayers, setDefaultScouter, setSelectedFieldFilterOptions, setSelectedActivityFilterOptions, setSelectedActivityPlanFilterOptions,setIdaMonthRecord
@@ -241,6 +245,7 @@ export const selectEndDateFilter = (state) => state.app.endDateFilter
 export const selectFieldDashboardYear = (state) => state.app.fieldDashboardYear
 export const selectFieldsViewStatus = (state) => state.app.fieldsViewStatus
 export const selectActivityType = (state) => state.app.activityType
+export const selectReportGenerating = (state) => state.app.reportGenerating
 export const selectSnackbarMsg = (state) => state.app.snackbarMsg
 export const selectSnackbarSeverity = (state) => state.app.snackbarSeverity
 export const selectOpenSettings = (state) => state.app.openSettings

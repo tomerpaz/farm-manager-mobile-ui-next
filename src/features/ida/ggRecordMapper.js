@@ -149,10 +149,17 @@ export function fromRecord(record) {
     return formData;
 }
 
-// GGYearData.months is keyed 1-12 (same convention IdaDash.js already reads
-// it with); the UI's :month route param is 0-indexed, so +1 here. A month
+// GGData.months is keyed yyyyMM. month here is 1-12.
+export const monthKey = (year, month) => year * 100 + month;
+export const yearOfKey = (key) => Math.floor(key / 100);
+export const monthOfKey = (key) => key % 100;
+export const monthKeyLabel = (key, lang, month = "long") =>
+    new Date(yearOfKey(key), monthOfKey(key) - 1, 1).toLocaleString(lang, { month, year: "numeric" });
+export const yearRange = (year) => ({ from: `${year}-01-01`, to: `${year}-12-31` });
+
+// The UI's :month route param is 0-indexed, so +1 here. A month
 // can in principle hold multiple records — the form only ever edits one, so
 // the first is treated as "the" record for that month.
-export function getExistingRecord(ggYearData, recordMonth) {
-    return ggYearData?.months?.[recordMonth + 1]?.records?.[0] || null;
+export function getExistingRecord(ggData, recordYear, recordMonth) {
+    return ggData?.months?.[monthKey(recordYear, recordMonth + 1)]?.records?.[0] || null;
 }

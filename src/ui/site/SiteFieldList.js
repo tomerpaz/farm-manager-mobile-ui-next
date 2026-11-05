@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from "react-router";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
     Button,
     Card,
     CardActionArea,
+    Chip,
     Fab,
     Tooltip,
     Typography,
@@ -13,14 +14,15 @@ import {
 } from "@mui/material";
 import { Add, Agriculture, PictureAsPdf, TableChart, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
 
-import { selectLang } from "../../features/app/appSlice";
+import { selectLang, selectReportGenerating } from "../../features/app/appSlice";
 import { safeParseJson, clearJustAddedFieldId, getJustAddedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
 import { useGetSiteQuery } from '../../features/sites/sitesApiSlice';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
 import FieldShapeThumb, { ESRI_ATTRIBUTION } from '../field/FieldShapeThumb';
-import { exportFieldsToPdf, exportFieldsToXlsx } from './fieldListReport';
+import { useGenerateReportMutation } from '../../features/reports/reportApiSlice';
+import { downloadReportFile, reportFailed } from '../../features/reports/reportFile';
 import { FieldSearchBox, useFieldFilter } from './FieldSearch';
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString("en-AU") : null);
@@ -52,18 +54,24 @@ const SiteFieldList = () => {
 
     const handleAddField = () => navigate(`/site/${siteId}/field/0`);
 
-    // Exports what the list currently shows, search filter included.
-    const exportLookups = { cropGenera, productCategories };
-    const canExport = isFieldsSuccess && visibleFields?.length > 0;
-    const handleExportPdf = () => {
-        // Opened synchronously so it counts as a user-gesture popup.
-        const reportWindow = window.open('', '_blank');
-        exportFieldsToPdf(visibleFields, siteName, text, exportLookups, reportWindow).catch((err) => {
-            console.error('Failed to export fields PDF:', err);
-            reportWindow?.close();
-        });
+    // Exports what the list currently shows, search filter and order included.
+    const [generateReport] = useGenerateReportMutation();
+    const reportGenerating = useSelector(selectReportGenerating);
+    const dispatch = useDispatch();
+    const canExport = isFieldsSuccess && visibleFields?.length > 0 && !reportGenerating;
+    const handleExport = (format) => {
+        generateReport({
+            type: 'site-fields',
+            format,
+            params: {
+                siteId: Number(siteId),
+                fieldIds: visibleFields.map((f) => f.id),
+                lang: text?.lang,
+            },
+        }).unwrap()
+            .then(downloadReportFile)
+            .catch((err) => reportFailed(err, dispatch, text));
     };
-    const handleExportXlsx = () => exportFieldsToXlsx(visibleFields, siteName, text, exportLookups);
     const exportButtonSx = { textTransform: 'none', fontWeight: 700, borderRadius: 1.5, px: { xs: 1.25, sm: 2 }, height: 36, minWidth: 0 };
 
     return (
@@ -131,7 +139,7 @@ const SiteFieldList = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
                     <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
                         <span>
-                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={handleExportPdf}
+                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={() => handleExport('pdf')}
                                 startIcon={<PictureAsPdf sx={{ color: canExport ? '#B7261C' : undefined }} />} sx={exportButtonSx}>
                                 PDF
                             </Button>
@@ -139,7 +147,7 @@ const SiteFieldList = () => {
                     </Tooltip>
                     <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
                         <span>
-                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={handleExportXlsx}
+                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={() => handleExport('xlsx')}
                                 startIcon={<TableChart sx={{ color: canExport ? '#175C35' : undefined }} />} sx={exportButtonSx}>
                                 Excel
                             </Button>
@@ -196,13 +204,17 @@ const SiteFieldList = () => {
                             productCategoryName && { icon: <Category sx={{ fontSize: '0.95rem' }} />, label: productCategoryName },
                         ].filter(Boolean);
 
+                        // Fields with an end date are greyed out with a dashed border and a chip, like inactive resources.
+                        const ended = !!value.endDate;
+
                         return (
                             <Card
                                 key={value.id}
                                 elevation={0}
                                 sx={{
-                                    bgcolor: 'rgba(46, 125, 50, 0.03)',
+                                    bgcolor: ended ? 'action.hover' : 'rgba(46, 125, 50, 0.03)',
                                     border: '1px solid rgba(0, 0, 0, 0.06)',
+                                    borderStyle: ended ? 'dashed' : undefined,
                                     borderRadius: 2.5,
                                     overflow: 'hidden',
                                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -219,7 +231,7 @@ const SiteFieldList = () => {
                                     {/* Mini map: the field's polygon outline in its own color. */}
                                     <FieldShapeThumb points={safeParseJson(value.polygon)} color={value.color} />
                                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }} noWrap>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: ended ? 'text.secondary' : 'text.primary' }} noWrap>
                                             {value.name}
                                         </Typography>
                                         {details.length > 0 && (
@@ -233,6 +245,9 @@ const SiteFieldList = () => {
                                             </Box>
                                         )}
                                     </Box>
+                                    {ended && (
+                                        <Chip label={`${text?.rootDate || "Root Date"} ${formatDate(value.endDate)}`} size="small" variant="outlined" sx={{ flexShrink: 0, fontWeight: 600, color: 'text.secondary' }} />
+                                    )}
                                     <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                                 </CardActionArea>
                             </Card>

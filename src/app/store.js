@@ -17,6 +17,9 @@ export default configureStore({
       // field: fieldReducer,
   },
   middleware: getDefaultMiddleware =>
-      getDefaultMiddleware().concat(apiSlice.middleware),
+      getDefaultMiddleware({
+          // The API cache holds large server responses that are plain JSON, so scanning it on every action is wasted time.
+          serializableCheck: { ignoredPaths: [apiSlice.reducerPath] },
+      }).concat(apiSlice.middleware),
   devTools: true
 })

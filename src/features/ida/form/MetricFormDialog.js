@@ -23,7 +23,7 @@ import {
     Tooltip,
 } from "@mui/material";
 import { Delete, UnfoldLess, UnfoldMore } from "@mui/icons-material";
-import { DatePicker } from "@mui/x-date-pickers";
+import { DatePicker, DateTimePicker } from "@mui/x-date-pickers";
 import FieldSelectionDialog from "../../../ui/dialog/FieldsSelectionDialog";
 import DialogAppBar from "../../../ui/dialog/DialogAppBar";
 import ResourceRowsField, { sectionButtonSx, sectionPanelSx } from "./ResourceRowsField";
@@ -38,6 +38,11 @@ import { useGetUserDataQuery } from "../../auth/authApiSlice";
 // stays as ISO strings either way, converted at these two edges.
 const toPickerValue = (v) => (v ? dayjs(v) : null);
 const toIso = (v) => (v && dayjs(v).isValid() ? dayjs(v).toISOString() : null);
+
+// Both ends count as active; a missing date leaves that side open.
+const isFieldActiveOn = (field, date) =>
+    (!field.startDate || !dayjs(field.startDate).isAfter(date, "day")) &&
+    (!field.endDate || !dayjs(field.endDate).isBefore(date, "day"));
 
 // 0 is a real, selectable option meaning "every site" rather than one in
 // particular — it's prepended ahead of the actual site list for any field
@@ -122,6 +127,17 @@ export default function MetricFormDialog({
     const hasFieldsTable = schema.some((f) => f.type === "fields");
     // In fields dialogs the (first) date sits in the Fields panel header rather than on its own.
     const headerDate = hasFieldsTable ? schema.find((f) => f.type === "date" && !f.hidden) : null;
+    // The picker only offers fields active on this record's date — except a
+    // "none" entry: its date is locked to the month's end, and it also declares
+    // nothing was applied to fields that ended earlier in the month.
+    const recordDate = useWatch({ control, name: headerDate?.name ?? schema[0].name });
+    const noneField = schema.find((f) => f.noneCheckbox);
+    const noneValue = useWatch({ control, name: noneField ? noneNameFor(noneField) : schema[0].name });
+    const isNoneRecord = !!noneField && noneValue === true;
+    const pickableFields = useMemo(
+        () => (headerDate && recordDate && !isNoneRecord ? (availableFields || []).filter((af) => isFieldActiveOn(af, recordDate)) : availableFields || []),
+        [availableFields, headerDate, recordDate, isNoneRecord]
+    );
     // On a phone (fullScreen) the panel dialogs drop DialogContent's padding so
     // the section panels run edge to edge — square, since they touch the screen
     // edges. Desktop keeps the padded, rounded look.
@@ -361,6 +377,7 @@ export default function MetricFormDialog({
                                 );
                             }
                             if (f.type === "date") {
+                                const Picker = f.withTime ? DateTimePicker : DatePicker;
                                 return (
                                     <Controller
                                         key={f.name}
@@ -370,7 +387,7 @@ export default function MetricFormDialog({
                                             validate: (v) => !f.required || (v && dayjs(v).isValid()) || t("enterValidDate", "Enter a valid date"),
                                         }}
                                         render={({ field: { value, onChange, ref, ...field }, fieldState }) => (
-                                            <DatePicker
+                                            <Picker
                                                 {...field}
                                                 inputRef={ref}
                                                 label={f.label}
@@ -550,7 +567,14 @@ export default function MetricFormDialog({
                                         control={control}
                                         name={f.name}
                                         rules={{
-                                            validate: (v) => !f.required || (v && v.length > 0) || t("selectAtLeastOneField", "Select at least one field"),
+                                            validate: (v, formValues) => {
+                                                if (f.required && !v?.length) return t("selectAtLeastOneField", "Select at least one field");
+                                                const date = headerDate && formValues[headerDate.name];
+                                                if (!date || (noneField && formValues[noneNameFor(noneField)])) return true;
+                                                // Changing the date can leave already-selected fields out of range.
+                                                const inactive = (availableFields || []).filter((af) => v?.includes(af.id) && !isFieldActiveOn(af, date));
+                                                return inactive.length === 0 || t("fieldsNotActiveOnDate", "Not active on this date: {fields}", { fields: inactive.map((af) => af.name).join(", ") });
+                                            },
                                         }}
                                         render={({ field: { value, onChange }, fieldState }) => {
                                             // Same layout as ActivityFields in the activity form:
@@ -682,7 +706,8 @@ export default function MetricFormDialog({
                                                     </TableContainer>
                                                     <FieldSelectionDialog
                                                         open={fieldPickerOpen}
-                                                        fields={availableFields || []}
+                                                        fields={pickableFields}
+                                                        selectedFieldIds={value || []}
                                                         hideActiveFilter
                                                         // Rendered through its own portal like any stacked MUI
                                                         // dialog. With disablePortal it sat *inside* this dialog
@@ -691,8 +716,12 @@ export default function MetricFormDialog({
                                                         // focusing the picker tripped Chrome's "Blocked aria-hidden"
                                                         // warning and hid the picker from screen readers.
                                                         handleClose={(selection) => {
-                                                            // Adds to the fields already listed, like ActivityFields.
-                                                            if (selection) onChange([...new Set([...(value || []), ...selection.map((s) => s.id)])]);
+                                                            // The picker returns the full selection, so unchecking removes.
+                                                            // Selected fields it doesn't list are kept (validation flags out-of-range ones).
+                                                            if (selection) {
+                                                                const unlisted = (value || []).filter((id) => !pickableFields.some((af) => af.id === id));
+                                                                onChange([...unlisted, ...selection.map((s) => s.id)]);
+                                                            }
                                                             setFieldPickerOpen(false);
                                                         }}
                                                     />

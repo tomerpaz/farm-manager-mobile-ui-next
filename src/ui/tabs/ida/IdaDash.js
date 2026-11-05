@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import dayjs from 'dayjs';
+import { DatePicker } from '@mui/x-date-pickers';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -27,10 +29,11 @@ import {
 
 import Loading from '../../../components/Loading';
 import GlobalGapSvg from '../../../icons/gg/GlobalGapSvg';
-import { selectLang, } from '../../../features/app/appSlice';
-import { useGetGGYearDataQuery, useGetIdaSystemDataQuery } from '../../../features/ida/idaApiSlice';
-import { getMonthName } from '../../FarmUtil';
-import { exportYearToPdf, exportYearToXlsx } from './idaReport';
+import { selectLang, selectReportGenerating } from '../../../features/app/appSlice';
+import { useGetGGDataQuery, useGetIdaSystemDataQuery } from '../../../features/ida/idaApiSlice';
+import { monthKeyLabel, monthOfKey, yearOfKey } from '../../../features/ida/ggRecordMapper';
+import { useGenerateReportMutation } from '../../../features/reports/reportApiSlice';
+import { downloadReportFile, reportFailed } from '../../../features/reports/reportFile';
 import { useNavigate } from 'react-router';
 
 // One tile per metric per month. On mobile there's no room for a
@@ -70,6 +73,8 @@ const StatusIndicator = ({ icon, label, isMobile, styles }) => (
   </Tooltip>
 );
 
+const monthPickerSx = { width: 115, '& .MuiPickersOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
+
 const IdaDash = () => {
 
   const navigate = useNavigate();
@@ -79,13 +84,38 @@ const IdaDash = () => {
   const text = useSelector(selectLang);
   const lang = text?.lang;
 
-  const [year, setYear] = useState(new Date().getFullYear());
-  const currentYear = new Date().getFullYear();
+  const [from, setFrom] = useState(() => dayjs().startOf('year'));
+  const [to, setTo] = useState(() => dayjs().endOf('year'));
+  // Half-typed dates are ignored. To Month can't go before From Month; a later From Month pulls it along.
+  const handleFromChange = (value) => {
+    if (!value?.isValid()) return;
+    setFrom(value);
+    if (value.isAfter(to, 'month')) setTo(value);
+  };
+  // Shortcut to a whole calendar year. Blank while the range is anything else.
+  const currentYear = dayjs().year();
+  const selectedYear = from.year() === to.year() && from.month() === 0 && to.month() === 11 ? from.year() : '';
+  const handleYearChange = (e) => {
+    const yearStart = dayjs().year(e.target.value).startOf('year');
+    setFrom(yearStart);
+    setTo(yearStart.endOf('year'));
+  };
+  const handleToChange = (value) => {
+    if (!value?.isValid() || value.isBefore(from, 'month')) return;
+    setTo(value);
+  };
 
   const { data: idaSystemData, isLoading: isSystemLoading } = useGetIdaSystemDataQuery();
-  const { data: ggYearData, isLoading: isYearDataLoading } = useGetGGYearDataQuery(year);
+  const range = {
+    from: from.startOf('month').format('YYYY-MM-DD'),
+    to: to.endOf('month').format('YYYY-MM-DD'),
+  };
+  const { data: ggData, isLoading: isDataLoading } = useGetGGDataQuery(range);
+  const [generateReport] = useGenerateReportMutation();
+  const reportGenerating = useSelector(selectReportGenerating);
+  const dispatch = useDispatch();
 
-  if (isSystemLoading || isYearDataLoading) {
+  if (isSystemLoading || isDataLoading) {
     return (
       <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, minHeight: '80vh' }}>
         <Loading />
@@ -106,7 +136,7 @@ const IdaDash = () => {
 
   // No record, or one saved with nothing in it — nothing to report yet.
   const isMonthEmpty = (m) => {
-    const record = ggYearData?.months?.[m]?.records?.[0];
+    const record = ggData?.months?.[m]?.records?.[0];
     return !record || isRecordEmpty(record);
   };
 
@@ -116,8 +146,8 @@ const IdaDash = () => {
   // side-by-side. A record saved with nothing in it carries no information,
   // so it gets the same neutral look as a month nobody has opened.
   const getStatusConfig = (m) => {
-    const status = ggYearData?.months?.[m]?.status;
-    const record = ggYearData?.months?.[m]?.records?.[0];
+    const status = ggData?.months?.[m]?.status;
+    const record = ggData?.months?.[m]?.records?.[0];
     const hasRecord = !!record && !isRecordEmpty(record);
 
     if (!hasRecord) {
@@ -189,10 +219,16 @@ const IdaDash = () => {
       border: '1px solid rgba(211, 47, 47, 0.25)',
     };
   };
+  const handleExport = (format) => {
+    generateReport({ type: 'ida', format, params: { ...range, lang } }).unwrap()
+      .then(downloadReportFile)
+      .catch((err) => reportFailed(err, dispatch, text));
+  };
+
   const drawMain = () => {
 
 
-    if (ggYearData) {
+    if (ggData) {
       return (
         <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: '4px', height: '100%', minHeight: 0 }}>
 
@@ -212,24 +248,15 @@ const IdaDash = () => {
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Tooltip title={text?.exportPdf || "Export year as PDF"}>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+              <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
                 <span>
                   <Button
                     variant="outlined"
                     color="secondary"
                     disableElevation
-                    disabled={!ggYearData}
-                    onClick={() => {
-                      // Opened synchronously in the click handler so it counts as a
-                      // user-gesture popup — exportYearToPdf fills it in once the
-                      // (async) PDF is ready instead of opening a new tab itself.
-                      const reportWindow = window.open('', '_blank');
-                      exportYearToPdf(ggYearData, year, lang, reportWindow).catch((err) => {
-                        console.error('Failed to export PDF report:', err);
-                        reportWindow?.close();
-                      });
-                    }}
+                    disabled={!ggData || reportGenerating}
+                    onClick={() => handleExport('pdf')}
                     startIcon={<PictureAsPdf sx={{ fontSize: '1.4rem', color: '#B7261C' }} />}
                     sx={{
                       textTransform: 'none',
@@ -244,14 +271,14 @@ const IdaDash = () => {
                 </span>
               </Tooltip>
 
-              <Tooltip title={text?.exportXlsx || "Export year as Excel"}>
+              <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
                 <span>
                   <Button
                     variant="outlined"
                     color="secondary"
                     disableElevation
-                    disabled={!ggYearData}
-                    onClick={() => exportYearToXlsx(ggYearData, year, lang)}
+                    disabled={!ggData || reportGenerating}
+                    onClick={() => handleExport('xlsx')}
                     startIcon={<TableChart sx={{ fontSize: '1.4rem', color: '#175C35' }} />}
                     sx={{
                       textTransform: 'none',
@@ -268,9 +295,9 @@ const IdaDash = () => {
 
               <TextField
                 select
-                value={year}
+                value={selectedYear}
                 label={text?.year || "Year"}
-                onChange={(e) => setYear(e.target.value)}
+                onChange={handleYearChange}
                 size="small"
                 slotProps={{ menu: { PaperProps: { style: { maxHeight: 200 } } } }}
                 sx={{ minWidth: 105, '& .MuiOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } }}
@@ -281,12 +308,33 @@ const IdaDash = () => {
                   </MenuItem>
                 ))}
               </TextField>
+              <DatePicker
+                views={['year', 'month']}
+                openTo="month"
+                format="MM/YY"
+                label={text?.fromMonth || "From Month"}
+                value={from}
+                onChange={handleFromChange}
+                closeOnSelect
+                slotProps={{ textField: { size: 'small', sx: monthPickerSx } }}
+              />
+              <DatePicker
+                views={['year', 'month']}
+                openTo="month"
+                format="MM/YY"
+                label={text?.toMonth || "To Month"}
+                minDate={from}
+                value={to}
+                onChange={handleToChange}
+                closeOnSelect
+                slotProps={{ textField: { size: 'small', sx: monthPickerSx } }}
+              />
             </Box>
           </Box>
 
           {/* Core Layout Timeline Container */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => {
+            {Object.keys(ggData.months || {}).map(Number).sort((a, b) => a - b).map(m => {
               const statusConfig = getStatusConfig(m);
               const empty = isMonthEmpty(m);
               return (
@@ -302,7 +350,7 @@ const IdaDash = () => {
                   // IDAForm's navigate(-1) after saving only popped back to
                   // the other /ida/... entry, not to this dashboard, and the
                   // form appeared to just scroll instead of closing.)
-                  onClick={() => navigate(`/ida/${year}/${m - 1}`)}
+                  onClick={() => navigate(`/ida/${yearOfKey(m)}/${monthOfKey(m) - 1}`)}
                   sx={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -330,7 +378,7 @@ const IdaDash = () => {
                       on mobile instead of stacking above them (a stacked
                       layout meant each card was 3x taller, so only one or
                       two months fit on screen at a time). */}
-                  <Box sx={{ display: 'flex', flex: { xs: '1 1 0', sm: '0 0 165px' }, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', flex: { xs: '1 1 0', sm: '0 0 190px' }, minWidth: 0 }}>
                     <Button
                       variant="contained"
                       size="medium"
@@ -352,7 +400,7 @@ const IdaDash = () => {
                         ...statusConfig.sx,
                       }}
                     >
-                      {getMonthName(m, lang)}
+                      {monthKeyLabel(m, lang, isMobile ? 'short' : 'long')}
                     </Button>
                   </Box>
 
@@ -364,30 +412,30 @@ const IdaDash = () => {
                     <StatusIndicator
                       icon={<Science sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.pesticides || "Pesticides"}
-                      ok={ggYearData?.months?.[m]?.activeIngredientOk}
+                      ok={ggData?.months?.[m]?.activeIngredientOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.activeIngredientOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.activeIngredientOk, empty)}
                     />
                     <StatusIndicator
                       icon={<Grass sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.fertilizer || "Fertilizer"}
-                      ok={ggYearData?.months?.[m]?.fertilizerOk}
+                      ok={ggData?.months?.[m]?.fertilizerOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.fertilizerOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.fertilizerOk, empty)}
                     />
                     <StatusIndicator
                       icon={<WaterDrop sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.water || "Water"}
-                      ok={ggYearData?.months?.[m]?.waterOk}
+                      ok={ggData?.months?.[m]?.waterOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.waterOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.waterOk, empty)}
                     />
                     <StatusIndicator
                       icon={<OfflineBolt sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.energy || "Energy"}
-                      ok={ggYearData?.months?.[m]?.energyOk}
+                      ok={ggData?.months?.[m]?.energyOk}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggYearData?.months?.[m]?.energyOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.energyOk, empty)}
                     />
                   </Box>
 
