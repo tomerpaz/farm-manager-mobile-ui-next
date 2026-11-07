@@ -30,6 +30,7 @@ import {
 import { useGetSiteFreeAreaQuery, useGetSiteQuery, useLazyGetSiteFreeAreaQuery } from '../../features/sites/sitesApiSlice';
 import FieldPolygonDraw from './FieldPolygonDraw';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
+import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import FormActionBar from '../../components/ui/FormActionBar';
 
@@ -67,6 +68,8 @@ const IdaFieldForm = () => {
     const { siteId, fieldId } = useParams();
     const dispatch = useDispatch();
     const text = useSelector(selectLang);
+    const { data: user } = useGetUserDataQuery();
+    const areaUnit = text[user?.areaUnit] || '';
     const mapZoom = useSelector(selectMapZoom);
     // Phones get compact (40px) inputs so the map has room to be useful.
     const isPhone = useMediaQuery((theme) => theme.breakpoints.down('sm'));
@@ -201,7 +204,7 @@ const IdaFieldForm = () => {
             // The field can't be larger than the site area still free at any point in its period.
             const freeArea = await getSiteFreeArea({ siteId: data.siteId, date: data.startDate, end: data.endDate || undefined, fieldId: data.id }).unwrap();
             if (Number(data.area) > Number(freeArea)) {
-                setError('area', { message: `${text.areaExceedsSiteFree || "Size exceeds the site's free area during the field's period"} (${freeArea})` });
+                setError('area', { message: `${text.areaExceedsSiteFree || "Size exceeds the site's free area during the field's period"} (${`${freeArea} ${areaUnit}`.trim()})` });
                 return;
             }
 
@@ -277,7 +280,7 @@ const IdaFieldForm = () => {
                             variant="body2"
                             sx={{ ml: 'auto', alignSelf: 'flex-end', textAlign: 'end', fontWeight: 600, color: errors.area ? 'error.main' : 'text.secondary' }}
                         >
-                            {errors.area?.message || `${text.siteFreeArea || 'Free'}: ${freeArea}`}
+                            {errors.area?.message || `${text.siteFreeArea || 'Free'}: ${freeArea} ${areaUnit}`.trim()}
                         </Typography>
                     )}
                 </Box>
@@ -353,7 +356,7 @@ const IdaFieldForm = () => {
                                             render={({ field, fieldState: { error } }) => (
                                                 <TextField
                                                     {...field}
-                                                    label={text.size || "Size (Area)"}
+                                                    label={`${text.size || "Size (Area)"}${areaUnit ? ` (${areaUnit})` : ''}`}
                                                     variant="outlined"
                                                     size={fieldSize}
                                                     fullWidth

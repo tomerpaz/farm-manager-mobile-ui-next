@@ -584,6 +584,7 @@ export default function MetricFormDialog({
                                             );
                                             const areaUnit = user?.areaUnit ? t(user.areaUnit, user.areaUnit) : "";
                                             const totalArea = selected.reduce((sum, af) => sum + (Number(af.area) || 0), 0);
+                                            const formatArea = (area) => Number(area).toLocaleString("en-AU", { maximumFractionDigits: 2 });
                                             return (
                                                 <Box sx={sectionPanelSx}>
                                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -672,7 +673,7 @@ export default function MetricFormDialog({
                                                                         <TableCell sx={cellSx}>{af.cropName}</TableCell>
                                                                         <TableCell sx={cellSx}>{af.varietyName}</TableCell>
                                                                         <TableCell sx={cellSx}>
-                                                                            {af.area != null && af.area !== "" ? Number(af.area).toFixed(2) : ""}
+                                                                            {af.area != null && af.area !== "" ? formatArea(af.area) : ""}
                                                                         </TableCell>
                                                                         <TableCell sx={{ ...cellSx, width: 40 }} align="right">
                                                                             <IconButton
@@ -697,7 +698,7 @@ export default function MetricFormDialog({
                                                                 {selected.length > 0 && (
                                                                     <TableRow>
                                                                         <TableCell sx={headerSx} colSpan={3}>{`${t("total", "Total")} ${areaUnit}`}</TableCell>
-                                                                        <TableCell sx={headerSx}>{totalArea.toFixed(2)}</TableCell>
+                                                                        <TableCell sx={headerSx}>{formatArea(totalArea)}</TableCell>
                                                                         <TableCell sx={headerSx} />
                                                                     </TableRow>
                                                                 )}
@@ -738,7 +739,7 @@ export default function MetricFormDialog({
                                         key={f.name}
                                         control={control}
                                         name={f.name}
-                                        label={f.label}
+                                        label={f.addLabel || f.label}
                                         options={f.options || []}
                                         required={f.required}
                                         emptyLabel={f.emptyLabel}

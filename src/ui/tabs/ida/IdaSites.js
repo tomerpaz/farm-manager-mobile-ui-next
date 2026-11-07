@@ -16,11 +16,13 @@ import Loading from '../../../components/Loading';
 import { useGetSitesQuery } from '../../../features/sites/sitesApiSlice';
 import { useGetIdaSystemDataQuery } from '../../../features/ida/idaApiSlice';
 import { selectLang } from '../../../features/app/appSlice';
+import { useGetUserDataQuery } from '../../../features/auth/authApiSlice';
 
-const formatSize = (size) => {
+const formatSize = (size, areaUnit) => {
   const n = Number(size);
   if (size === null || size === undefined || Number.isNaN(n)) return null;
-  return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`;
+  const formatted = n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return areaUnit ? `${formatted} ${areaUnit}` : formatted;
 };
 
 // Shared by the card's Map and Fields buttons so they read as one pair:
@@ -42,6 +44,7 @@ const IdaSites = () => {
   const { data: sites, isLoading: isSitesLoading, isSuccess: isSitesSuccess } = useGetSitesQuery();
   // The sites IDA can report on: the dashboard and form redirect here when there are none.
   const { data: idaSystemData, isSuccess: isSystemSuccess } = useGetIdaSystemDataQuery();
+  const { data: user } = useGetUserDataQuery();
   const text = useSelector(selectLang);
   const navigate = useNavigate();
 
@@ -122,7 +125,7 @@ const IdaSites = () => {
         {/* Site Cards */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, width: '100%' }}>
           {isSitesSuccess && sites?.map((value) => {
-            const sizeLabel = formatSize(value.size);
+            const sizeLabel = formatSize(value.size, text[user?.areaUnit]);
             return (
               <Card
                 key={value.id}

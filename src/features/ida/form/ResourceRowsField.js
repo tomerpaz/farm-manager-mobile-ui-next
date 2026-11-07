@@ -75,7 +75,7 @@ export default function ResourceRowsField({ control, name, label, options, requi
     const t = useIdaText();
     const numberFields = rowFields ? NUMBER_FIELDS.filter((nf) => rowFields.includes(nf.name)) : NUMBER_FIELDS;
     const amountOnly = numberFields.length === 1 && numberFields[0].name === "amount";
-    const { fields, append, remove } = useFieldArray({
+    const { fields, prepend, remove } = useFieldArray({
         control,
         name,
         keyName: "key",
@@ -108,7 +108,7 @@ export default function ResourceRowsField({ control, name, label, options, requi
                         color={listError ? "error" : "primary"}
                         startIcon={<Add />}
                         disabled={noneChecked}
-                        onClick={() => append({ ...EMPTY_RESOURCE_ROW })}
+                        onClick={() => prepend({ ...EMPTY_RESOURCE_ROW })}
                         sx={sectionButtonSx}
                     >
                         {label}

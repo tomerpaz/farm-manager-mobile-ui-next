@@ -19,6 +19,7 @@ import {
   useUpdateSiteMutation
 } from '../../features/sites/sitesApiSlice';
 import { selectLang, selectMapZoom, setSnackbar } from '../../features/app/appSlice';
+import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import SatelliteMapProvider from '../../components/map/SatelliteMapProvider';
 import GeoLocation from '../../components/GeoLocation';
 import AddressSearchControl from '../../components/map/AddressSearchControl';
@@ -35,6 +36,8 @@ const SiteForm = () => {
 
   const text = useSelector(selectLang);
   const zoom = useSelector(selectMapZoom);
+  const { data: user } = useGetUserDataQuery();
+  const areaUnit = text[user?.areaUnit];
 
   // Active UI tracking states
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -243,7 +246,7 @@ const SiteForm = () => {
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
-                        label={text.size || "Size"}
+                        label={`${text.size || "Size"}${areaUnit ? ` (${areaUnit})` : ''}`}
                         variant="outlined"
                         fullWidth
                         type="number"

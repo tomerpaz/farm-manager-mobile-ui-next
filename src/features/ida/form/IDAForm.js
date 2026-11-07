@@ -69,7 +69,7 @@ const METRICS = [
             // had; unticked, at least one row is required. It's saved as an
             // empty list. Each row only takes a resource and its amount.
             {
-                name: "resources", type: "resources", label: "Pesticides", labelKey: "pesticides", optionsFrom: "pesticides",
+                name: "resources", type: "resources", label: "Pesticides", labelKey: "pesticides", addLabel: "Pesticide", addLabelKey: "pesticide", optionsFrom: "pesticides",
                 emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
             },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true, maxLines: 3 },
@@ -90,7 +90,7 @@ const METRICS = [
                 // Each row's unit comes from the fertilizer's own usage unit
                 // (unitFromResource), with kg as the fallback. "No NPK" is a
                 // noneCheckbox, same as activeIngredients' "No Active Ingredient".
-                name: "resources", type: "resources", label: "Fertilizers", labelKey: "fertilizers", optionsFrom: "fertilizers",
+                name: "resources", type: "resources", label: "Fertilizers", labelKey: "fertilizers", addLabel: "Fertilizer", addLabelKey: "fertilizer", optionsFrom: "fertilizers",
                 emptyLabel: "No NPK", emptyLabelKey: "noNpk", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
             },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true, maxLines: 3 },
@@ -235,6 +235,7 @@ const resolveSchema = (schema, dataSources, t) =>
             ...spec,
             label: t(spec.labelKey, spec.label),
             ...(spec.emptyLabelKey ? { emptyLabel: t(spec.emptyLabelKey, spec.emptyLabel) } : {}),
+            ...(spec.addLabelKey ? { addLabel: t(spec.addLabelKey, spec.addLabel) } : {}),
         };
         if (!f.optionsFrom) return f;
         const options = dataSources[f.optionsFrom] || [];
