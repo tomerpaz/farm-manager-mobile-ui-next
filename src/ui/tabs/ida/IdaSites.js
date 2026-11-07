@@ -32,12 +32,12 @@ const cardButtonSx = {
   borderRadius: 2,
   fontWeight: 700,
   flex: { xs: 1, sm: 'none' },
-  height: { xs: 44, sm: 48 },
+  height: { xs: 36, sm: 48 },
   px: { sm: 4 },
-  borderWidth: '2px',
-  fontSize: { xs: '0.95rem', sm: '1rem' },
+  borderWidth: { xs: '1.5px', sm: '2px' },
+  fontSize: { xs: '0.85rem', sm: '1rem' },
   whiteSpace: 'nowrap',
-  '&:hover': { borderWidth: '2px' }
+  '&:hover': { borderWidth: { xs: '1.5px', sm: '2px' } }
 };
 
 const IdaSites = () => {
@@ -191,7 +191,7 @@ const IdaSites = () => {
                   <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                 </CardActionArea>
 
-                <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, width: { xs: '100%', sm: 'auto' }, px: { xs: 2, sm: 0 }, pb: { xs: 1.75, sm: 0 }, ml: { sm: 1 }, mr: { sm: 2 } }}>
+                <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, boxSizing: 'border-box', width: { xs: '100%', sm: 'auto' }, px: { xs: 2, sm: 0 }, pb: { xs: 1.75, sm: 0 }, ml: { sm: 1 }, mr: { sm: 2 } }}>
                   <Tooltip title={text?.siteMap || "Site Map"}>
                     <Button
                       variant="outlined"

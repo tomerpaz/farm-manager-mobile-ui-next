@@ -207,6 +207,10 @@ const SiteFieldList = () => {
 
                         // Fields with an end date are greyed out with a dashed border and a chip, like inactive resources.
                         const ended = !!value.endDate;
+                        // Beside the text on desktop; on a phone there's no room, so it goes under the details.
+                        const rootDateChip = (display) => (
+                            <Chip label={`${text?.rootDate || "Root Date"} ${formatDate(value.endDate)}`} size="small" variant="outlined" sx={{ display, flexShrink: 0, fontWeight: 600, color: 'text.secondary' }} />
+                        );
 
                         return (
                             <Card
@@ -240,17 +244,16 @@ const SiteFieldList = () => {
                                         {details.length > 0 && (
                                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}>
                                                 {details.map(({ icon, label }, i) => (
-                                                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+                                                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', minWidth: 0, maxWidth: '100%' }}>
                                                         {icon}
                                                         <Typography variant="body2" noWrap>{label}</Typography>
                                                     </Box>
                                                 ))}
                                             </Box>
                                         )}
+                                        {ended && <Box sx={{ mt: 0.75, display: { xs: 'block', sm: 'none' } }}>{rootDateChip('inline-flex')}</Box>}
                                     </Box>
-                                    {ended && (
-                                        <Chip label={`${text?.rootDate || "Root Date"} ${formatDate(value.endDate)}`} size="small" variant="outlined" sx={{ flexShrink: 0, fontWeight: 600, color: 'text.secondary' }} />
-                                    )}
+                                    {ended && rootDateChip({ xs: 'none', sm: 'inline-flex' })}
                                     <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                                 </CardActionArea>
                                 {/* Beside the action area, not in it: a button can't sit inside a button. */}

@@ -584,7 +584,8 @@ export default function MetricFormDialog({
                                             );
                                             const areaUnit = user?.areaUnit ? t(user.areaUnit, user.areaUnit) : "";
                                             const totalArea = selected.reduce((sum, af) => sum + (Number(af.area) || 0), 0);
-                                            const formatArea = (area) => Number(area).toLocaleString("en-AU", { maximumFractionDigits: 2 });
+                                            // 3 decimals: the server's smallest field size is 0.001.
+                                            const formatArea = (area) => Number(area).toLocaleString("en-AU", { maximumFractionDigits: 3 });
                                             return (
                                                 <Box sx={sectionPanelSx}>
                                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

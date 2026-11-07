@@ -75,7 +75,12 @@ const StatusIndicator = ({ icon, label, isMobile, styles }) => (
   </Tooltip>
 );
 
-const monthPickerSx = { width: 115, '& .MuiPickersOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
+// On a phone the controls fill two full-width rows; from sm up the rows dissolve into one strip.
+const filterRowSx = { display: { xs: 'flex', sm: 'contents' }, gap: 1 };
+const filterItemSx = { flex: { xs: '1 1 0', sm: 'none' }, minWidth: 0 };
+const filterButtonWrapSx = { ...filterItemSx, display: { xs: 'flex', sm: 'inline' } };
+const exportButtonSx = { textTransform: 'none', fontWeight: 700, borderRadius: 1.5, px: { xs: 1, sm: 2 }, height: 40, width: { xs: '100%', sm: 'auto' } };
+const monthPickerSx = { width: { xs: 'auto', sm: 115 }, '& .MuiPickersOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
 const selectFilterSx = { '& .MuiOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
 const selectFilterMenu = { menu: { PaperProps: { style: { maxHeight: 200 } } } };
 const ALL_SITES = 0;
@@ -266,9 +271,10 @@ const IdaDash = () => {
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: { sm: 'wrap' }, rowGap: 2, columnGap: 1.5, width: { xs: '100%', sm: 'auto' } }}>
+              <Box sx={filterRowSx}>
               <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
-                <span>
+                <Box component="span" sx={filterButtonWrapSx}>
                   <Button
                     variant="outlined"
                     color="secondary"
@@ -276,21 +282,15 @@ const IdaDash = () => {
                     disabled={!ggData || reportGenerating}
                     onClick={() => handleExport('pdf')}
                     startIcon={<PictureAsPdf sx={{ fontSize: '1.4rem', color: '#B7261C' }} />}
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      borderRadius: 1.5,
-                      px: 2,
-                      height: 40,
-                    }}
+                    sx={exportButtonSx}
                   >
                     PDF
                   </Button>
-                </span>
+                </Box>
               </Tooltip>
 
               <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
-                <span>
+                <Box component="span" sx={filterButtonWrapSx}>
                   <Button
                     variant="outlined"
                     color="secondary"
@@ -298,17 +298,11 @@ const IdaDash = () => {
                     disabled={!ggData || reportGenerating}
                     onClick={() => handleExport('xlsx')}
                     startIcon={<TableChart sx={{ fontSize: '1.4rem', color: '#175C35' }} />}
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      borderRadius: 1.5,
-                      px: 2,
-                      height: 40,
-                    }}
+                    sx={exportButtonSx}
                   >
                     Excel
                   </Button>
-                </span>
+                </Box>
               </Tooltip>
 
               <TextField
@@ -326,7 +320,7 @@ const IdaDash = () => {
                     MenuProps: { slotProps: { paper: { style: { maxHeight: 320 } } } },
                   },
                 }}
-                sx={{ ...selectFilterSx, width: { xs: 160, sm: 280 } }}
+                sx={{ ...selectFilterSx, flex: { xs: '1.5 1 0', sm: 'none' }, minWidth: 0, width: { xs: 'auto', sm: 280 } }}
               >
                 <MenuItem value={ALL_SITES} dense>
                   <Checkbox checked={!selectedSites.length} size="small" color="success" sx={{ p: 0.5, mr: 1 }} />
@@ -339,6 +333,8 @@ const IdaDash = () => {
                   </MenuItem>
                 ))}
               </TextField>
+              </Box>
+              <Box sx={filterRowSx}>
               <TextField
                 select
                 value={selectedYear}
@@ -346,7 +342,7 @@ const IdaDash = () => {
                 onChange={handleYearChange}
                 size="small"
                 slotProps={selectFilterMenu}
-                sx={{ ...selectFilterSx, minWidth: 105 }}
+                sx={{ ...selectFilterSx, ...filterItemSx, minWidth: { xs: 0, sm: 105 } }}
               >
                 {[0, 1, 2, 3, 4, 5].map((offset) => (
                   <MenuItem key={offset} value={currentYear - offset}>
@@ -362,7 +358,7 @@ const IdaDash = () => {
                 value={from}
                 onChange={handleFromChange}
                 closeOnSelect
-                slotProps={{ textField: { size: 'small', sx: monthPickerSx } }}
+                slotProps={{ textField: { size: 'small', sx: { ...monthPickerSx, ...filterItemSx } } }}
               />
               <DatePicker
                 views={['year', 'month']}
@@ -373,8 +369,9 @@ const IdaDash = () => {
                 value={to}
                 onChange={handleToChange}
                 closeOnSelect
-                slotProps={{ textField: { size: 'small', sx: monthPickerSx } }}
+                slotProps={{ textField: { size: 'small', sx: { ...monthPickerSx, ...filterItemSx } } }}
               />
+              </Box>
             </Box>
           </Box>
 
