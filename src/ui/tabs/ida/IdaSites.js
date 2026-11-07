@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -9,10 +10,11 @@ import {
   Tooltip,
   Typography
 } from '@mui/material';
-import { Add, ChevronRight, LocationOn, Map as MapIcon, SquareFoot, Terrain } from '@mui/icons-material';
+import { Add, Agriculture, ChevronRight, LocationOn, Map as MapIcon, SquareFoot, Terrain } from '@mui/icons-material';
 
 import Loading from '../../../components/Loading';
 import { useGetSitesQuery } from '../../../features/sites/sitesApiSlice';
+import { useGetIdaSystemDataQuery } from '../../../features/ida/idaApiSlice';
 import { selectLang } from '../../../features/app/appSlice';
 
 const formatSize = (size) => {
@@ -22,20 +24,24 @@ const formatSize = (size) => {
 };
 
 // Shared by the card's Map and Fields buttons so they read as one pair:
-// same outlined border, radius and height.
+// same outlined border, radius and height. On a phone they share a full-width row.
 const cardButtonSx = {
   textTransform: 'none',
   borderRadius: 2,
-  fontWeight: 600,
-  flexShrink: 0,
-  height: 38,
-  borderWidth: '1.5px',
-  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-  '&:hover': { borderWidth: '1.5px' }
+  fontWeight: 700,
+  flex: { xs: 1, sm: 'none' },
+  height: { xs: 44, sm: 48 },
+  px: { sm: 4 },
+  borderWidth: '2px',
+  fontSize: { xs: '0.95rem', sm: '1rem' },
+  whiteSpace: 'nowrap',
+  '&:hover': { borderWidth: '2px' }
 };
 
 const IdaSites = () => {
   const { data: sites, isLoading: isSitesLoading, isSuccess: isSitesSuccess } = useGetSitesQuery();
+  // The sites IDA can report on: the dashboard and form redirect here when there are none.
+  const { data: idaSystemData, isSuccess: isSystemSuccess } = useGetIdaSystemDataQuery();
   const text = useSelector(selectLang);
   const navigate = useNavigate();
 
@@ -107,6 +113,12 @@ const IdaSites = () => {
           </Button>
         </Box>
 
+        {isSystemSuccess && !idaSystemData?.sites?.length && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {text?.idaNeedsSite || "To start IDA reporting you need an active site registered in GLOBALG.A.P. Sites are registered when saved with a map location, so add a site, or open an existing one and save it again."}
+          </Alert>
+        )}
+
         {/* Site Cards */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, width: '100%' }}>
           {isSitesSuccess && sites?.map((value) => {
@@ -117,6 +129,7 @@ const IdaSites = () => {
                 elevation={0}
                 sx={{
                   display: 'flex',
+                  flexWrap: { xs: 'wrap', sm: 'nowrap' },
                   alignItems: 'center',
                   bgcolor: 'rgba(46, 125, 50, 0.03)',
                   border: '1px solid rgba(0, 0, 0, 0.08)',
@@ -134,7 +147,7 @@ const IdaSites = () => {
                     so a clickable Fields control never ends up inside another button. */}
                 <CardActionArea
                   onClick={() => navigate(`/site/${value.id}`)}
-                  sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 2, py: 1.75, minWidth: 0 }}
+                  sx={{ flex: { sm: 1 }, width: { xs: '100%', sm: 'auto' }, display: 'flex', alignItems: 'center', gap: 2, px: 2, py: 1.75, minWidth: 0 }}
                 >
                   <Box
                     sx={{
@@ -175,28 +188,31 @@ const IdaSites = () => {
                   <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                 </CardActionArea>
 
-                <Tooltip title={text?.siteMap || "Site Map"}>
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    startIcon={<MapIcon fontSize="small" />}
-                    onClick={() => navigate(`/site/${value.id}/map`)}
-                    sx={{ ...cardButtonSx, px: { xs: 1.5, sm: 2 }, ml: 1, mr: value.ggId ? 0 : 2 }}
-                  >
-                    {text?.map || "Map"}
-                  </Button>
-                </Tooltip>
+                <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, width: { xs: '100%', sm: 'auto' }, px: { xs: 2, sm: 0 }, pb: { xs: 1.75, sm: 0 }, ml: { sm: 1 }, mr: { sm: 2 } }}>
+                  <Tooltip title={text?.siteMap || "Site Map"}>
+                    <Button
+                      variant="outlined"
+                      color="success"
+                      startIcon={<MapIcon />}
+                      onClick={() => navigate(`/site/${value.id}/map`)}
+                      sx={cardButtonSx}
+                    >
+                      {text?.map || "Map"}
+                    </Button>
+                  </Tooltip>
 
-                {value.ggId && (
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    onClick={() => navigate(`/site/${value.id}/fields`)}
-                    sx={{ ...cardButtonSx, px: { xs: 2, sm: 3 }, ml: 1, mr: 2 }}
-                  >
-                    {text?.fields || "Fields"}
-                  </Button>
-                )}
+                  {value.ggId && (
+                    <Button
+                      variant="outlined"
+                      color="success"
+                      startIcon={<Agriculture />}
+                      onClick={() => navigate(`/site/${value.id}/fields`)}
+                      sx={cardButtonSx}
+                    >
+                      {text?.fields || "Fields"}
+                    </Button>
+                  )}
+                </Box>
               </Card>
             );
           })}

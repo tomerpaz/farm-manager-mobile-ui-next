@@ -63,6 +63,7 @@ export default function MetricFieldArray({
     disabled,
     disabledReason,
     mandatoryError,
+    mandatoryColor,
 }) {
     const { fields, append, remove, update } = useFieldArray({ control, name });
     const t = useIdaText();
@@ -141,6 +142,22 @@ export default function MetricFieldArray({
         return value || "—";
     };
 
+    // maxLines cuts a long cell to that many lines; the tooltip (tap on a phone) shows the rest.
+    const renderCell = (f, field) => {
+        const content = formatCell(f, field);
+        if (!f.maxLines) return content;
+        return (
+            <Tooltip title={content} enterTouchDelay={0}>
+                <Box
+                    component="span"
+                    sx={{ display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: f.maxLines, overflow: "hidden" }}
+                >
+                    {content}
+                </Box>
+            </Tooltip>
+        );
+    };
+
     const handleOpenAdd = () => setDialogState({ open: true, index: null, initialData: null });
 
     const handleOpenEdit = (index) => {
@@ -188,7 +205,7 @@ export default function MetricFieldArray({
     return (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%", minWidth: 0 }}>
             {mandatoryError && (
-                <Alert severity="error" sx={{ borderRadius: 2 }}>
+                <Alert severity={mandatoryColor} sx={{ borderRadius: 2 }}>
                     {mandatoryError}
                 </Alert>
             )}
@@ -271,7 +288,7 @@ export default function MetricFieldArray({
                                                 variant="body2"
                                                 sx={{ m: 0, textAlign: "right", overflowWrap: "anywhere" }}
                                             >
-                                                {formatCell(f, field)}
+                                                {renderCell(f, field)}
                                             </Typography>
                                         </Box>
                                     ))}
@@ -325,7 +342,7 @@ export default function MetricFieldArray({
                                 >
                                     {tableColumns.map((f) => (
                                         <TableCell key={f.name} align={f.type === "number" ? "right" : "left"}>
-                                            {formatCell(f, field)}
+                                            {renderCell(f, field)}
                                         </TableCell>
                                     ))}
                                     <TableCell align="center">

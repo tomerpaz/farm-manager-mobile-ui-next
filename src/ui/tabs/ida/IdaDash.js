@@ -6,6 +6,8 @@ import {
   Box,
   Typography,
   Button,
+  Checkbox,
+  ListItemText,
   MenuItem,
   TextField,
   Card,
@@ -34,7 +36,7 @@ import { useGetGGDataQuery, useGetIdaSystemDataQuery } from '../../../features/i
 import { monthKeyLabel, monthOfKey, yearOfKey } from '../../../features/ida/ggRecordMapper';
 import { useGenerateReportMutation } from '../../../features/reports/reportApiSlice';
 import { downloadReportFile, reportFailed } from '../../../features/reports/reportFile';
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 
 // One tile per metric per month. On mobile there's no room for a
 // "Fertilizer" label next to three others plus the month button on a
@@ -74,6 +76,9 @@ const StatusIndicator = ({ icon, label, isMobile, styles }) => (
 );
 
 const monthPickerSx = { width: 115, '& .MuiPickersOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
+const selectFilterSx = { '& .MuiOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
+const selectFilterMenu = { menu: { PaperProps: { style: { maxHeight: 200 } } } };
+const ALL_SITES = 0;
 
 const IdaDash = () => {
 
@@ -105,15 +110,28 @@ const IdaDash = () => {
     setTo(value);
   };
 
-  const { data: idaSystemData, isLoading: isSystemLoading } = useGetIdaSystemDataQuery();
+  const { data: idaSystemData, isLoading: isSystemLoading, isSuccess: isSystemSuccess } = useGetIdaSystemDataQuery();
   const range = {
     from: from.startOf('month').format('YYYY-MM-DD'),
     to: to.endOf('month').format('YYYY-MM-DD'),
   };
-  const { data: ggData, isLoading: isDataLoading } = useGetGGDataQuery(range);
+  // No site ticked means all of them.
+  const [selectedSites, setSelectedSites] = useState([]);
+  const siteIds = selectedSites.length ? selectedSites : undefined;
+  const handleSitesChange = (e) => setSelectedSites(e.target.value.includes(ALL_SITES) ? [] : e.target.value);
+  const siteNames = (ids) => {
+    if (!ids.length) return text?.allSites || "All Sites";
+    return ids.map((id) => idaSystemData?.sites?.find((site) => site.id === id)?.name).filter(Boolean).join(', ');
+  };
+  const { data: ggData, isLoading: isDataLoading } = useGetGGDataQuery({ ...range, sites: siteIds });
   const [generateReport] = useGenerateReportMutation();
   const reportGenerating = useSelector(selectReportGenerating);
   const dispatch = useDispatch();
+
+  // Nothing can be reported without a site, so send the user to add one.
+  if (isSystemSuccess && !idaSystemData?.sites?.length) {
+    return <Navigate to="/tabs/ida/sites" replace />;
+  }
 
   if (isSystemLoading || isDataLoading) {
     return (
@@ -220,7 +238,7 @@ const IdaDash = () => {
     };
   };
   const handleExport = (format) => {
-    generateReport({ type: 'ida', format, params: { ...range, lang } }).unwrap()
+    generateReport({ type: 'ida', format, params: { ...range, site: siteIds, lang } }).unwrap()
       .then(downloadReportFile)
       .catch((err) => reportFailed(err, dispatch, text));
   };
@@ -295,12 +313,40 @@ const IdaDash = () => {
 
               <TextField
                 select
+                value={selectedSites}
+                label={text?.sites || "Sites"}
+                onChange={handleSitesChange}
+                size="small"
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  select: {
+                    multiple: true,
+                    displayEmpty: true,
+                    renderValue: siteNames,
+                    MenuProps: { slotProps: { paper: { style: { maxHeight: 320 } } } },
+                  },
+                }}
+                sx={{ ...selectFilterSx, width: { xs: 160, sm: 280 } }}
+              >
+                <MenuItem value={ALL_SITES} dense>
+                  <Checkbox checked={!selectedSites.length} size="small" color="success" sx={{ p: 0.5, mr: 1 }} />
+                  <ListItemText primary={text?.allSites || "All Sites"} />
+                </MenuItem>
+                {idaSystemData?.sites?.map((site) => (
+                  <MenuItem key={site.id} value={site.id} dense>
+                    <Checkbox checked={selectedSites.includes(site.id)} size="small" color="success" sx={{ p: 0.5, mr: 1 }} />
+                    <ListItemText primary={site.name} />
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
                 value={selectedYear}
                 label={text?.year || "Year"}
                 onChange={handleYearChange}
                 size="small"
-                slotProps={{ menu: { PaperProps: { style: { maxHeight: 200 } } } }}
-                sx={{ minWidth: 105, '& .MuiOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } }}
+                slotProps={selectFilterMenu}
+                sx={{ ...selectFilterSx, minWidth: 105 }}
               >
                 {[0, 1, 2, 3, 4, 5].map((offset) => (
                   <MenuItem key={offset} value={currentYear - offset}>

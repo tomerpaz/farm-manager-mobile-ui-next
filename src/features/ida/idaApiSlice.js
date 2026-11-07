@@ -1,4 +1,4 @@
-import { apiSlice, Pests_TAG, CropGenera_TAG, ProductCategories_TAG, SiteFields_TAG } from "../../app/api/apiSlice";
+import { apiSlice, Pests_TAG, CropGenera_TAG, ProductCategories_TAG, SiteFields_TAG, Sites_TAG } from "../../app/api/apiSlice";
 
 export const IdaSystem_TAG = 'IdaSystem';
 export const GGData_TAG = 'GGData';
@@ -37,8 +37,8 @@ export const idaApiSlice = apiSlice
 
             getIdaSystemData: builder.query({
                 query: () => '/api/farm/gg/ida/system/data',
-                // SiteFields_TAG: holds the fields list, so saving a field refetches it.
-                providesTags: [IdaSystem_TAG, SiteFields_TAG],
+                // Holds the sites and fields lists, so saving either refetches it.
+                providesTags: [IdaSystem_TAG, SiteFields_TAG, Sites_TAG],
             }),
 
             // Months are keyed yyyyMM (see monthKey in ggRecordMapper). The server

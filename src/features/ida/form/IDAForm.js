@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 import {
     Alert,
     Box,
@@ -72,7 +72,7 @@ const METRICS = [
                 name: "resources", type: "resources", label: "Pesticides", labelKey: "pesticides", optionsFrom: "pesticides",
                 emptyLabel: "No Active Ingredient", emptyLabelKey: "noActiveIngredient", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
             },
-            { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
+            { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true, maxLines: 3 },
             // group: shares a dialog panel with the other "details" fields (the note).
             { name: "pests", type: "multiselect", label: "Pests", labelKey: "pests", optionsFrom: "pests", group: "details" },
         ],
@@ -93,7 +93,7 @@ const METRICS = [
                 name: "resources", type: "resources", label: "Fertilizers", labelKey: "fertilizers", optionsFrom: "fertilizers",
                 emptyLabel: "No NPK", emptyLabelKey: "noNpk", noneCheckbox: true, zeroLinksTo: ["date"], rowFields: ["amount"], rowUnit: "kg", unitFromResource: true,
             },
-            { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
+            { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true, maxLines: 3 },
         ],
     },
     {
@@ -279,11 +279,9 @@ function validateMandatoryMetrics(formData, availableFields, zeroOptionLabels, t
     }
 
     const checkFieldCoverage = (metricId, records, zeroLabel) => {
-        // Baseline bar (matches waterUse/energyUsed) so an empty list is
-        // always caught — the per-field check below only has something to
-        // compare against when availableFields is non-empty, so on its own
-        // it would silently pass a totally empty list for a site with no
-        // fields set up yet.
+        // These records need a field, so a month without fields can't have any
+        // and they can't be required of it.
+        if (!availableFields?.length) return;
         if ((records || []).length === 0) {
             errors[metricId] = needsOne;
             return;
@@ -316,7 +314,7 @@ function IDAForm() {
     const recordYear = Number(year);
     const recordMonth = Number(month); // 0-indexed
 
-    const { data: idaSystemData, isLoading: isSystemLoading } = useGetIdaSystemDataQuery();
+    const { data: idaSystemData, isLoading: isSystemLoading, isSuccess: isSystemSuccess } = useGetIdaSystemDataQuery();
     const { data: workers = [], isLoading: isWorkersLoading } = useGetResourcesQuery({ type: WORKER });
     const { data: generalResources = [] } = useGetResourcesQuery({ type: GENERAL });
     const { data: pests, isLoading: isPestsLoading } = useGetPestsQuery();
@@ -419,7 +417,13 @@ function IDAForm() {
     // Two submit paths: Save finalizes (draft = false, full validation),
     // Save Draft keeps it a draft (draft = true, mandatory checks skipped).
     const [savingAs, setSavingAs] = useState(null);
-    const submitAs = (draft) => handleSubmit((data) => handleFormSubmit({ ...data, draft }));
+    // Required panels are a hint (info) until a final Save is tried, then an error.
+    const [saveAttempted, setSaveAttempted] = useState(false);
+    const requiredColor = saveAttempted ? "error" : "info";
+    const submitAs = (draft) => (event) => {
+        if (!draft) setSaveAttempted(true);
+        return handleSubmit((data) => handleFormSubmit({ ...data, draft }))(event);
+    };
 
     const handleFormSubmit = async (formData) => {
         setSubmitError(null);
@@ -454,6 +458,11 @@ function IDAForm() {
             setSavingAs(null);
         }
     };
+
+    // Also covers opening a month's URL directly: no site, nothing to report on.
+    if (isSystemSuccess && !idaSystemData?.sites?.length) {
+        return <Navigate to="/tabs/ida/sites" replace />;
+    }
 
     if (isSystemLoading || isWorkersLoading || isPestsLoading || isDataLoading) {
         return (
@@ -499,6 +508,7 @@ function IDAForm() {
                 count={metricValues?.[indexInAll]?.length ?? 0}
                 missing={!!metricErrors[metric.id]}
                 missingLabel={t("required", "Required")}
+                missingColor={requiredColor}
                 expanded={expanded.has(metric.id)}
                 onChange={togglePanel(metric.id)}
             >
@@ -517,6 +527,7 @@ function IDAForm() {
                     disabled={noFieldsAvailable}
                     disabledReason={noFieldsAvailable ? t("noFieldsForMonth", "No fields available to select for this month.") : null}
                     mandatoryError={metricErrors[metric.id]}
+                    mandatoryColor={requiredColor}
                 />
             </MetricPanel>
         );
@@ -601,7 +612,7 @@ function IDAForm() {
                         <Alert severity="warning" sx={{ mb: 3 }}>
                             {t(
                                 "noFieldsWarning",
-                                "No fields are available for this month — records can't be logged and this matrix can't be saved until at least one field exists."
+                                "No fields are available for this month — records that need a field can't be added. All other records can be saved."
                             )}
                         </Alert>
                     )}
@@ -683,7 +694,7 @@ function IDAForm() {
                             color="success"
                             size="large"
                             onClick={submitAs(true)}
-                            disabled={isSubmitting || availableFields.length === 0}
+                            disabled={isSubmitting}
                             sx={{
                                 textTransform: "none",
                                 borderRadius: 2,
@@ -705,7 +716,7 @@ function IDAForm() {
                             variant="contained"
                             color="success"
                             size="large"
-                            disabled={isSubmitting || availableFields.length === 0}
+                            disabled={isSubmitting}
                             sx={{
                                 textTransform: "none",
                                 borderRadius: 2,

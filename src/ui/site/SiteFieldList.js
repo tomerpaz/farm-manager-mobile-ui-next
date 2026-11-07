@@ -8,11 +8,12 @@ import {
     CardActionArea,
     Chip,
     Fab,
+    IconButton,
     Tooltip,
     Typography,
     Skeleton
 } from "@mui/material";
-import { Add, Agriculture, PictureAsPdf, TableChart, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
+import { Add, Agriculture, ContentCopy, PictureAsPdf, TableChart, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
 
 import { selectLang, selectReportGenerating } from "../../features/app/appSlice";
 import { safeParseJson, clearJustAddedFieldId, getJustAddedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
@@ -85,7 +86,7 @@ const SiteFieldList = () => {
                     // FIX: Replaces rigid layout constraints with a fluid flex model for all resolutions
                     flex: { xs: '1 1 100% !important', sm: 'initial' },
                     width: '100% !important',
-                    maxWidth: { xs: '100% !important', sm: '800px !important' },
+                    maxWidth: { xs: '100% !important', sm: '1200px !important' },
                     minWidth: '0px !important', // Drops the 500px rigid box constraint completely
                     boxSizing: 'border-box !important',
                     mt: { xs: 0, sm: '32px !important' }, // Dynamic vertical separation on desktop viewports
@@ -217,6 +218,8 @@ const SiteFieldList = () => {
                                     borderStyle: ended ? 'dashed' : undefined,
                                     borderRadius: 2.5,
                                     overflow: 'hidden',
+                                    display: 'flex',
+                                    alignItems: 'center',
                                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                                     '&:hover': {
                                         bgcolor: 'rgba(46, 125, 50, 0.06)',
@@ -226,7 +229,7 @@ const SiteFieldList = () => {
                             >
                                 <CardActionArea
                                     onClick={() => navigate(`/site/${siteId}/field/${value.id}`)}
-                                    sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 2, px: 2.5 }}
+                                    sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1.5, py: 2, px: 2.5 }}
                                 >
                                     {/* Mini map: the field's polygon outline in its own color. */}
                                     <FieldShapeThumb points={safeParseJson(value.polygon)} color={value.color} />
@@ -250,6 +253,18 @@ const SiteFieldList = () => {
                                     )}
                                     <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
                                 </CardActionArea>
+                                {/* Beside the action area, not in it: a button can't sit inside a button. */}
+                                {ended && (
+                                    <Tooltip title={text?.duplicate || "Duplicate"}>
+                                        <IconButton
+                                            aria-label={text?.duplicate || "Duplicate"}
+                                            onClick={() => navigate(`/site/${siteId}/field/0?from=${value.id}`)}
+                                            sx={{ flexShrink: 0, mx: 0.5 }}
+                                        >
+                                            <ContentCopy fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
                             </Card>
                         );
                     })}

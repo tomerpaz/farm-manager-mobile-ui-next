@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -52,6 +52,15 @@ const COLOR_PRESETS = [
     '#1e88e5', // blue — greenhouses, rice, irrigated plots
 ];
 const isHexColor = (v) => /^#[0-9a-f]{6}$/i.test(v || '');
+// A new field continuing an ended one: same data, starting the day after it ended.
+// ggId links a field to its own GlobalG.A.P. crop, so the copy doesn't keep it.
+const duplicateOf = (source) => ({
+    ...source,
+    id: null,
+    ggId: null,
+    startDate: dayjs(source.endDate).add(1, 'day').toDate(),
+    endDate: null,
+});
 
 const IdaFieldForm = () => {
     const navigate = useNavigate();
@@ -70,6 +79,11 @@ const IdaFieldForm = () => {
     // RTK Query hooks
     const isNewField = fieldId === '0';
     const { data: field, isSuccess: isFieldsSuccess, isLoading } = useGetFieldQuery(fieldId, { skip: isNewField });
+    // /site/:siteId/field/0?from=<id> opens a new field filled in from an ended one.
+    const [searchParams] = useSearchParams();
+    const sourceId = isNewField ? searchParams.get('from') : null;
+    const { data: sourceField } = useGetFieldQuery(sourceId, { skip: !sourceId });
+    const newFieldData = sourceField ? duplicateOf(sourceField) : {};
     const { data: cropGenera = [], isSuccess: isCropGeneraSuccess } = useGetCropGeneraQuery();
     const { data: productCategories = [], isSuccess: isProductCategoriesSuccess } = useGetProductCategoriesQuery();
 
@@ -106,15 +120,15 @@ const IdaFieldForm = () => {
 
     // Form initialization hook
     const { control, handleSubmit, setValue, setError, reset, formState: { errors } } = useForm({
-        defaultValues: getCleanFieldDefaults(isNewField ? {} : field),
+        defaultValues: getCleanFieldDefaults(isNewField ? newFieldData : field),
     });
 
     // Sync state modifications smoothly whenever async data finishes fetching
     useEffect(() => {
-        if ((isFieldsSuccess && field) || (isNewField && isCropGeneraSuccess && isProductCategoriesSuccess)) {
-            reset(getCleanFieldDefaults(isNewField ? {} : field));
+        if ((isFieldsSuccess && field) || (isNewField && isCropGeneraSuccess && isProductCategoriesSuccess && (!sourceId || sourceField))) {
+            reset(getCleanFieldDefaults(isNewField ? newFieldData : field));
         }
-    }, [field, isFieldsSuccess, reset, isCropGeneraSuccess, isProductCategoriesSuccess, isNewField]);
+    }, [field, isFieldsSuccess, reset, isCropGeneraSuccess, isProductCategoriesSuccess, isNewField, sourceId, sourceField]);
 
     // Before a polygon exists the map opens on the field's site.
     const fieldSiteId = field?.siteId ?? siteId;
@@ -170,7 +184,7 @@ const IdaFieldForm = () => {
     };
 
 
-    if (!isCropGeneraSuccess || !isProductCategoriesSuccess || isLoading || (!isNewField && !field)) {
+    if (!isCropGeneraSuccess || !isProductCategoriesSuccess || isLoading || (!isNewField && !field) || (sourceId && !sourceField)) {
         return (
             <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
                 <Loading />
@@ -428,7 +442,7 @@ const IdaFieldForm = () => {
                                                                 '& .MuiInputBase-input': isPhone ? {} : { padding: '16px 14px' }
                                                             }
                                                         },
-                                                        actionBar: { actions: ["cancel"] }
+                                                        actionBar: { actions: ["cancel", "clear"] }
                                                     }}
                                                     {...field}
                                                     value={toPickerValue(field.value)}
