@@ -10,6 +10,7 @@ import { useLoginMutation } from "./authApiSlice";
 import { selectLang, setCredentials, setLang } from "../app/appSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserLang } from '../../router/UserRoutes';
+import { useNavigate } from 'react-router';
 
 const Login = (props) => {
 
@@ -18,13 +19,13 @@ const Login = (props) => {
 
     const dispatch = useDispatch()
 
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
 
     const [login] = useLoginMutation()
 
     const text = useSelector(selectLang)
 
-    const { handleSubmit, control } = useForm();
+    const { handleSubmit, control, getValues } = useForm();
 
 
     // const user = useWatch({ name: 'username', control });
@@ -145,6 +146,14 @@ const Login = (props) => {
 
 
                 <Button type="submit" size='large' fullWidth disableElevation variant="contained"><LoginOutlined /></Button>
+                {/* Passes on the typed username so it doesn't need typing again. */}
+                <Button
+                    size='small'
+                    onClick={() => navigate('/forgot-password', { state: { login: getValues('username') } })}
+                    sx={{ textTransform: 'none' }}
+                >
+                    {text.forgotPassword || 'Forgot password?'}
+                </Button>
             </Box>
         </Box>
     );

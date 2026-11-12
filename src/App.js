@@ -2,6 +2,8 @@ import './App.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Routes, Route, Navigate } from "react-router";
 import Login from './features/auth/Login';
+import ForgotPassword from './features/auth/ForgotPassword';
+import ResetPassword from './features/auth/ResetPassword';
 import ProtectedRoutes from './router/ProtectedRoutes';
 import PublicRoutes from './router/PublicRoutes';
 
@@ -118,7 +120,10 @@ function App() {
             </Route>
             <Route path="/" element={<PublicRoutes />}>
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
             </Route>
+            {/* Outside PublicRoutes: an emailed reset link must open even while signed in. */}
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
           <Route path="*" element={<Navigate to={DEFAULT_ROUTE} replace />} />
         </Routes>

@@ -1,10 +1,11 @@
-import { Logout, More, MoreVert, Settings, GpsFixed } from '@mui/icons-material';
+import { AccountCircle, Logout, More, MoreVert, Settings, GpsFixed } from '@mui/icons-material';
 import { Box, IconButton, Menu, MenuItem, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { logOut, selectActiveGPS, selectLang, setActiveGPS, setOpenSettings } from '../../features/app/appSlice';
 import SettingsDialog from '../../ui/settings/SettingsDialog';
+import ProfileDialog from '../../ui/settings/ProfileDialog';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import LayersDialog from '../../ui/layers/LayersDialog';
 import { apiSlice } from '../../app/api/apiSlice';
@@ -20,6 +21,7 @@ const AppBarMenu = () => {
     const text = useSelector(selectLang)
 
     const [anchorEl, setAnchorEl] = React.useState(null);
+    const [profileOpen, setProfileOpen] = useState(false);
 
     const { data: user, isSuccess } = useGetUserDataQuery()
 
@@ -48,6 +50,11 @@ const AppBarMenu = () => {
         setAnchorEl(null);
         dispatch(setOpenSettings(true));
 
+    };
+
+    const handleProfile = () => {
+        setAnchorEl(null);
+        setProfileOpen(true);
     };
 
     const handleActiveGPS = () => {
@@ -96,6 +103,17 @@ const AppBarMenu = () => {
                     </IconButton>
                     {text.logout}
                 </MenuItem>
+                {/* The user's own name opens their profile; settings are app preferences. */}
+                <MenuItem onClick={handleProfile}>
+                    <IconButton
+                        size="large"
+                        aria-label={text.profile || 'Profile'}
+                        color="inherit"
+                    >
+                        <AccountCircle />
+                    </IconButton>
+                    {isSuccess && user.displayName ? user.displayName : (text.profile || 'Profile')}
+                </MenuItem>
                 <MenuItem onClick={handleSettings}>
                     <IconButton
                         size="large"
@@ -104,7 +122,7 @@ const AppBarMenu = () => {
                     >
                         <Settings />
                     </IconButton>
-                    {isSuccess ? user.displayName: text.settings}
+                    {text.settings}
                 </MenuItem>
                 {!isIda && <MenuItem  color={activeGPS ? 'primary' : "inherit"} onClick={handleActiveGPS} >
                     <IconButton
@@ -118,6 +136,7 @@ const AppBarMenu = () => {
                 </MenuItem>}
             </Menu>
             <SettingsDialog/>
+            <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
             <LayersDialog/>
         </Box>
     );
