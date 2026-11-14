@@ -27,7 +27,7 @@ import { DEFAULT_COORDINATES } from '../FarmUtil';
 import ActionApprovalDialog from '../../components/ui/ActionApprovalDialog';
 import Loading from '../../components/Loading';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
-import { pageTintBg } from '../../components/ui/pageTint';
+import { pageTintSx } from '../../components/ui/pageTint';
 import { storeSelectedSiteId } from './selectedSite';
 import FormActionBar from '../../components/ui/FormActionBar';
 
@@ -159,7 +159,7 @@ const SiteForm = () => {
   return (
     // Exactly one screen tall: header, fields and the docked Save bar keep
     // their natural size and the map flexes to fill the rest — no page scroll.
-    <Box sx={{ height: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: pageTintBg }}>
+    <Box sx={{ height: '100dvh', display: 'flex', flexDirection: 'column', ...pageTintSx }}>
       <GoBackAppBar />
       <Box sx={{
         width: '100%',
@@ -183,7 +183,7 @@ const SiteForm = () => {
           bgcolor: 'background.paper',
           position: 'relative',
           px: { xs: 2, sm: 3 },
-          pt: { xs: 2, sm: 3 },
+          pt: { xs: 0, sm: 3 }, // phone: the app bar's margin is the gap
           pb: { xs: 4, sm: 4 },
           borderRadius: { xs: 0, sm: 2 },
           boxShadow: { xs: 0, sm: 2 }

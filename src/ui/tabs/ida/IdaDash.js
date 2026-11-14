@@ -504,8 +504,7 @@ const IdaDash = () => {
       height: 'calc(100vh - 120px)',
       boxSizing: 'border-box',
       overflow: 'hidden',
-      // sm and up (MUI's default 600px breakpoint). A plain object: the theme-callback
-      // form of sx didn't apply its responsive values here.
+      // Tinted on desktop only, like the other pages (see pageTint).
       '@media (min-width: 600px)': { bgcolor: pageTintBg },
     }}>
       <Paper

@@ -67,7 +67,7 @@ const ResourceList = () => {
 
                     mt: { xs: 0, sm: '32px !important' }, // Direct spacing beneath the top bar on desktop
                     px: { xs: 2, sm: 3 },
-                    pt: { xs: 2, sm: '32px !important' },
+                    pt: { xs: 0, sm: '32px !important' }, // phone: the app bar's margin is the gap
                     pb: { xs: 10, sm: 6 },
                     boxSizing: 'border-box !important'
                 }}

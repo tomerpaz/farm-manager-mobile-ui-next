@@ -32,7 +32,7 @@ import FieldPolygonDraw from './FieldPolygonDraw';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
-import { pageTintBg } from '../../components/ui/pageTint';
+import { pageTintSx } from '../../components/ui/pageTint';
 import { storeSelectedSiteId } from '../site/selectedSite';
 import FormActionBar from '../../components/ui/FormActionBar';
 
@@ -242,7 +242,7 @@ const IdaFieldForm = () => {
     return (
         // Exactly one screen tall: header, fields and the docked Save bar keep
         // their natural size and the map flexes to fill the rest — no page scroll.
-        <Box sx={{ width: '100%', height: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: pageTintBg }}>
+        <Box sx={{ width: '100%', height: '100dvh', display: 'flex', flexDirection: 'column', ...pageTintSx }}>
             <GoBackAppBar />
             <Box sx={{
                 display: 'flex',
@@ -257,7 +257,7 @@ const IdaFieldForm = () => {
                 position: 'relative',
                 bgcolor: 'background.paper',
                 px: { xs: 2, sm: 3 },
-                pt: { xs: 2, sm: '32px !important' },
+                pt: { xs: 0, sm: '32px !important' }, // phone: the app bar's margin is the gap
                 pb: { xs: 4, sm: 4 },
                 borderRadius: { xs: 0, sm: 2 },
                 boxShadow: { xs: 0, sm: 2 }

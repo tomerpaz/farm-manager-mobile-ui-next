@@ -189,7 +189,7 @@ const ResourceForm = () => {
                 borderRadius: { xs: 0, sm: 2 },
                 boxShadow: { xs: 0, sm: 2 },
                 px: { xs: 2, sm: 3 },
-                pt: { xs: 2, sm: '32px !important' },
+                pt: { xs: 0, sm: '32px !important' }, // phone: the app bar's margin is the gap
                 pb: { xs: 4, sm: 4 }
             }}>
 

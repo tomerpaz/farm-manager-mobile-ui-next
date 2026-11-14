@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { Box } from '@mui/material';
 
-import { pageTintBg } from './pageTint';
+import { pageTintSx } from './pageTint';
 
 // A page's tinted backdrop: wraps the page (app bar and card included) and reaches
 // the bottom of the screen even when the card is short. Pages that hold one screen
-// exactly (site and field forms) just set bgcolor: pageTintBg on their own box.
+// exactly (site and field forms) just spread pageTintSx into their own box.
 //
 // Put the space above a card here (pt) rather than on the card as a margin: a first
 // child's top margin collapses out of this box and leaves that gap untinted.
@@ -23,7 +23,7 @@ const TintedPage = ({ children, sx }) => {
     }, []);
 
     return (
-        <Box ref={fillToBottomRef} sx={{ width: '100%', boxSizing: 'border-box', alignSelf: 'stretch', bgcolor: pageTintBg, pb: { xs: 0, sm: 3 }, ...sx }}>
+        <Box ref={fillToBottomRef} sx={{ width: '100%', boxSizing: 'border-box', alignSelf: 'stretch', ...pageTintSx, pb: { xs: 0, sm: 3 }, ...sx }}>
             {children}
         </Box>
     );
