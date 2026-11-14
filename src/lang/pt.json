@@ -370,5 +370,10 @@
   "editSite": "Editar site",
   "addSite": "Adicionar site",
   "selectSite": "Selecionar site",
-  "siteNotRegistered": "Não registrado - abra para registrar"
+  "siteNotRegistered": "Não registrado - abra para registrar",
+  "planted": "Plantados",
+  "rooted": "Arrancados",
+  "allFields": "Todos",
+  "noPlantedFields": "Nenhum campo plantado neste site.",
+  "noRootedFields": "Nenhum campo arrancado neste site."
 }

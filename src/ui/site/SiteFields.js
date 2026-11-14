@@ -5,30 +5,34 @@ import { Alert, Box, Button, Fab, Tooltip, Typography, Skeleton } from "@mui/mat
 import { Add, PictureAsPdf, TableChart } from '@mui/icons-material';
 
 import { selectLang, selectReportGenerating } from "../../features/app/appSlice";
-import { clearJustAddedFieldId, getJustAddedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
+import { clearJustAddedFieldId, clearJustEditedFieldId, getJustAddedFieldId, getJustEditedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
 import { useGetSiteQuery, useGetSitesQuery } from '../../features/sites/sitesApiSlice';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import Loading from '../../components/Loading';
+import TintedPage from '../../components/ui/TintedPage';
 import { ESRI_ATTRIBUTION } from '../field/FieldShapeThumb';
 import { useGenerateReportMutation } from '../../features/reports/reportApiSlice';
 import { downloadReportFile, reportFailed } from '../../features/reports/reportFile';
 import { FieldSearchBox, useFieldFilter } from './FieldSearch';
 import SiteSwitcher from './SiteSwitcher';
-import { FieldGridView, FieldListView, FieldMapView, FieldViewToggle, useFieldViewMode, VIEW_GRID, VIEW_LIST, VIEW_MAP } from './SiteFieldViews';
-
-// The site shown, remembered per browser so the tab reopens on the same site.
-const SITE_STORAGE_KEY = 'siteFields.siteId';
-const readStoredSiteId = () => {
-    try { return localStorage.getItem(SITE_STORAGE_KEY); } catch { return null; }
-};
-const storeSiteId = (id) => {
-    try { localStorage.setItem(SITE_STORAGE_KEY, String(id)); } catch { /* remembered for this visit only */ }
-};
+import { readSelectedSiteId, storeSelectedSiteId } from './selectedSite';
+import {
+    FieldGridView, FieldListView, FieldMapView, FieldStatusSelect, FieldViewToggle, filterByStatus,
+    STATUS_ROOTED, storeFieldView, useFieldStatus, useFieldViewMode, VIEW_GRID, VIEW_LIST, VIEW_MAP
+} from './SiteFieldViews';
 
 // Old /site/:siteId/fields links: show that site in the Sites tab.
 export const SiteFieldsRedirect = () => {
     const { siteId } = useParams();
-    storeSiteId(siteId);
+    storeSelectedSiteId(siteId);
+    return <Navigate to="/tabs/ida/sites" replace />;
+};
+
+// Old /site/:siteId/map links (the Site Map page this tab's Map view replaced).
+export const SiteMapRedirect = () => {
+    const { siteId } = useParams();
+    storeSelectedSiteId(siteId);
+    storeFieldView(VIEW_MAP);
     return <Navigate to="/tabs/ida/sites" replace />;
 };
 
@@ -39,13 +43,13 @@ const SiteFields = () => {
     const text = useSelector(selectLang);
 
     const { data: sites, isSuccess: isSitesSuccess, isLoading: isSitesLoading } = useGetSitesQuery();
-    const [chosenId, setChosenId] = useState(readStoredSiteId);
+    const [chosenId, setChosenId] = useState(readSelectedSiteId);
     const registered = useMemo(() => (sites || []).filter((s) => s.ggId), [sites]);
     // The remembered site while it's still registered, else the first registered one.
     const siteId = (registered.find((s) => String(s.id) === String(chosenId)) ?? registered[0])?.id;
     const selectSite = (id) => {
         setChosenId(String(id));
-        storeSiteId(id);
+        storeSelectedSiteId(id);
     };
 
     // Queries
@@ -54,6 +58,9 @@ const SiteFields = () => {
     // (or reload) lists it in the server's order again.
     const [justAddedId] = useState(getJustAddedFieldId);
     useEffect(clearJustAddedFieldId, []);
+    // A field just edited is selected where it is in the list (see selectedId below).
+    const [justEditedId] = useState(getJustEditedFieldId);
+    useEffect(clearJustEditedFieldId, []);
     const fields = useMemo(() => {
         const added = siteFields?.find((f) => f.id === justAddedId);
         return added ? [added, ...siteFields.filter((f) => f !== added)] : siteFields;
@@ -66,11 +73,24 @@ const SiteFields = () => {
     const [query, setQuery] = useState('');
     // Switching site (SiteSwitcher) keeps this page mounted: start the new site unfiltered.
     useEffect(() => setQuery(''), [siteId]);
-    const visibleFields = useFieldFilter(fields, query);
+    // Planted / Rooted / All, remembered for the next visit; the search applies on top.
+    const [status, setStatus] = useFieldStatus();
+    const statusFields = useMemo(() => filterByStatus(fields, status), [fields, status]);
+    const filteredFields = useFieldFilter(statusFields, query);
+    // A field just created or edited is selected (highlighted), and shown even if the
+    // Planted/Rooted filter or the search would hide it - first, in that case.
+    const selectedId = justAddedId ?? justEditedId;
+    const visibleFields = useMemo(() => {
+        const selected = fields?.find((f) => f.id === selectedId);
+        if (!selected || !filteredFields || filteredFields.includes(selected)) return filteredFields;
+        return [selected, ...filteredFields];
+    }, [fields, filteredFields, selectedId]);
 
     // List / Grid / Map, remembered in localStorage for the next visit.
     const [view, setView] = useFieldViewMode();
     const viewProps = {
+        // Created: shown first. Edited: highlighted in place, and the list scrolls to it.
+        selectedId,
         cropGenera,
         productCategories,
         text,
@@ -128,9 +148,12 @@ const SiteFields = () => {
     }
 
     return (
-        <Box sx={{ width: '100%' }}>
+        // A faint tint behind the page's card, so the card reads as a sheet on top of it.
+        // pt: the gap above the card (see TintedPage).
+        <TintedPage sx={{ pt: { xs: 0, sm: 2 } }}>
             <Box
                 sx={{
+                    bgcolor: 'background.paper',
                     boxShadow: { xs: 'none', sm: 2 },
                     position: 'relative',
                     // FIX: Replaces rigid layout constraints with a fluid flex model for all resolutions
@@ -141,7 +164,6 @@ const SiteFields = () => {
                     mx: { xs: 0, sm: 3 },
                     minWidth: '0px !important', // Drops the 500px rigid box constraint completely
                     boxSizing: 'border-box !important',
-                    mt: { xs: 0, sm: '16px !important' },
                     pt: { xs: 2, sm: 2.5 },
                     px: { xs: 2, sm: 3 },
                     // Map view: the map runs to the bottom of the screen, so only a small padding.
@@ -161,13 +183,13 @@ const SiteFields = () => {
                         mb: 2,
                         gridTemplateColumns: {
                             xs: 'minmax(0, 1fr) auto',
-                            sm: 'auto minmax(0, 1fr) auto',
-                            md: 'minmax(0, auto) auto minmax(200px, 1fr) auto',
+                            sm: 'auto auto minmax(0, 1fr) auto',
+                            md: 'minmax(0, auto) auto auto minmax(200px, 1fr) auto',
                         },
                         gridTemplateAreas: {
-                            xs: '"title actions" "view view" "search search"',
-                            sm: '"title title actions" "view search search"',
-                            md: '"title view search actions"',
+                            xs: '"title actions" "view view" "search status"',
+                            sm: '"title title title actions" "view status search search"',
+                            md: '"title view status search actions"',
                         },
                     }}
                 >
@@ -180,6 +202,7 @@ const SiteFields = () => {
                         <>
                             <FieldViewToggle view={view} onChange={setView} text={text}
                                 sx={{ gridArea: 'view', '& .MuiToggleButton-root': { flex: { xs: 1, sm: 'none' } } }} />
+                            <FieldStatusSelect value={status} onChange={setStatus} text={text} sx={{ gridArea: 'status' }} />
                             <FieldSearchBox value={query} onChange={setQuery} text={text} sx={{ gridArea: 'search', minWidth: 0 }} />
                         </>
                     )}
@@ -264,7 +287,11 @@ const SiteFields = () => {
                 )}
                 {isFieldsSuccess && fields?.length > 0 && visibleFields?.length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4, py: 2 }}>
-                        {(text?.noMatchingFields || 'No fields match "{query}".').replace('{query}', query.trim())}
+                        {query.trim()
+                            ? (text?.noMatchingFields || 'No fields match "{query}".').replace('{query}', query.trim())
+                            : (status === STATUS_ROOTED
+                                ? (text?.noRootedFields || 'No rooted fields on this site.')
+                                : (text?.noPlantedFields || 'No planted fields on this site.'))}
                     </Typography>
                 )}
 
@@ -285,7 +312,7 @@ const SiteFields = () => {
                     <Add />
                 </Fab>
             </Box>
-        </Box>
+        </TintedPage>
     );
 }
 

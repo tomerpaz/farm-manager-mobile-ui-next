@@ -374,5 +374,10 @@
   "editSite": "Locatie bewerken",
   "addSite": "Locatie toevoegen",
   "selectSite": "Locatie kiezen",
-  "siteNotRegistered": "Niet geregistreerd - open om te registreren"
+  "siteNotRegistered": "Niet geregistreerd - open om te registreren",
+  "planted": "Beplant",
+  "rooted": "Gerooid",
+  "allFields": "Alle",
+  "noPlantedFields": "Geen beplante percelen op deze locatie.",
+  "noRootedFields": "Geen gerooide percelen op deze locatie."
 }

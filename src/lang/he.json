@@ -374,5 +374,10 @@
     "editSite": "עריכת אתר",
     "addSite": "הוספת אתר",
     "selectSite": "בחירת אתר",
-    "siteNotRegistered": "לא רשום - פתחו כדי לרשום"
+    "siteNotRegistered": "לא רשום - פתחו כדי לרשום",
+    "planted": "שתולות",
+    "rooted": "נעקרו",
+    "allFields": "הכל",
+    "noPlantedFields": "אין חלקות שתולות באתר זה.",
+    "noRootedFields": "אין חלקות שנעקרו באתר זה."
 }

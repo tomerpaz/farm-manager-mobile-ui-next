@@ -37,6 +37,7 @@ import { monthKeyLabel, monthOfKey, yearOfKey } from '../../../features/ida/ggRe
 import { useGenerateReportMutation } from '../../../features/reports/reportApiSlice';
 import { downloadReportFile, reportFailed } from '../../../features/reports/reportFile';
 import { Navigate, useNavigate } from 'react-router';
+import { pageTintBg } from '../../../components/ui/pageTint';
 
 // One tile per metric per month. On mobile there's no room for a
 // "Fertilizer" label next to three others plus the month button on a
@@ -493,20 +494,26 @@ const IdaDash = () => {
   };
 
   return (
+    // Desktop: the same tinted backdrop and raised card as the Sites and Resources tabs.
+    // On a phone the card fills the screen, so there's nothing around it to tint.
     <Box sx={{
-      bgcolor: 'grey.50',
-      p: { xs: 0, sm: 1 },
+      bgcolor: 'background.paper',
+      p: { xs: 0, sm: '16px 24px 24px' },
       display: 'flex',
       flex: 1,
       height: 'calc(100vh - 120px)',
       boxSizing: 'border-box',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      // sm and up (MUI's default 600px breakpoint). A plain object: the theme-callback
+      // form of sx didn't apply its responsive values here.
+      '@media (min-width: 600px)': { bgcolor: pageTintBg },
     }}>
       <Paper
         elevation={0}
         sx={{
           p: { xs: '4px 8px', sm: '8px 16px' },
-          borderRadius: { xs: 0, sm: 2.5 },
+          borderRadius: { xs: 0, sm: 2 },
+          boxShadow: { xs: 0, sm: 2 },
           width: '100%',
           display: 'flex',
           flexDirection: 'column',

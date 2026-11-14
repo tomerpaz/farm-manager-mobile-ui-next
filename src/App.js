@@ -18,9 +18,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import ActivityView from './ui/activity/view/ActivityView';
 import NewActivity from './ui/activity/view/NewActivity';
 import SiteForm from './ui/site/SiteForm';
-import { SiteFieldsRedirect } from './ui/site/SiteFields';
+import { SiteFieldsRedirect, SiteMapRedirect } from './ui/site/SiteFields';
 import IdaFieldForm from './ui/field/IdaFieldForm';
-import SiteMap from './ui/site/SiteMap';
 import { Alert, Snackbar } from '@mui/material';
 import { isStringEmpty } from './ui/FarmUtil';
 import { useGetUserDataQuery } from './features/auth/authApiSlice';
@@ -109,7 +108,7 @@ function App() {
                   <Route path='/activity/new/:type' element={<NewActivity />} />
                   <Route path='/site/:siteId' element={<SiteForm />} />
                   <Route path='/site/:siteId/fields' element={<SiteFieldsRedirect />} />
-                  <Route path='/site/:siteId/map' element={<SiteMap />} />
+                  <Route path='/site/:siteId/map' element={<SiteMapRedirect />} />
                   <Route path='/site/:siteId/field/:fieldId' element={<IdaFieldForm />} />
                   <Route path='/resources/:resourceType' element={<ResourceList />} />
                   <Route path='/resource/:resourceType/:resourceId' element={<ResourceForm />} />

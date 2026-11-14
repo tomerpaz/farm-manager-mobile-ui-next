@@ -30,6 +30,12 @@ let justAddedFieldId = null;
 export const getJustAddedFieldId = () => justAddedFieldId;
 export const clearJustAddedFieldId = () => { justAddedFieldId = null; };
 
+// The field saved last from its form, so the list can select it once (highlighted in
+// place, scrolled into view) — read on mount and cleared right after, like the above.
+let justEditedFieldId = null;
+export const getJustEditedFieldId = () => justEditedFieldId;
+export const clearJustEditedFieldId = () => { justEditedFieldId = null; };
+
 export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG, SiteFields_TAG, Field_TAG] }).injectEndpoints({
 
     endpoints: builder => ({
@@ -82,7 +88,15 @@ export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG
                 body: { ...args },
 
             }),
-            invalidatesTags: [Field_TAG, SiteFields_TAG]
+            invalidatesTags: [Field_TAG, SiteFields_TAG],
+            async onQueryStarted(args, { queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    justEditedFieldId = args?.id ?? null;
+                } catch {
+                    // Failed save — nothing to select.
+                }
+            },
         }),
         deleteField: builder.mutation({
             query: (fieldId) => ({

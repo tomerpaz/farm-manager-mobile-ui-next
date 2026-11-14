@@ -8,6 +8,8 @@ import {
     CardActionArea,
     Chip,
     IconButton,
+    MenuItem,
+    TextField,
     ToggleButton,
     ToggleButtonGroup,
     Tooltip,
@@ -45,6 +47,12 @@ const readStoredView = () => {
     }
 };
 
+// For links that should open the Sites tab in a given view (old Site Map links).
+export const storeFieldView = (view) => {
+    if (!VIEWS.includes(view)) return;
+    try { localStorage.setItem(VIEW_STORAGE_KEY, view); } catch { /* opens in the last view instead */ }
+};
+
 export const useFieldViewMode = () => {
     const [view, setView] = useState(readStoredView);
     const choose = useCallback((next) => {
@@ -75,14 +83,71 @@ export const FieldViewToggle = ({ view, onChange, text, sx }) => (
 );
 
 // ---------------------------------------------------------------------------
+// Status filter: Planted (no end date), Rooted (has one) or All, remembered per browser.
+
+export const STATUS_PLANTED = 'planted';
+export const STATUS_ROOTED = 'rooted';
+export const STATUS_ALL = 'all';
+const STATUSES = [STATUS_PLANTED, STATUS_ROOTED, STATUS_ALL];
+const STATUS_STORAGE_KEY = 'siteFields.status';
+
+const readStoredStatus = () => {
+    try {
+        const stored = localStorage.getItem(STATUS_STORAGE_KEY);
+        return STATUSES.includes(stored) ? stored : STATUS_ALL;
+    } catch {
+        return STATUS_ALL;
+    }
+};
+
+export const useFieldStatus = () => {
+    const [status, setStatus] = useState(readStoredStatus);
+    const choose = useCallback((next) => {
+        if (!STATUSES.includes(next)) return;
+        setStatus(next);
+        try { localStorage.setItem(STATUS_STORAGE_KEY, next); } catch { /* not remembered, still filters */ }
+    }, []);
+    return [status, choose];
+};
+
+export const filterByStatus = (fields, status) => {
+    if (!fields || status === STATUS_ALL) return fields;
+    return fields.filter((f) => (status === STATUS_ROOTED ? !!f.endDate : !f.endDate));
+};
+
+export const FieldStatusSelect = ({ value, onChange, text, sx }) => (
+    <TextField
+        select
+        size="small"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={text?.status || 'Status'}
+        sx={{ minWidth: 130, ...sx }}
+    >
+        <MenuItem value={STATUS_PLANTED}>{text?.planted || 'Planted'}</MenuItem>
+        <MenuItem value={STATUS_ROOTED}>{text?.rooted || 'Rooted'}</MenuItem>
+        <MenuItem value={STATUS_ALL}>{text?.allFields || 'All'}</MenuItem>
+    </TextField>
+);
+
+// ---------------------------------------------------------------------------
 // Virtualization: only the rows near the screen are rendered, so hundreds of
 // fields stay fast. It follows the page's own scrolling (no inner scroll box);
 // row heights are measured as rows render, estimated until then.
 
 const OVERSCAN_PX = 800;
 
-const VirtualRows = ({ count, getKey, estimate, gap, renderRow }) => {
+const VirtualRows = ({ count, getKey, estimate, gap, renderRow, scrollToIndex }) => {
     const containerRef = useRef(null);
+    // scrollToIndex: brought into view once, after the first render that has it. The row
+    // itself may not be rendered yet, so a marker at its position is scrolled to instead.
+    const markerRef = useRef(null);
+    const scrolledRef = useRef(false);
+    useEffect(() => {
+        if (scrolledRef.current || scrollToIndex == null || scrollToIndex < 0 || scrollToIndex >= count) return;
+        scrolledRef.current = true;
+        markerRef.current?.scrollIntoView({ block: 'center' });
+    }, [scrollToIndex, count]);
     const heights = useRef(new Map());          // row key -> measured height
     const [, setMeasured] = useState(0);         // bumped when a height changes
     const [viewport, setViewport] = useState({ top: 0, bottom: typeof window === 'undefined' ? 1000 : window.innerHeight });
@@ -150,6 +215,9 @@ const VirtualRows = ({ count, getKey, estimate, gap, renderRow }) => {
 
     return (
         <Box ref={containerRef} sx={{ position: 'relative', width: '100%', height: total }}>
+            {scrollToIndex != null && scrollToIndex >= 0 && scrollToIndex < count && (
+                <Box ref={markerRef} aria-hidden sx={{ position: 'absolute', top: offsets[scrollToIndex], left: 0, width: '1px', height: estimate, pointerEvents: 'none' }} />
+            )}
             {visible.map((i) => {
                 const key = String(getKey(i));
                 return (
@@ -194,6 +262,14 @@ const cardSx = (ended) => ({
     '&:hover': { bgcolor: 'rgba(46, 125, 50, 0.04)', borderColor: ended ? 'grey.500' : 'success.light' }
 });
 
+// The field just created: a green outline and tint, over the usual card style.
+const selectedSx = (selected) => (selected ? {
+    borderStyle: 'solid',
+    borderColor: 'success.main',
+    boxShadow: (theme) => `0 0 0 1px ${theme.palette.success.main}`,
+    bgcolor: 'rgba(46, 125, 50, 0.06)',
+} : {});
+
 // The map thumbnail is the most eye-catching part of a card, so an ended field's goes grey.
 const endedThumbSx = (ended) => (ended ? { filter: 'grayscale(1)', opacity: 0.75 } : {});
 
@@ -220,10 +296,10 @@ const DetailItems = ({ details, faded }) => details.map(({ icon, label }, i) => 
 // ---------------------------------------------------------------------------
 // List view
 
-const ListCard = ({ field, details, text, onOpen, onDuplicate }) => {
+const ListCard = ({ field, details, text, selected, onOpen, onDuplicate }) => {
     const ended = !!field.endDate;
     return (
-        <Card elevation={0} sx={{ ...cardSx(ended), display: 'flex', alignItems: 'center' }}>
+        <Card elevation={0} aria-current={selected || undefined} sx={{ ...cardSx(ended), ...selectedSx(selected), display: 'flex', alignItems: 'center' }}>
             <CardActionArea onClick={() => onOpen(field)} sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1.5, py: 2, px: 2.5 }}>
                 {/* Mini map: the field's polygon outline in its own color. */}
                 <Box sx={{ display: 'flex', flexShrink: 0, ...endedThumbSx(ended) }}>
@@ -248,7 +324,7 @@ const ListCard = ({ field, details, text, onOpen, onDuplicate }) => {
     );
 };
 
-export const FieldListView = ({ fields, cropGenera, productCategories, text, onOpen, onDuplicate }) => {
+export const FieldListView = ({ fields, selectedId, cropGenera, productCategories, text, onOpen, onDuplicate }) => {
     const detailsOf = useFieldDetails(cropGenera, productCategories);
     return (
         <VirtualRows
@@ -256,8 +332,10 @@ export const FieldListView = ({ fields, cropGenera, productCategories, text, onO
             getKey={(i) => fields[i].id}
             estimate={92}
             gap={10}
+            scrollToIndex={selectedId == null ? undefined : fields.findIndex((f) => f.id === selectedId)}
             renderRow={(i) => (
-                <ListCard field={fields[i]} details={detailsOf(fields[i])} text={text} onOpen={onOpen} onDuplicate={onDuplicate} />
+                <ListCard field={fields[i]} details={detailsOf(fields[i])} text={text} selected={fields[i].id === selectedId}
+                    onOpen={onOpen} onDuplicate={onDuplicate} />
             )}
         />
     );
@@ -286,13 +364,14 @@ const useWidth = () => {
     return [ref, width];
 };
 
-const GridCard = ({ field, details, text, thumbSize, onOpen, onDuplicate }) => {
+const GridCard = ({ field, details, text, thumbSize, selected, onOpen, onDuplicate }) => {
     const ended = !!field.endDate;
     return (
         <Card
             elevation={0}
             sx={{
                 ...cardSx(ended),
+                ...selectedSx(selected),
                 position: 'relative',
                 height: '100%',
             }}
@@ -320,7 +399,7 @@ const GridCard = ({ field, details, text, thumbSize, onOpen, onDuplicate }) => {
     );
 };
 
-export const FieldGridView = ({ fields, cropGenera, productCategories, text, onOpen, onDuplicate }) => {
+export const FieldGridView = ({ fields, selectedId, cropGenera, productCategories, text, onOpen, onDuplicate }) => {
     const detailsOf = useFieldDetails(cropGenera, productCategories);
     const [ref, width] = useWidth();
     const columns = gridColumns(width || 360);
@@ -336,10 +415,11 @@ export const FieldGridView = ({ fields, cropGenera, productCategories, text, onO
                     getKey={(r) => `${columns}:${fields[r * columns].id}`}
                     estimate={thumbSize + 90}
                     gap={GRID_GAP}
+                    scrollToIndex={selectedId == null ? undefined : Math.floor(fields.findIndex((f) => f.id === selectedId) / columns)}
                     renderRow={(r) => (
                         <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: `${GRID_GAP}px` }}>
                             {fields.slice(r * columns, r * columns + columns).map((field) => (
-                                <GridCard key={field.id} field={field} details={detailsOf(field)} text={text}
+                                <GridCard key={field.id} field={field} details={detailsOf(field)} text={text} selected={field.id === selectedId}
                                     thumbSize={thumbSize} onOpen={onOpen} onDuplicate={onDuplicate} />
                             ))}
                         </Box>
@@ -359,7 +439,7 @@ export const MAP_MAX_FIELDS = 250;
 // this many fields the chosen label lines show on hover instead.
 const MAP_MAX_LABELS = 150;
 
-export const FieldMapView = ({ fields, site, text, onOpen, cropGenera, productCategories }) => {
+export const FieldMapView = ({ fields, site, text, onOpen, cropGenera, productCategories, selectedId }) => {
     const [map, setMap] = useState(null);
     // Same label choices as the Site Map page, and the same saved setting.
     const [layersOpen, setLayersOpen] = useState(false);
@@ -375,7 +455,12 @@ export const FieldMapView = ({ fields, site, text, onOpen, cropGenera, productCa
     const shapes = useMemo(() => fields
         .map((field) => ({ field, points: safeParseJson(field.polygon) }))
         .filter(({ points }) => Array.isArray(points) && points.length > 2), [fields]);
-    const shown = useMemo(() => shapes.slice(0, MAP_MAX_FIELDS), [shapes]);
+    // The selected field is always drawn, even past the limit.
+    const shown = useMemo(() => {
+        const first = shapes.slice(0, MAP_MAX_FIELDS);
+        const selected = shapes.find((s) => s.field.id === selectedId);
+        return selected && !first.includes(selected) ? [selected, ...first] : first;
+    }, [shapes, selectedId]);
     const permanentLabels = shown.length <= MAP_MAX_LABELS;
 
     // Fills the screen below wherever the map starts (header heights vary), leaving
@@ -387,7 +472,7 @@ export const FieldMapView = ({ fields, site, text, onOpen, cropGenera, productCa
             const el = mapBoxRef.current;
             if (!el) return;
             const top = el.getBoundingClientRect().top + window.scrollY;
-            const bottomSpace = window.innerWidth < 600 ? 16 : 40;
+            const bottomSpace = window.innerWidth < 600 ? 16 : 48;   // card padding + the tinted background's padding below it
             setMapHeight(Math.max(320, Math.round(window.innerHeight - top - bottomSpace)));
         };
         update();
@@ -400,12 +485,16 @@ export const FieldMapView = ({ fields, site, text, onOpen, cropGenera, productCa
 
     useEffect(() => {
         if (!map) return;
-        if (shown.length > 0) {
+        // A field just created or edited: zoom to it, with some of its surroundings.
+        const selected = shown.find((s) => s.field.id === selectedId);
+        if (selected) {
+            map.fitBounds(L.latLngBounds(selected.points), { padding: [60, 60], maxZoom: 18 });
+        } else if (shown.length > 0) {
             map.fitBounds(L.latLngBounds(shown.flatMap((s) => s.points)), { padding: [24, 24] });
         } else if (hasSiteLocation) {
             map.setView([Number(site.lat), Number(site.lng)], 15);
         }
-    }, [map, shown, site, hasSiteLocation]);
+    }, [map, shown, site, hasSiteLocation, selectedId]);
 
     return (
         <Box>
@@ -460,7 +549,10 @@ export const FieldMapView = ({ fields, site, text, onOpen, cropGenera, productCa
                             <Polygon
                                 key={field.id}
                                 positions={points}
-                                pathOptions={{ color, fillColor: color, fillOpacity: field.endDate ? 0.2 : 0.5, weight: 2, dashArray: field.endDate ? '6 4' : undefined }}
+                                // The field just created stands out: thicker outline, stronger fill.
+                                pathOptions={field.id === selectedId
+                                    ? { color, fillColor: color, fillOpacity: 0.7, weight: 5 }
+                                    : { color, fillColor: color, fillOpacity: field.endDate ? 0.2 : 0.5, weight: 2, dashArray: field.endDate ? '6 4' : undefined }}
                                 eventHandlers={{ click: () => onOpen(field) }}
                             >
                                 {lines.length > 0 && (permanentLabels

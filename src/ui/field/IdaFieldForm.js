@@ -32,6 +32,8 @@ import FieldPolygonDraw from './FieldPolygonDraw';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
+import { pageTintBg } from '../../components/ui/pageTint';
+import { storeSelectedSiteId } from '../site/selectedSite';
 import FormActionBar from '../../components/ui/FormActionBar';
 
 const parseISO = (v) => dayjs(v).toDate()
@@ -213,6 +215,8 @@ const IdaFieldForm = () => {
             } else {
                 await createField(data).unwrap();
             }
+            // Back on the Sites tab, show the field's site (the field is selected there too).
+            storeSelectedSiteId(data.siteId ?? siteId);
             dispatch(setSnackbar({ msg: data.id ? text.recordUpdated : text.recordCreated, severity: 'success' }));
             navigate(-1);
         } catch (err) {
@@ -225,6 +229,8 @@ const IdaFieldForm = () => {
         if (isConfirmed && field?.id) {
             try {
                 await deleteField(field.id).unwrap();
+                // Back on the Sites tab, show the site the field was on.
+                storeSelectedSiteId(field.siteId ?? siteId);
                 dispatch(setSnackbar({ msg: text.recordDeleted, severity: 'success' }));
                 navigate(-1);
             } catch (err) {
@@ -236,7 +242,7 @@ const IdaFieldForm = () => {
     return (
         // Exactly one screen tall: header, fields and the docked Save bar keep
         // their natural size and the map flexes to fill the rest — no page scroll.
-        <Box sx={{ width: '100%', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ width: '100%', height: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: pageTintBg }}>
             <GoBackAppBar />
             <Box sx={{
                 display: 'flex',
@@ -249,6 +255,7 @@ const IdaFieldForm = () => {
                 flex: '1 1 auto !important',
                 margin: { xs: '0 auto !important', sm: '0 auto 32px !important' },
                 position: 'relative',
+                bgcolor: 'background.paper',
                 px: { xs: 2, sm: 3 },
                 pt: { xs: 2, sm: '32px !important' },
                 pb: { xs: 4, sm: 4 },

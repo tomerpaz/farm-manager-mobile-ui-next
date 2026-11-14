@@ -18,6 +18,7 @@ import GoBackAppBar from '../../../appbar/content/GoBackAppBar';
 import GoBackDesktopButton from '../GoBackDesktopButton';
 import { FERTILIZER, GENERAL, WORKER } from '../../../ui/FarmUtil';
 import useWorkerLabels from '../../../features/resources/useWorkerLabels';
+import TintedPage from '../TintedPage';
 
 const getResourceIcon = (resourceType) => {
     if (resourceType === FERTILIZER) return <Grass />;
@@ -49,7 +50,7 @@ const ResourceList = () => {
     const resourceIcon = getResourceIcon(typeKey);
 
     return (
-        <Box sx={{ width: '100%' }}>
+        <TintedPage>
             <GoBackAppBar />
             <Box
                 sx={{
@@ -230,7 +231,7 @@ const ResourceList = () => {
                     <Add />
                 </Fab>
             </Box>
-        </Box>
+        </TintedPage>
     );
 };
 

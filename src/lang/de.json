@@ -374,5 +374,10 @@
   "editSite": "Standort bearbeiten",
   "addSite": "Standort hinzufügen",
   "selectSite": "Standort auswählen",
-  "siteNotRegistered": "Nicht registriert - zum Registrieren öffnen"
+  "siteNotRegistered": "Nicht registriert - zum Registrieren öffnen",
+  "planted": "Bepflanzt",
+  "rooted": "Gerodet",
+  "allFields": "Alle",
+  "noPlantedFields": "Keine bepflanzten Felder an diesem Standort.",
+  "noRootedFields": "Keine gerodeten Felder an diesem Standort."
 }

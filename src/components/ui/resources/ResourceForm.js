@@ -25,6 +25,7 @@ import {
     useDeleteResourceMutation,
     useUpdateResourceMutation
 } from '../../../features/resources/resourcesApiSlice';
+import TintedPage from '../TintedPage';
 
 const ResourceForm = () => {
     const navigate = useNavigate();
@@ -171,7 +172,7 @@ const ResourceForm = () => {
     };
 
     return (
-        <Box sx={{ width: '100%' }}>
+        <TintedPage>
             {/* Global Top App Bar - Always visible in Primary Color */}
             <GoBackAppBar />
 
@@ -445,7 +446,7 @@ const ResourceForm = () => {
                     />
                 )}
             </Box>
-        </Box>
+        </TintedPage>
     );
 };
 

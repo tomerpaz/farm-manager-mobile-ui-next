@@ -374,5 +374,10 @@
   "editSite": "Edit Site",
   "addSite": "Add Site",
   "selectSite": "Select Site",
-  "siteNotRegistered": "Not registered - open to register"
+  "siteNotRegistered": "Not registered - open to register",
+  "planted": "Planted",
+  "rooted": "Rooted",
+  "allFields": "All",
+  "noPlantedFields": "No planted fields on this site.",
+  "noRootedFields": "No rooted fields on this site."
 }

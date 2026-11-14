@@ -27,6 +27,8 @@ import { DEFAULT_COORDINATES } from '../FarmUtil';
 import ActionApprovalDialog from '../../components/ui/ActionApprovalDialog';
 import Loading from '../../components/Loading';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
+import { pageTintBg } from '../../components/ui/pageTint';
+import { storeSelectedSiteId } from './selectedSite';
 import FormActionBar from '../../components/ui/FormActionBar';
 
 const SiteForm = () => {
@@ -113,10 +115,13 @@ const SiteForm = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Back on the Sites tab, show the site just saved (once it's registered and has fields).
       if (data.id) {
         await updateSite(data).unwrap();
+        storeSelectedSiteId(data.id);
       } else {
-        await createSite(data).unwrap();
+        const created = await createSite(data).unwrap();
+        storeSelectedSiteId(created?.id);
       }
       dispatch(setSnackbar({ msg: data.id ? text.recordUpdated : text.recordCreated, severity: 'success' }));
       navigate(-1);
@@ -154,7 +159,7 @@ const SiteForm = () => {
   return (
     // Exactly one screen tall: header, fields and the docked Save bar keep
     // their natural size and the map flexes to fill the rest — no page scroll.
-    <Box sx={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: pageTintBg }}>
       <GoBackAppBar />
       <Box sx={{
         width: '100%',
@@ -175,6 +180,7 @@ const SiteForm = () => {
           flex: '1 1 auto !important',
           minHeight: 0,
           margin: '0 auto !important',
+          bgcolor: 'background.paper',
           position: 'relative',
           px: { xs: 2, sm: 3 },
           pt: { xs: 2, sm: 3 },

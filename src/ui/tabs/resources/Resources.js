@@ -10,6 +10,7 @@ import { Category, ChevronRight, Grass, Groups } from '@mui/icons-material';
 
 import { selectLang } from '../../../features/app/appSlice';
 import useWorkerLabels from '../../../features/resources/useWorkerLabels';
+import TintedPage from '../../../components/ui/TintedPage';
 
 const Resources = () => {
   const text = useSelector(selectLang);
@@ -24,6 +25,8 @@ const Resources = () => {
   ];
 
   return (
+    // pt: the gap above the card, as padding so it's tinted too (see TintedPage).
+    <TintedPage sx={{ pt: { xs: 0, sm: 4 } }}>
     <Box
       sx={{
         position: 'relative',
@@ -39,7 +42,6 @@ const Resources = () => {
         borderRadius: { xs: 0, sm: 2 },
         boxShadow: { xs: 0, sm: 2 },
 
-        mt: { xs: 0, sm: '32px !important' },
         px: { xs: 2, sm: 3 },
         pt: { xs: 2, sm: '32px !important' },
         pb: { xs: 4, sm: 4 },
@@ -117,6 +119,7 @@ const Resources = () => {
         ))}
       </Box>
     </Box>
+    </TintedPage>
   );
 };
 

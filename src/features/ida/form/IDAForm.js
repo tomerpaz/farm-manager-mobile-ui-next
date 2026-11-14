@@ -23,6 +23,7 @@ import { useGetPestsQuery } from "../../pests/pestsApiSlice";
 import { getMonthName, isMobile } from "../../../ui/FarmUtil";
 import Loading from "../../../components/Loading";
 import GoBackAppBar from "../../../appbar/content/GoBackAppBar";
+import TintedPage from "../../../components/ui/TintedPage";
 import { secondaryButtonSx } from "../../../components/ui/FormActionBar";
 import { useGetResourcesQuery } from "../../resources/resourcesApiSlice";
 import MetricFieldArray from "./MetricFieldArray";
@@ -539,7 +540,8 @@ function IDAForm() {
 
     return (
         <Box component="form" sx={{ display: "flex", flex: 1 }} onSubmit={submitAs(false)} noValidate>
-            <Box sx={{ width: "100%" }}>
+            {/* Tinted backdrop around the card, like the Sites and Resources pages. */}
+            <TintedPage>
                 <GoBackAppBar sticky />
 
                 <Box
@@ -733,7 +735,7 @@ function IDAForm() {
                         </Button>
                     </Box>
                 </Box>
-            </Box>
+            </TintedPage>
         </Box>
     );
 }
