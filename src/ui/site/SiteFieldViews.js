@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { MapContainer, Polygon, Tooltip as MapTooltip } from 'react-leaflet';
 import {
@@ -27,6 +27,9 @@ import SiteMapLayersDialog, { useSiteMapLayers } from './SiteMapLayers';
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString('en-AU') : null);
 const DEFAULT_COLOR = '#43a047';
+// Light grey: mid greys disappear into satellite imagery (dry grass, shadows).
+const ENDED_STROKE = '#eeeeee';   // MUI grey[200]
+const ENDED_EDGE = '#212121';     // dark edge under the dashes (MUI grey[900])
 
 // ---------------------------------------------------------------------------
 // View mode: List / Grid / Map, remembered per browser.
@@ -545,20 +548,34 @@ export const FieldMapView = ({ fields, site, text, onOpen, cropGenera, productCa
                     {shown.map(({ field, points }) => {
                         const color = field.color || DEFAULT_COLOR;
                         const lines = labelLines(field);
+                        const ended = !!field.endDate && field.id !== selectedId;
                         return (
+                            <Fragment key={field.id}>
+                            {/* Ended fields: a dark solid edge drawn first, under the light dashes,
+                                so the outline shows on light and dark ground alike. */}
+                            {ended && (
+                                <Polygon
+                                    positions={points}
+                                    interactive={false}
+                                    pathOptions={{ color: ENDED_EDGE, weight: 5, opacity: 0.55, fill: false }}
+                                />
+                            )}
                             <Polygon
-                                key={field.id}
                                 positions={points}
                                 // The field just created stands out: thicker outline, stronger fill.
                                 pathOptions={field.id === selectedId
                                     ? { color, fillColor: color, fillOpacity: 0.7, weight: 5 }
-                                    : { color, fillColor: color, fillOpacity: field.endDate ? 0.2 : 0.5, weight: 2, dashArray: field.endDate ? '6 4' : undefined }}
+                                    // Ended fields: grey dashed outline over a faint fill in their own color.
+                                    : field.endDate
+                                        ? { color: ENDED_STROKE, fillColor: color, fillOpacity: 0.2, weight: 3, opacity: 1, dashArray: '10 6' }
+                                        : { color, fillColor: color, fillOpacity: 0.5, weight: 2 }}
                                 eventHandlers={{ click: () => onOpen(field) }}
                             >
                                 {lines.length > 0 && (permanentLabels
                                     ? <MapToolTip textArr={lines} />
                                     : <MapTooltip sticky>{lines.map((line, i) => <div key={i}>{line}</div>)}</MapTooltip>)}
                             </Polygon>
+                            </Fragment>
                         );
                     })}
                 </MapContainer>
