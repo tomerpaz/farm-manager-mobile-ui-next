@@ -366,5 +366,13 @@
     "setNewPassword": "קביעת סיסמה חדשה",
     "passwordResetDone": "הסיסמה שונתה. היכנסו עם הסיסמה החדשה.",
     "resetFailed": "לא ניתן לאפס את הסיסמה. נסו שוב.",
-    "tryAgain": "נסו שוב"
+    "tryAgain": "נסו שוב",
+    "view": "תצוגה",
+    "list": "רשימה",
+    "grid": "רשת",
+    "mapFieldLimit": "המפה מציגה את {shown} החלקות הראשונות מתוך {total}. השתמשו בחיפוש כדי לצמצם.",
+    "editSite": "עריכת אתר",
+    "addSite": "הוספת אתר",
+    "selectSite": "בחירת אתר",
+    "siteNotRegistered": "לא רשום - פתחו כדי לרשום"
 }

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Alert, Box, Button, Dialog, DialogContent, Divider, TextField, Typography } from '@mui/material';
 
 import { selectLang, setSnackbar } from '../../features/app/appSlice';
 import { useChangePasswordMutation, useGetProfileQuery, useUpdateProfileMutation } from '../../features/auth/authApiSlice';
-import { HiddenUsername, NewPasswordFields, PasswordField, passwordRulesText } from '../../features/auth/PasswordFields';
+import { eraseTypedPasswords, HiddenUsername, NewPasswordFields, PasswordField, passwordRulesText } from '../../features/auth/PasswordFields';
 import Loading from '../../components/Loading';
 import DialogAppBar from '../dialog/DialogAppBar';
 import { isMobile } from '../FarmUtil';
@@ -156,6 +156,12 @@ const PasswordForm = ({ username, text }) => {
 const ProfileDialog = ({ open, onClose }) => {
     const text = useSelector(selectLang);
     const { data: profile, isLoading, isError } = useGetProfileQuery(undefined, { skip: !open });
+    const contentRef = useRef(null);
+    // X, Esc or a click outside: a password change left half-typed is cancelled, not saved.
+    const handleClose = () => {
+        eraseTypedPasswords(contentRef.current);
+        onClose();
+    };
 
     return (
         <Dialog
@@ -163,12 +169,12 @@ const ProfileDialog = ({ open, onClose }) => {
             fullWidth={!isMobile()}
             maxWidth="sm"
             open={open}
-            onClose={onClose}
+            onClose={handleClose}
             disableRestoreFocus
             slots={{ transition: Transition }}
         >
-            <DialogAppBar onClose={onClose} title={text.profile || 'Profile'} />
-            <DialogContent sx={{ pt: 3 }}>
+            <DialogAppBar onClose={handleClose} title={text.profile || 'Profile'} />
+            <DialogContent ref={contentRef} sx={{ pt: 3 }}>
                 {isLoading && <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><Loading /></Box>}
                 {isError && <Alert severity="error">{text.profileLoadFailed || 'Could not load your profile. Please try again.'}</Alert>}
                 {profile && (

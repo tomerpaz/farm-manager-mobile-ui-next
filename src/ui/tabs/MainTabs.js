@@ -6,7 +6,7 @@ import { Link, Navigate, useLocation } from 'react-router';
 import FieldList from './fields/FieldList';
 import IdaDash from './ida/IdaDash';
 import Resources from './resources/Resources';
-import IdaSites from './ida/IdaSites';
+import SiteFields from '../site/SiteFields';
 import ActivitiesList from './activities/ActivitiesList';
 import { selectEditLayer, selectLang, selectShowInventory, selectShowPlans } from '../../features/app/appSlice';
 import { useSelector } from 'react-redux';
@@ -74,7 +74,7 @@ const MainTabs = () => {
     const tabs = isIda
         ? [
             { key: 'ida', label: text.ida, to: '/tabs/ida/dash', match: '/tabs/ida/dash', element: <IdaDash /> },
-            { key: 'sites', label: text.sites, to: '/tabs/ida/sites', match: '/tabs/ida/sites', element: <IdaSites /> },
+            { key: 'sites', label: text.sites, to: '/tabs/ida/sites', match: '/tabs/ida/sites', element: <SiteFields /> },
             { key: 'resources', label: text.resources, to: '/tabs/resources', match: '/tabs/resources', element: <Resources /> },
         ]
         : [

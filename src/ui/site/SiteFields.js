@@ -1,40 +1,55 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    Box,
-    Button,
-    Card,
-    CardActionArea,
-    Chip,
-    Fab,
-    IconButton,
-    Tooltip,
-    Typography,
-    Skeleton
-} from "@mui/material";
-import { Add, Agriculture, ContentCopy, PictureAsPdf, TableChart, CalendarMonth, ChevronRight, Grass, Category, Spa } from '@mui/icons-material';
+import { Alert, Box, Button, Fab, Tooltip, Typography, Skeleton } from "@mui/material";
+import { Add, PictureAsPdf, TableChart } from '@mui/icons-material';
 
 import { selectLang, selectReportGenerating } from "../../features/app/appSlice";
-import { safeParseJson, clearJustAddedFieldId, getJustAddedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
-import { useGetSiteQuery } from '../../features/sites/sitesApiSlice';
+import { clearJustAddedFieldId, getJustAddedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
+import { useGetSiteQuery, useGetSitesQuery } from '../../features/sites/sitesApiSlice';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
-import GoBackAppBar from '../../appbar/content/GoBackAppBar';
-import GoBackDesktopButton from '../../components/ui/GoBackDesktopButton';
-import FieldShapeThumb, { ESRI_ATTRIBUTION } from '../field/FieldShapeThumb';
+import Loading from '../../components/Loading';
+import { ESRI_ATTRIBUTION } from '../field/FieldShapeThumb';
 import { useGenerateReportMutation } from '../../features/reports/reportApiSlice';
 import { downloadReportFile, reportFailed } from '../../features/reports/reportFile';
 import { FieldSearchBox, useFieldFilter } from './FieldSearch';
+import SiteSwitcher from './SiteSwitcher';
+import { FieldGridView, FieldListView, FieldMapView, FieldViewToggle, useFieldViewMode, VIEW_GRID, VIEW_LIST, VIEW_MAP } from './SiteFieldViews';
 
-const formatDate = (value) => (value ? new Date(value).toLocaleDateString("en-AU") : null);
+// The site shown, remembered per browser so the tab reopens on the same site.
+const SITE_STORAGE_KEY = 'siteFields.siteId';
+const readStoredSiteId = () => {
+    try { return localStorage.getItem(SITE_STORAGE_KEY); } catch { return null; }
+};
+const storeSiteId = (id) => {
+    try { localStorage.setItem(SITE_STORAGE_KEY, String(id)); } catch { /* remembered for this visit only */ }
+};
 
-const SiteFieldList = () => {
+// Old /site/:siteId/fields links: show that site in the Sites tab.
+export const SiteFieldsRedirect = () => {
     const { siteId } = useParams();
+    storeSiteId(siteId);
+    return <Navigate to="/tabs/ida/sites" replace />;
+};
+
+// The IDA Sites tab: one site's fields at a time, with the site picked from the title.
+// Only GLOBALG.A.P.-registered sites (ggId) have fields.
+const SiteFields = () => {
     const navigate = useNavigate();
     const text = useSelector(selectLang);
 
+    const { data: sites, isSuccess: isSitesSuccess, isLoading: isSitesLoading } = useGetSitesQuery();
+    const [chosenId, setChosenId] = useState(readStoredSiteId);
+    const registered = useMemo(() => (sites || []).filter((s) => s.ggId), [sites]);
+    // The remembered site while it's still registered, else the first registered one.
+    const siteId = (registered.find((s) => String(s.id) === String(chosenId)) ?? registered[0])?.id;
+    const selectSite = (id) => {
+        setChosenId(String(id));
+        storeSiteId(id);
+    };
+
     // Queries
-    const { data: siteFields, isSuccess: isFieldsSuccess, isLoading: isFieldsLoading } = useGetFieldsBySiteQuery(siteId);
+    const { data: siteFields, isSuccess: isFieldsSuccess, isLoading: isFieldsLoading } = useGetFieldsBySiteQuery(siteId, { skip: !siteId });
     // A field just created is shown first for this visit only; the next visit
     // (or reload) lists it in the server's order again.
     const [justAddedId] = useState(getJustAddedFieldId);
@@ -43,13 +58,25 @@ const SiteFieldList = () => {
         const added = siteFields?.find((f) => f.id === justAddedId);
         return added ? [added, ...siteFields.filter((f) => f !== added)] : siteFields;
     }, [siteFields, justAddedId]);
-    const { data: siteData, isSuccess: isSiteSuccess } = useGetSiteQuery(siteId);
+    const { data: siteData, isSuccess: isSiteSuccess } = useGetSiteQuery(siteId, { skip: !siteId });
     const { data: cropGenera = [] } = useGetCropGeneraQuery();
     const { data: productCategories = [] } = useGetProductCategoriesQuery();
 
     // Free-text filter over what each card shows (see FieldSearch).
     const [query, setQuery] = useState('');
+    // Switching site (SiteSwitcher) keeps this page mounted: start the new site unfiltered.
+    useEffect(() => setQuery(''), [siteId]);
     const visibleFields = useFieldFilter(fields, query);
+
+    // List / Grid / Map, remembered in localStorage for the next visit.
+    const [view, setView] = useFieldViewMode();
+    const viewProps = {
+        cropGenera,
+        productCategories,
+        text,
+        onOpen: (field) => navigate(`/site/${siteId}/field/${field.id}`),
+        onDuplicate: (field) => navigate(`/site/${siteId}/field/0?from=${field.id}`),
+    };
 
     const siteName = isSiteSuccess && siteData ? siteData.name : "";
 
@@ -75,106 +102,125 @@ const SiteFieldList = () => {
     };
     const exportButtonSx = { textTransform: 'none', fontWeight: 700, borderRadius: 1.5, px: { xs: 1.25, sm: 2 }, height: 36, minWidth: 0 };
 
+    if (isSitesLoading) {
+        return <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', flex: 1 }}><Loading /></Box>;
+    }
+
+    // No registered site yet: explain how to get one, and offer the unregistered sites to fix.
+    if (isSitesSuccess && !siteId) {
+        return (
+            <Box sx={{ width: '100%', maxWidth: 640, mx: 'auto', boxSizing: 'border-box', p: { xs: 2, sm: 3 }, mt: { sm: 3 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Alert severity="info">
+                    {text?.idaNeedsSite || "To start IDA reporting you need an active site registered in GLOBALG.A.P. Sites are registered when saved with a map location, so add a site, or open an existing one and save it again."}
+                </Alert>
+                {(sites || []).map((s) => (
+                    <Button key={s.id} variant="outlined" color="success" onClick={() => navigate(`/site/${s.id}`)}
+                        sx={{ textTransform: 'none', fontWeight: 600, justifyContent: 'flex-start' }}>
+                        {s.name}
+                    </Button>
+                ))}
+                <Button variant="contained" color="success" startIcon={<Add />} onClick={() => navigate('/site/0')}
+                    sx={{ textTransform: 'none', fontWeight: 700, alignSelf: 'flex-start' }}>
+                    {text?.addSite || 'Add Site'}
+                </Button>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ width: '100%' }}>
-            <GoBackAppBar />
             <Box
                 sx={{
-                    mx: 'auto',
                     boxShadow: { xs: 'none', sm: 2 },
                     position: 'relative',
                     // FIX: Replaces rigid layout constraints with a fluid flex model for all resolutions
                     flex: { xs: '1 1 100% !important', sm: 'initial' },
-                    width: '100% !important',
-                    maxWidth: { xs: '100% !important', sm: '1200px !important' },
+                    // Full screen width; on desktop a small margin keeps the card's shadow visible.
+                    width: { xs: '100% !important', sm: 'auto !important' },
+                    maxWidth: '100% !important',
+                    mx: { xs: 0, sm: 3 },
                     minWidth: '0px !important', // Drops the 500px rigid box constraint completely
                     boxSizing: 'border-box !important',
-                    mt: { xs: 0, sm: '32px !important' }, // Dynamic vertical separation on desktop viewports
-                    pt: { xs: 2, sm: 3 },
+                    mt: { xs: 0, sm: '16px !important' },
+                    pt: { xs: 2, sm: 2.5 },
                     px: { xs: 2, sm: 3 },
-                    pb: { xs: 10, sm: 6 },
+                    // Map view: the map runs to the bottom of the screen, so only a small padding.
+                    pb: view === VIEW_MAP ? { xs: 2, sm: 3 } : { xs: 10, sm: 6 },
                     borderRadius: { xs: 0, sm: 2 }
                 }}
             >
 
-                {/* Header Layout Grid */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-
-                    {/* Left Side: Title & Back Button align together */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <GoBackDesktopButton />
-
-                        {/* Context Title Stack */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                            {/* The "FIELDS" structural label goes on top */}
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    color: 'success.main',
-                                    fontWeight: 800,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.08em',
-                                    fontSize: { xs: '0.75rem', sm: '0.85rem' },
-                                    mb: 0.25
-                                }}
-                            >
-                                {text?.fieldsTitle || "Fields"}
-                            </Typography>
-
-                            {/* The unique Site Name becomes the massive primary title */}
-                            <Typography
-                                variant="h4"
-                                sx={{
-                                    fontWeight: 800,
-                                    fontSize: { xs: '1.5rem', sm: '1.85rem' },
-                                    color: 'text.primary',
-                                    letterSpacing: '-0.02em'
-                                }}
-                            >
-                                {siteName || "Loading Site..."}
-                            </Typography>
-                        </Box>
+                {/* Header: one row on desktop (site | view | search | actions), two on a
+                    tablet, three on a phone. Search and view only once there are fields. */}
+                <Box
+                    sx={{
+                        display: 'grid',
+                        alignItems: 'center',
+                        columnGap: 1.5,
+                        rowGap: 1.5,
+                        mb: 2,
+                        gridTemplateColumns: {
+                            xs: 'minmax(0, 1fr) auto',
+                            sm: 'auto minmax(0, 1fr) auto',
+                            md: 'minmax(0, auto) auto minmax(200px, 1fr) auto',
+                        },
+                        gridTemplateAreas: {
+                            xs: '"title actions" "view view" "search search"',
+                            sm: '"title title actions" "view search search"',
+                            md: '"title view search actions"',
+                        },
+                    }}
+                >
+                    {/* Site name: a menu to switch site or add one, with Edit beside it. */}
+                    <Box sx={{ gridArea: 'title', minWidth: 0 }}>
+                        <SiteSwitcher siteId={siteId} siteName={siteName} sites={sites} onSelect={selectSite} text={text} />
                     </Box>
 
-                    {/* Right Side: exports (all screens) + desktop-only Add Button */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-                    <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
-                        <span>
-                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={() => handleExport('pdf')}
-                                startIcon={<PictureAsPdf sx={{ color: canExport ? '#B7261C' : undefined }} />} sx={exportButtonSx}>
-                                PDF
-                            </Button>
-                        </span>
-                    </Tooltip>
-                    <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
-                        <span>
-                            <Button variant="outlined" color="secondary" disabled={!canExport} onClick={() => handleExport('xlsx')}
-                                startIcon={<TableChart sx={{ color: canExport ? '#175C35' : undefined }} />} sx={exportButtonSx}>
-                                Excel
-                            </Button>
-                        </span>
-                    </Tooltip>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<Add />}
-                        onClick={handleAddField}
-                        sx={{
-                            textTransform: 'none',
-                            borderRadius: 2,
-                            fontWeight: 600,
-                            boxShadow: '0px 4px 12px rgba(46, 125, 50, 0.2)',
-                            display: { xs: 'none', sm: 'inline-flex' }
-                        }}
-                    >
-                        {text?.addFieldBtn || "Add Field"}
-                    </Button>
+                    {isFieldsSuccess && fields?.length > 0 && (
+                        <>
+                            <FieldViewToggle view={view} onChange={setView} text={text}
+                                sx={{ gridArea: 'view', '& .MuiToggleButton-root': { flex: { xs: 1, sm: 'none' } } }} />
+                            <FieldSearchBox value={query} onChange={setQuery} text={text} sx={{ gridArea: 'search', minWidth: 0 }} />
+                        </>
+                    )}
+
+                    {/* Exports (all screens) + desktop-only Add Button */}
+                    <Box sx={{ gridArea: 'actions', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
+                            <span>
+                                <Button variant="outlined" color="secondary" disabled={!canExport} onClick={() => handleExport('pdf')}
+                                    startIcon={<PictureAsPdf sx={{ color: canExport ? '#B7261C' : undefined }} />} sx={exportButtonSx}>
+                                    PDF
+                                </Button>
+                            </span>
+                        </Tooltip>
+                        <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
+                            <span>
+                                <Button variant="outlined" color="secondary" disabled={!canExport} onClick={() => handleExport('xlsx')}
+                                    startIcon={<TableChart sx={{ color: canExport ? '#175C35' : undefined }} />} sx={exportButtonSx}>
+                                    Excel
+                                </Button>
+                            </span>
+                        </Tooltip>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<Add />}
+                            onClick={handleAddField}
+                            sx={{
+                                textTransform: 'none',
+                                borderRadius: 1.5,
+                                fontWeight: 700,
+                                height: 36,
+                                whiteSpace: 'nowrap',
+                                boxShadow: '0px 4px 12px rgba(46, 125, 50, 0.2)',
+                                display: { xs: 'none', sm: 'inline-flex' }
+                            }}
+                        >
+                            {text?.addFieldBtn || "Add Field"}
+                        </Button>
                     </Box>
                 </Box>
-
-                {isFieldsSuccess && fields?.length > 0 && (
-                    <FieldSearchBox value={query} onChange={setQuery} text={text} sx={{ mb: 2 }} />
-                )}
 
                 {/* Main Fields List Box */}
                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
@@ -192,89 +238,19 @@ const SiteFieldList = () => {
                         </Box>
                     ))}
 
-                    {/* ACTIVE DATA RENDERING MAP */}
-                    {isFieldsSuccess && visibleFields?.map((value) => {
-                        const startDateLabel = formatDate(value.startDate);
-                        const cropGenusName = cropGenera.find((g) => g.id === value.ggCropGenusId)?.name;
-                        const productCategoryName = productCategories.find((c) => c.id === value.ggProductCategoryId)?.name;
-                        const details = [
-                            startDateLabel && { icon: <CalendarMonth sx={{ fontSize: '0.95rem' }} />, label: startDateLabel },
-                            value.cropName && { icon: <Agriculture sx={{ fontSize: '0.95rem' }} />, label: value.cropName },
-                            value.varietyName && { icon: <Spa sx={{ fontSize: '0.95rem' }} />, label: value.varietyName },
-                            cropGenusName && { icon: <Grass sx={{ fontSize: '0.95rem' }} />, label: cropGenusName },
-                            productCategoryName && { icon: <Category sx={{ fontSize: '0.95rem' }} />, label: productCategoryName },
-                        ].filter(Boolean);
-
-                        // Fields with an end date are greyed out with a dashed border and a chip, like inactive resources.
-                        const ended = !!value.endDate;
-                        // Beside the text on desktop; on a phone there's no room, so it goes under the details.
-                        const rootDateChip = (display) => (
-                            <Chip label={`${text?.rootDate || "Root Date"} ${formatDate(value.endDate)}`} size="small" variant="outlined" sx={{ display, flexShrink: 0, fontWeight: 600, color: 'text.secondary' }} />
-                        );
-
-                        return (
-                            <Card
-                                key={value.id}
-                                elevation={0}
-                                sx={{
-                                    bgcolor: ended ? 'action.hover' : 'rgba(46, 125, 50, 0.03)',
-                                    border: '1px solid rgba(0, 0, 0, 0.06)',
-                                    borderStyle: ended ? 'dashed' : undefined,
-                                    borderRadius: 2.5,
-                                    overflow: 'hidden',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(46, 125, 50, 0.06)',
-                                        borderColor: 'rgba(46, 125, 50, 0.3)'
-                                    }
-                                }}
-                            >
-                                <CardActionArea
-                                    onClick={() => navigate(`/site/${siteId}/field/${value.id}`)}
-                                    sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1.5, py: 2, px: 2.5 }}
-                                >
-                                    {/* Mini map: the field's polygon outline in its own color. */}
-                                    <FieldShapeThumb points={safeParseJson(value.polygon)} color={value.color} />
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: ended ? 'text.secondary' : 'text.primary' }} noWrap>
-                                            {value.name}
-                                        </Typography>
-                                        {details.length > 0 && (
-                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}>
-                                                {details.map(({ icon, label }, i) => (
-                                                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', minWidth: 0, maxWidth: '100%' }}>
-                                                        {icon}
-                                                        <Typography variant="body2" noWrap>{label}</Typography>
-                                                    </Box>
-                                                ))}
-                                            </Box>
-                                        )}
-                                        {ended && <Box sx={{ mt: 0.75, display: { xs: 'block', sm: 'none' } }}>{rootDateChip('inline-flex')}</Box>}
-                                    </Box>
-                                    {ended && rootDateChip({ xs: 'none', sm: 'inline-flex' })}
-                                    <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
-                                </CardActionArea>
-                                {/* Beside the action area, not in it: a button can't sit inside a button. */}
-                                {ended && (
-                                    <Tooltip title={text?.duplicate || "Duplicate"}>
-                                        <IconButton
-                                            aria-label={text?.duplicate || "Duplicate"}
-                                            onClick={() => navigate(`/site/${siteId}/field/0?from=${value.id}`)}
-                                            sx={{ flexShrink: 0, mx: 0.5 }}
-                                        >
-                                            <ContentCopy fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                            </Card>
-                        );
-                    })}
+                    {isFieldsSuccess && visibleFields?.length > 0 && view === VIEW_LIST && (
+                        <FieldListView fields={visibleFields} {...viewProps} />
+                    )}
+                    {isFieldsSuccess && visibleFields?.length > 0 && view === VIEW_GRID && (
+                        <FieldGridView fields={visibleFields} {...viewProps} />
+                    )}
+                    {isFieldsSuccess && visibleFields?.length > 0 && view === VIEW_MAP && (
+                        <FieldMapView fields={visibleFields} site={siteData} {...viewProps} />
+                    )}
                 </Box>
 
                 {/* The thumbnails' satellite tiles are Esri's, which require attribution. */}
-                {isFieldsSuccess && visibleFields?.some((f) => f.polygon) && (
+                {isFieldsSuccess && view !== VIEW_MAP && visibleFields?.some((f) => f.polygon) && (
                     <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'end', mt: 0.5, fontSize: '0.625rem', lineHeight: 1.2, opacity: 0.75 }}>
                         {ESRI_ATTRIBUTION}
                     </Typography>
@@ -313,4 +289,4 @@ const SiteFieldList = () => {
     );
 }
 
-export default SiteFieldList;
+export default SiteFields;

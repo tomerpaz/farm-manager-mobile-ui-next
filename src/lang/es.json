@@ -362,5 +362,13 @@
   "setNewPassword": "Guardar nueva contraseña",
   "passwordResetDone": "Contraseña cambiada. Inicia sesión con la nueva contraseña.",
   "resetFailed": "No se pudo restablecer la contraseña. Inténtalo de nuevo.",
-  "tryAgain": "Reintentar"
+  "tryAgain": "Reintentar",
+  "view": "Vista",
+  "list": "Lista",
+  "grid": "Cuadrícula",
+  "mapFieldLimit": "El mapa muestra los primeros {shown} de {total} campos. Usa la búsqueda para acotar.",
+  "editSite": "Editar sitio",
+  "addSite": "Añadir sitio",
+  "selectSite": "Seleccionar sitio",
+  "siteNotRegistered": "No registrado - ábrelo para registrarlo"
 }

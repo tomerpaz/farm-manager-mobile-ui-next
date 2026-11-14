@@ -366,5 +366,13 @@
   "setNewPassword": "Set New Password",
   "passwordResetDone": "Password changed. Sign in with your new password.",
   "resetFailed": "Could not reset the password. Please try again.",
-  "tryAgain": "Try Again"
+  "tryAgain": "Try Again",
+  "view": "View",
+  "list": "List",
+  "grid": "Grid",
+  "mapFieldLimit": "The map shows the first {shown} of {total} fields. Search to narrow it down.",
+  "editSite": "Edit Site",
+  "addSite": "Add Site",
+  "selectSite": "Select Site",
+  "siteNotRegistered": "Not registered - open to register"
 }

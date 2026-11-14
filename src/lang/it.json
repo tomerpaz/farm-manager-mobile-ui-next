@@ -366,5 +366,13 @@
   "setNewPassword": "Imposta nuova password",
   "passwordResetDone": "Password modificata. Accedi con la nuova password.",
   "resetFailed": "Impossibile reimpostare la password. Riprova.",
-  "tryAgain": "Riprova"
+  "tryAgain": "Riprova",
+  "view": "Vista",
+  "list": "Elenco",
+  "grid": "Griglia",
+  "mapFieldLimit": "La mappa mostra i primi {shown} di {total} campi. Usa la ricerca per restringere.",
+  "editSite": "Modifica sito",
+  "addSite": "Aggiungi sito",
+  "selectSite": "Seleziona sito",
+  "siteNotRegistered": "Non registrato - aprilo per registrarlo"
 }

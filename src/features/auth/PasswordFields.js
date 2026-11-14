@@ -159,3 +159,24 @@ export const NewPasswordFields = ({ control, text, setValue, getValues, extraRul
         </>
     );
 };
+
+// Chrome offers to save a password when a form holding a typed password leaves the page,
+// taking it as submitted - so closing a dialog mid-change would prompt. Setting the value from
+// code doesn't stop it (Chrome keeps the typed value, since some sites clear fields before
+// submitting), but a delete through the editing commands counts as the user erasing it.
+// Call before unmounting a password form that was abandoned.
+export const eraseTypedPasswords = (root) => {
+    if (!root) return;
+    const fields = root.querySelectorAll('input[autocomplete="current-password"], input[autocomplete="new-password"]');
+    fields.forEach((input) => {
+        if (!input.value) return;
+        try {
+            input.focus();
+            input.select();
+            if (!document.execCommand('delete')) input.value = '';
+        } catch {
+            input.value = '';
+        }
+    });
+    if (root.contains(document.activeElement)) document.activeElement.blur();
+};

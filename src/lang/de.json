@@ -366,5 +366,13 @@
   "setNewPassword": "Neues Passwort speichern",
   "passwordResetDone": "Passwort geändert. Melde dich mit dem neuen Passwort an.",
   "resetFailed": "Das Passwort konnte nicht zurückgesetzt werden. Bitte versuche es erneut.",
-  "tryAgain": "Erneut versuchen"
+  "tryAgain": "Erneut versuchen",
+  "view": "Ansicht",
+  "list": "Liste",
+  "grid": "Raster",
+  "mapFieldLimit": "Die Karte zeigt die ersten {shown} von {total} Feldern. Nutze die Suche, um einzugrenzen.",
+  "editSite": "Standort bearbeiten",
+  "addSite": "Standort hinzufügen",
+  "selectSite": "Standort auswählen",
+  "siteNotRegistered": "Nicht registriert - zum Registrieren öffnen"
 }

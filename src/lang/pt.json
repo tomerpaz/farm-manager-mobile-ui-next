@@ -362,5 +362,13 @@
   "setNewPassword": "Definir nova senha",
   "passwordResetDone": "Senha alterada. Entre com a nova senha.",
   "resetFailed": "Não foi possível redefinir a senha. Tente novamente.",
-  "tryAgain": "Tentar novamente"
+  "tryAgain": "Tentar novamente",
+  "view": "Visualização",
+  "list": "Lista",
+  "grid": "Grade",
+  "mapFieldLimit": "O mapa mostra os primeiros {shown} de {total} campos. Use a busca para filtrar.",
+  "editSite": "Editar site",
+  "addSite": "Adicionar site",
+  "selectSite": "Selecionar site",
+  "siteNotRegistered": "Não registrado - abra para registrar"
 }

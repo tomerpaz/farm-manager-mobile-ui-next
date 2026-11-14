@@ -366,5 +366,13 @@
   "setNewPassword": "Nieuw wachtwoord instellen",
   "passwordResetDone": "Wachtwoord gewijzigd. Log in met je nieuwe wachtwoord.",
   "resetFailed": "Het wachtwoord kon niet worden gereset. Probeer het opnieuw.",
-  "tryAgain": "Opnieuw proberen"
+  "tryAgain": "Opnieuw proberen",
+  "view": "Weergave",
+  "list": "Lijst",
+  "grid": "Raster",
+  "mapFieldLimit": "De kaart toont de eerste {shown} van {total} percelen. Zoek om de lijst te verkleinen.",
+  "editSite": "Locatie bewerken",
+  "addSite": "Locatie toevoegen",
+  "selectSite": "Locatie kiezen",
+  "siteNotRegistered": "Niet geregistreerd - open om te registreren"
 }

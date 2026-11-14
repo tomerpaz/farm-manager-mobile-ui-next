@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import ActivityView from './ui/activity/view/ActivityView';
 import NewActivity from './ui/activity/view/NewActivity';
 import SiteForm from './ui/site/SiteForm';
-import SiteFieldList from './ui/site/SiteFieldList';
+import { SiteFieldsRedirect } from './ui/site/SiteFields';
 import IdaFieldForm from './ui/field/IdaFieldForm';
 import SiteMap from './ui/site/SiteMap';
 import { Alert, Snackbar } from '@mui/material';
@@ -108,7 +108,7 @@ function App() {
                   <Route path='/activity/:src/:activityId' element={<ActivityView />} />
                   <Route path='/activity/new/:type' element={<NewActivity />} />
                   <Route path='/site/:siteId' element={<SiteForm />} />
-                  <Route path='/site/:siteId/fields' element={<SiteFieldList />} />
+                  <Route path='/site/:siteId/fields' element={<SiteFieldsRedirect />} />
                   <Route path='/site/:siteId/map' element={<SiteMap />} />
                   <Route path='/site/:siteId/field/:fieldId' element={<IdaFieldForm />} />
                   <Route path='/resources/:resourceType' element={<ResourceList />} />

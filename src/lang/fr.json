@@ -366,5 +366,13 @@
   "setNewPassword": "Enregistrer le mot de passe",
   "passwordResetDone": "Mot de passe modifié. Connectez-vous avec le nouveau mot de passe.",
   "resetFailed": "Impossible de réinitialiser le mot de passe. Veuillez réessayer.",
-  "tryAgain": "Réessayer"
+  "tryAgain": "Réessayer",
+  "view": "Affichage",
+  "list": "Liste",
+  "grid": "Grille",
+  "mapFieldLimit": "La carte affiche les {shown} premières parcelles sur {total}. Utilisez la recherche pour affiner.",
+  "editSite": "Modifier le site",
+  "addSite": "Ajouter un site",
+  "selectSite": "Choisir un site",
+  "siteNotRegistered": "Non enregistré - ouvrez-le pour l'enregistrer"
 }
