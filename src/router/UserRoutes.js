@@ -2,7 +2,8 @@ import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { Outlet } from 'react-router'
 import { useGetUserDataQuery } from '../features/auth/authApiSlice'
-import { setFieldsViewStatus, setCurrentYear, setLang, setMapCenter, setMapZoom } from '../features/app/appSlice'
+import { apiSlice } from '../app/api/apiSlice'
+import { logOut, setFieldsViewStatus, setCurrentYear, setLang, setMapCenter, setMapZoom } from '../features/app/appSlice'
 import Loading from '../components/Loading'
 import he from "../lang/he.json";
 import en from "../lang/en.json";
@@ -46,6 +47,17 @@ const UserRoutes = () => {
             
         } 
     }, [ user, isLoading, isSuccess, isError])
+
+    // The server answered but couldn't give this user's data (e.g. the user was
+    // deleted while their token is still valid): log out instead of loading forever.
+    // A numeric status means the server replied; FETCH_ERROR / TIMEOUT_ERROR (offline,
+    // flaky network) don't log the user out.
+    useEffect(() => {
+        if (isError && typeof error?.status === 'number') {
+            dispatch(logOut())
+            dispatch(apiSlice.util.resetApiState())
+        }
+    }, [isError, error, dispatch])
 
     return user ? <Outlet /> : <Loading />
 
