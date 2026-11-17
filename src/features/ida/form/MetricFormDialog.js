@@ -671,7 +671,13 @@ export default function MetricFormDialog({
                                                             <TableBody>
                                                                 {(fieldsExpanded ? selected : selected.slice(0, FIELD_ROWS_COLLAPSED)).map((af) => (
                                                                     <TableRow key={af.id}>
-                                                                        <TableCell sx={cellSx}>{af.name}</TableCell>
+                                                                        <TableCell sx={cellSx}>
+                                                                            {af.name}
+                                                                            {/* The alias, if any, after the name in a lighter grey. */}
+                                                                            {af.alias?.trim() && (
+                                                                                <Box component="span" sx={{ color: "text.secondary" }}>{` · ${af.alias.trim()}`}</Box>
+                                                                            )}
+                                                                        </TableCell>
                                                                         <TableCell sx={cellSx}>{af.cropName}</TableCell>
                                                                         <TableCell sx={cellSx}>{af.varietyName}</TableCell>
                                                                         <TableCell sx={cellSx}>

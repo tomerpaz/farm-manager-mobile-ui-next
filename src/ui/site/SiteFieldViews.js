@@ -297,6 +297,16 @@ const DetailItems = ({ details, faded }) => details.map(({ icon, label }, i) => 
 ));
 
 // ---------------------------------------------------------------------------
+// The field's name, then its alias (if it has one) in a lighter grey.
+const FieldTitle = ({ field }) => (
+    <>
+        {field.name}
+        {field.alias?.trim() && (
+            <Box component="span" sx={{ fontWeight: 400, color: 'text.secondary' }}>{` · ${field.alias.trim()}`}</Box>
+        )}
+    </>
+);
+
 // List view
 
 const ListCard = ({ field, details, text, selected, onOpen, onDuplicate }) => {
@@ -310,7 +320,7 @@ const ListCard = ({ field, details, text, selected, onOpen, onDuplicate }) => {
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: ended ? 'text.secondary' : 'text.primary' }} noWrap>
-                        {field.name}
+                        <FieldTitle field={field} />
                     </Typography>
                     {details.length > 0 && (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}><DetailItems details={details} faded={ended} /></Box>
@@ -385,7 +395,7 @@ const GridCard = ({ field, details, text, thumbSize, selected, onOpen, onDuplica
                 </Box>
                 <Box sx={{ p: 1.25, minWidth: 0 }}>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: ended ? 'text.secondary' : 'text.primary' }} noWrap>
-                        {field.name}
+                        <FieldTitle field={field} />
                     </Typography>
                     {/* A fixed set of details, so cards in a row stay close in height. */}
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, mt: 0.5 }}>
