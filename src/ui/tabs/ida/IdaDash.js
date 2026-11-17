@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { DatePicker } from '@mui/x-date-pickers';
 import { useDispatch, useSelector } from 'react-redux';
@@ -93,6 +93,25 @@ const selectFilterSx = { '& .MuiOutlinedInput-root': { borderRadius: 1.5, height
 const selectFilterMenu = { menu: { PaperProps: { style: { maxHeight: 200 } } } };
 const ALL_SITES = 0;
 
+const DASH_FILTERS_KEY = 'idaDash.filters';
+const readDashFilters = () => {
+  try {
+    const { from, to, sites } = JSON.parse(sessionStorage.getItem(DASH_FILTERS_KEY)) || {};
+    const fromDay = from && dayjs(from);
+    const toDay = to && dayjs(to);
+    const valid = fromDay?.isValid() && toDay?.isValid() && !toDay.isBefore(fromDay, 'month');
+    return {
+      ...(valid ? { from: fromDay.startOf('month'), to: toDay.endOf('month') } : {}),
+      sites: Array.isArray(sites) ? sites.filter((id) => typeof id === 'number') : [],
+    };
+  } catch {
+    return {};
+  }
+};
+const storeDashFilters = (filters) => {
+  try { sessionStorage.setItem(DASH_FILTERS_KEY, JSON.stringify(filters)); } catch { /* storage unavailable */ }
+};
+
 const IdaDash = () => {
 
   const navigate = useNavigate();
@@ -102,8 +121,11 @@ const IdaDash = () => {
   const text = useSelector(selectLang);
   const lang = text?.lang;
 
-  const [from, setFrom] = useState(() => dayjs().startOf('year'));
-  const [to, setTo] = useState(() => dayjs().endOf('year'));
+  // The filters (months and sites) survive opening a month and coming back:
+  // kept for this browser tab in sessionStorage.
+  const [saved] = useState(readDashFilters);
+  const [from, setFrom] = useState(() => saved.from ?? dayjs().startOf('year'));
+  const [to, setTo] = useState(() => saved.to ?? dayjs().endOf('year'));
   // Half-typed dates are ignored. To Month can't go before From Month; a later From Month pulls it along.
   const handleFromChange = (value) => {
     if (!value?.isValid()) return;
@@ -129,8 +151,15 @@ const IdaDash = () => {
     to: to.endOf('month').format('YYYY-MM-DD'),
   };
   // No site ticked means all of them.
-  const [selectedSites, setSelectedSites] = useState([]);
+  const [storedSites, setSelectedSites] = useState(() => saved.sites ?? []);
+  // Only sites that still exist (one may have been removed since it was stored).
+  const selectedSites = idaSystemData?.sites
+    ? storedSites.filter((id) => idaSystemData.sites.some((site) => site.id === id))
+    : storedSites;
   const siteIds = selectedSites.length ? selectedSites : undefined;
+  useEffect(() => {
+    storeDashFilters({ from: from.format('YYYY-MM'), to: to.format('YYYY-MM'), sites: selectedSites });
+  }, [from, to, selectedSites.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
   const handleSitesChange = (e) => setSelectedSites(e.target.value.includes(ALL_SITES) ? [] : e.target.value);
   const siteNames = (ids) => {
     if (!ids.length) return text?.allSites || "All Sites";
