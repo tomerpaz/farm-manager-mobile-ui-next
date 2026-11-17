@@ -36,6 +36,8 @@ const WORKER = "WORKER";
 // GLOBALG.A.P. energy source ids measured in litres rather than kWh:
 // 1 Hydrogen (liquid), 4 Ethanol, 5 Gasoline/petrol, 8 Heavy oil,
 // 10 Diesel, 12 Biofuel, 13 Light heating oil.
+// The "No energy" source (server GlobalGapServiceImpl.ENERGY_SOURCE_NONE).
+const ENERGY_SOURCE_NONE = 15;
 const FUEL_ENERGY_TYPE_IDS = new Set([1, 4, 5, 8, 10, 12, 13]);
 const GENERAL = "GENERAL";
 
@@ -107,7 +109,7 @@ const METRICS = [
             { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
             { name: "site_id", type: "select", label: "Site", labelKey: "site", optionsFrom: "sites", allOption: true },
             {
-                name: "amount", type: "number", label: "Total Amount", labelKey: "totalAmount", unit: "m³", required: true,
+                name: "amount", type: "number", label: "Total Volume Used", labelKey: "totalVolumeUsed", unit: "m³", required: true,
                 // Derived, not user-entered — kept out of the dialog and summed
                 // from the two fields below whenever the record is saved.
                 hidden: true, computeFrom: ["amountWaterUseIrrigation", "amountWaterUseProductHandling"],
@@ -115,10 +117,10 @@ const METRICS = [
             // No water used at all (both amounts 0) locks the date to the
             // last day of the month, like the "None" entries elsewhere.
             {
-                name: "amountWaterUseIrrigation", type: "number", label: "Irrigation Amount", labelKey: "irrigationAmount", unit: "m³", column: false, required: true,
+                name: "amountWaterUseIrrigation", type: "number", label: "Total Irrigation Amount", labelKey: "irrigationAmount", unit: "m³", column: false, required: true,
                 zeroLinksTo: ["date"], zeroLinksWith: ["amountWaterUseProductHandling"],
             },
-            { name: "amountWaterUseProductHandling", type: "number", label: "Product Handling", labelKey: "productHandling", unit: "m³", column: false, required: true },
+            { name: "amountWaterUseProductHandling", type: "number", label: "Total Product Handling", labelKey: "productHandling", unit: "m³", column: false, required: true },
             { name: "flowRate", type: "text", label: "Flow Rate", labelKey: "flowRate", column: false },
         ],
     },
@@ -132,7 +134,8 @@ const METRICS = [
             { name: "date", type: "date", label: "Date", labelKey: "date", required: true, defaultToFormDate: true },
             { name: "site_id", type: "select", label: "Site", labelKey: "site", optionsFrom: "sites", allOption: true },
             { name: "waterSourceId", type: "select", label: "Water Source", labelKey: "waterSource", required: true, optionsFrom: "waterTypes" },
-            { name: "amount", type: "number", label: "Volume Extracted", labelKey: "volumeExtracted", unit: "m³", required: true },
+            { name: "amount", type: "number", label: "Total Volume Extracted", labelKey: "volumeExtracted", unit: "m³", required: true },
+            { name: "flowRate", type: "text", label: "Flow Rate", labelKey: "flowRate", column: false },
         ],
     },
     {
@@ -162,13 +165,13 @@ const METRICS = [
                 // amount was drawn, so date/amount/renewableAmount are forced
                 // (last day of the month / 0) and locked, same idea as an
                 // empty pesticide/fertilizer resources list above.
-                zeroLinksTo: ["date", "amount", "renewableAmount"], linkTriggerValue: 15,
+                zeroLinksTo: ["date", "amount", "renewableAmount"], linkTriggerValue: ENERGY_SOURCE_NONE,
                 // Fuels aren't renewable — their renewable amount is 0 and locked.
                 zeroLinks: [{ when: [...FUEL_ENERGY_TYPE_IDS], to: ["renewableAmount"] }],
             },
             // Unit follows the energy source: liquid fuels in litres, the rest kWh
             // (see FUEL_ENERGY_TYPE_IDS / energyTypes below).
-            { name: "amount", type: "number", label: "Power Absorbed", labelKey: "powerAbsorbed", unitFrom: "energySourceId", required: true },
+            { name: "amount", type: "number", label: "Amount Used", labelKey: "amountUsed", unitFrom: "energySourceId", required: true },
             { name: "renewableAmount", type: "number", label: "Renewable Amount", labelKey: "renewableAmount", unit: "kWh", column: false },
         ],
     },
@@ -203,7 +206,9 @@ const METRICS = [
             // One line per row: the resource and its amount, in the resource's own unit.
             {
                 name: "resources", type: "resources", label: "Resources", labelKey: "resources", required: true, optionsFrom: "generalResources",
-                rowFields: ["amount"], rowUnit: "", unitFromResource: true,
+                // Each resource's category shows in the picker and beside the row;
+                // the amount's title is the picked resource's unit ("Kg").
+                rowFields: ["amount"], rowUnit: "", unitFromResource: true, showCategory: true, unitInLabel: true,
             },
             { name: "fieldIds", type: "fields", label: "Fields", labelKey: "fields", required: true },
         ],
@@ -230,6 +235,9 @@ const METRIC_IDS = METRICS.map((m) => m.id);
 // valid resource row, since an empty resources list is what means "none"
 // now. It's split off here; its (untranslated) server name is only a
 // fallback for a field with no translated emptyLabel.
+// Units shown as written except m³, which is "קוב" in Hebrew (unitM3).
+const unitLabel = (unit, t) => (unit === "m³" ? t("unitM3", "m³") : unit);
+
 const resolveSchema = (schema, dataSources, t) =>
     schema.map((spec) => {
         const f = {
@@ -237,6 +245,7 @@ const resolveSchema = (schema, dataSources, t) =>
             label: t(spec.labelKey, spec.label),
             ...(spec.emptyLabelKey ? { emptyLabel: t(spec.emptyLabelKey, spec.emptyLabel) } : {}),
             ...(spec.addLabelKey ? { addLabel: t(spec.addLabelKey, spec.addLabel) } : {}),
+            ...(spec.unit ? { unit: unitLabel(spec.unit, t) } : {}),
         };
         if (!f.optionsFrom) return f;
         const options = dataSources[f.optionsFrom] || [];
@@ -477,13 +486,14 @@ function IDAForm() {
     const dataSources = {
         sites: idaSystemData?.sites,
         waterTypes: idaSystemData?.waterTypes,
-        // Id 15 ("renewable") drives the auto-zero/disable behavior below —
-        // surfaced first in the dropdown since it's the option farmers
-        // reach for most often.
-        // Each type also carries the unit its amount is entered in (the
-        // amount field's unitFrom reads it).
+        // Id 15 is "No energy" (server ENERGY_SOURCE_NONE); it drives the
+        // auto-zero/disable behavior below and stays first in the dropdown.
+        // The rest are sorted by name. Each type also carries the unit its
+        // amount is entered in (the amount field's unitFrom reads it).
         energyTypes: [...(idaSystemData?.energyTypes || [])]
-            .sort((a, b) => (a.id === 15 ? -1 : b.id === 15 ? 1 : 0))
+            .sort((a, b) =>
+                (b.id === ENERGY_SOURCE_NONE) - (a.id === ENERGY_SOURCE_NONE)
+                || String(a.name ?? '').localeCompare(String(b.name ?? ''), undefined, { sensitivity: 'base' }))
             .map((e) => ({
                 ...e,
                 unit: FUEL_ENERGY_TYPE_IDS.has(e.id) ? t("lit", "Lit") : "kWh",
@@ -493,7 +503,9 @@ function IDAForm() {
         fertilizers: idaSystemData?.fertilizers || [],
         pesticides: idaSystemData?.pesticides || [],
         pests,
-        generalResources,
+        // Inactive resources aren't offered; a saved row that uses one still shows
+        // its name (ResourceRowsField falls back to the row's own resource).
+        generalResources: generalResources.filter((r) => r.active !== false),
     };
 
     const renderPanel = (metric, indexInAll) => {
@@ -521,7 +533,7 @@ function IDAForm() {
                     schema={resolveSchema(metric.schema, dataSources, t)}
                     dateField={metric.dateField}
                     totalField={metric.totalField}
-                    totalUnit={metric.totalUnit}
+                    totalUnit={unitLabel(metric.totalUnit, t)}
                     defaultDate={defaultDate}
                     minDate={firstDayOfMonth}
                     maxDate={lastDayOfMonth}

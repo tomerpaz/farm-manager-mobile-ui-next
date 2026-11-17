@@ -1,4 +1,4 @@
-import { apiSlice, Pests_TAG, CropGenera_TAG, ProductCategories_TAG, SiteFields_TAG, Sites_TAG } from "../../app/api/apiSlice";
+import { apiSlice, Resources_TAG, Pests_TAG, CropGenera_TAG, ProductCategories_TAG, SiteFields_TAG, Sites_TAG } from "../../app/api/apiSlice";
 
 export const IdaSystem_TAG = 'IdaSystem';
 export const GGData_TAG = 'GGData';
@@ -21,7 +21,8 @@ export const idaApiSlice = apiSlice
             IdaSystem_TAG,
             GGData_TAG,
             Executors_TAG,
-            Settings_TAG
+            Settings_TAG,
+            Resources_TAG
         ]
     })
     .injectEndpoints({
@@ -37,8 +38,9 @@ export const idaApiSlice = apiSlice
 
             getIdaSystemData: builder.query({
                 query: () => '/api/farm/gg/ida/system/data',
-                // Holds the sites and fields lists, so saving either refetches it.
-                providesTags: [IdaSystem_TAG, SiteFields_TAG, Sites_TAG],
+                // Holds the sites, fields, fertilizers and pesticides lists, so saving
+                // any of them (a resource renamed or (de)activated) refetches it.
+                providesTags: [IdaSystem_TAG, SiteFields_TAG, Sites_TAG, Resources_TAG],
             }),
 
             // Months are keyed yyyyMM (see monthKey in ggRecordMapper). The server
@@ -49,7 +51,8 @@ export const idaApiSlice = apiSlice
                     url: '/api/farm/gg/ida/data',
                     params: { from, to, ...(sites?.length ? { site: sites } : {}) },
                 }),
-                providesTags: [GGData_TAG],
+                // Records carry their resources' names: refetch after a resource is saved.
+                providesTags: [GGData_TAG, Resources_TAG],
             }),
             getExecutors: builder.query({
                 query: () => '/api/farm/gg/ida/executors',

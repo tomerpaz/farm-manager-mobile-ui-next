@@ -132,7 +132,7 @@ const FieldPolygonDraw = ({ polygon, otherPolygons = [], color, center, zoom, he
                     style={fill ? { position: 'absolute', inset: 0 } : { height, width: '100%' }}
                     center={center}
                     zoom={zoom}
-                    scrollWheelZoom={false}
+                    scrollWheelZoom
                     doubleClickZoom={!drawing}
                     ref={setMap}
                 >

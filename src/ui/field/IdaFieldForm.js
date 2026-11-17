@@ -34,6 +34,9 @@ import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import GoBackAppBar from '../../appbar/content/GoBackAppBar';
 import { pageTintSx } from '../../components/ui/pageTint';
 import { storeSelectedSiteId } from '../site/selectedSite';
+
+// Any language's letter or digit (\p{L}: Hebrew too), not a symbol or space.
+const NAME_START = /^[\p{L}\p{N}]/u;
 import FormActionBar from '../../components/ui/FormActionBar';
 
 const parseISO = (v) => dayjs(v).toDate()
@@ -198,6 +201,8 @@ const IdaFieldForm = () => {
     }
     const onSubmit = async (data) => {
         try {
+            // Trim every text value (name, alias, ...) before saving.
+            data = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v]));
             data.ggCropGenusId = data.ggCropGenus?.id || null;
             data.ggProductCategoryId = data.ggProductCategory?.id || null;
             data.startDate = data.startDate ? asLocalDate(data.startDate, true) : null;
@@ -317,8 +322,13 @@ const IdaFieldForm = () => {
                                             name="name"
                                             control={control}
                                             rules={{
-                                                required: text.nameRequired || 'Name is required',
-                                                minLength: { value: 3, message: text.nameMinLength || 'Minimum 3 characters required' }
+                                                // Checked on the trimmed value (spaces are trimmed on save):
+                                                // one character is enough, and it must start with a letter or digit.
+                                                validate: (v) => {
+                                                    const name = String(v ?? '').trim();
+                                                    if (!name) return text.nameRequired || 'Name is required';
+                                                    return NAME_START.test(name) || text.nameStartLetterOrDigit || 'Must start with a letter or number';
+                                                }
                                             }}
                                             render={({ field, fieldState: { error } }) => (
                                                 <TextField

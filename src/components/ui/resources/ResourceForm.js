@@ -78,7 +78,8 @@ const ResourceForm = () => {
         if (resourceType === 'general') {
             return {
                 ...baseDefaults,
-                unit: rawData?.unit ?? 'KG',
+                // The server keeps a resource's unit in usageUnit (there's no `unit`).
+                usageUnit: rawData?.usageUnit ?? 'KG',
                 category: rawData?.category ?? ''
             };
         }
@@ -282,8 +283,10 @@ const ResourceForm = () => {
                                     </Box>
                                 </Box>
 
-                                {/* ROW 3: Chemical parameters (N, P, K) */}
-                                <Box sx={{ display: "flex", flexDirection: "row", gap: 2, width: '100%' }}>
+                                {/* ROW 3: Chemical parameters (N, P, K). Always N-P-K left to right, as on
+                                    fertilizer labels, also in Hebrew: the row is laid out LTR while each
+                                    input keeps the page direction for its label and error text. */}
+                                <Box sx={(theme) => ({ display: "flex", flexDirection: "row", gap: 2, width: '100%', direction: 'ltr', '& > *': { direction: theme.direction } })}>
                                     <Box sx={{ flex: 1, minWidth: 0 }}>
                                         <Controller
                                             name="n"
@@ -381,7 +384,7 @@ const ResourceForm = () => {
                                 </Box>
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
                                     <Controller
-                                        name="unit"
+                                        name="usageUnit"
                                         control={control}
                                         render={({ field }) => (
                                             <TextField

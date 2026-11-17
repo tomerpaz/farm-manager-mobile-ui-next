@@ -22,7 +22,7 @@ import {
     TableRow,
     Tooltip,
 } from "@mui/material";
-import { Delete, UnfoldLess, UnfoldMore } from "@mui/icons-material";
+import { Add, Delete, UnfoldLess, UnfoldMore } from "@mui/icons-material";
 import { DatePicker, DateTimePicker } from "@mui/x-date-pickers";
 import FieldSelectionDialog from "../../../ui/dialog/FieldsSelectionDialog";
 import DialogAppBar from "../../../ui/dialog/DialogAppBar";
@@ -594,6 +594,7 @@ export default function MetricFormDialog({
                                                                 variant="outlined"
                                                                 size="large"
                                                                 color={fieldState.error ? "error" : "primary"}
+                                                                startIcon={<Add />}
                                                                 sx={sectionButtonSx}
                                                                 // Drop focus first: opening the nested picker aria-hides
                                                                 // this part of the dialog, and Chrome blocks that (and
@@ -748,6 +749,8 @@ export default function MetricFormDialog({
                                         rowFields={f.rowFields}
                                         rowUnit={f.rowUnit}
                                         unitFromResource={f.unitFromResource}
+                                        showCategory={f.showCategory}
+                                        unitInLabel={f.unitInLabel}
                                     />
                                 );
                             }

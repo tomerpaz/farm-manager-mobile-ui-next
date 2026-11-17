@@ -25,9 +25,25 @@ const NUMBER_FIELDS = [
     { name: "amount", label: "Amount", labelKey: "amountLabel", unitFromResource: true },
 ];
 
-// A section's title button (Fields, Pesticides, ...): outlined on a white
-// fill, so the dialog's filled Confirm stays the one primary action.
-export const sectionButtonSx = { textTransform: "none", bgcolor: "background.paper", "&:hover": { bgcolor: "background.paper" } };
+// A section's title button (Fields, Pesticides, ...): a bold, tinted outline
+// with a 3px border, big enough to read as the section's main action, while
+// staying outlined so the dialog's filled Confirm is still the one primary action.
+const SECTION_BORDER = 3;
+export const sectionButtonSx = {
+    textTransform: "none",
+    fontWeight: 700,
+    fontSize: "1.05rem",
+    minHeight: 48,
+    px: 2.5,
+    borderWidth: SECTION_BORDER,
+    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.15),
+    "&:hover": { borderWidth: SECTION_BORDER, bgcolor: (theme) => alpha(theme.palette.primary.main, 0.24) },
+    "&.Mui-disabled": { borderWidth: SECTION_BORDER, bgcolor: "background.paper" },
+    "& .MuiButton-startIcon > *:nth-of-type(1)": { fontSize: 26 },
+    // A darker green than the theme's primary for the text, icon and border;
+    // only when not showing an error (color="error" keeps its red).
+    "&.MuiButton-colorPrimary:not(.Mui-disabled)": { color: "success.main", borderColor: "success.main" },
+};
 
 // Soft tinted panel that groups a dialog section (Fields, a resource list)
 // so sections read apart without adding more border lines. A faint
@@ -48,8 +64,11 @@ export const EMPTY_RESOURCE_ROW = { resource: null, qty: "", n: "", p: "", k: ""
 // Unit shown next to a row's amount. With unitFromResource it's the picked
 // resource's own usage unit (translated like elsewhere in the app, e.g.
 // "KG" -> text.kg); otherwise — or with no resource/unit yet — the fixed rowUnit.
-export const resourceRowUnit = (resource, { unitFromResource, rowUnit }, t) => {
-    const raw = unitFromResource ? resource?.usageUnit || resource?.unit : null;
+// The resource is looked up by id in `options` (the current list) first, so a unit
+// set on the resource after the row was picked or saved still shows.
+export const resourceRowUnit = (resource, { unitFromResource, rowUnit, options }, t) => {
+    const current = (resource?.id && options?.find((o) => o.id === resource.id)) || resource;
+    const raw = unitFromResource ? current?.usageUnit || current?.unit : null;
     return raw ? t(String(raw).toLowerCase(), raw) : rowUnit;
 };
 
@@ -71,7 +90,11 @@ const validateNumber = (v, required, t) => {
 // `noneName` adds an emptyLabel checkbox ("No Active Ingredient") bound to
 // that form value: ticked, the rows are cleared and Add is disabled;
 // unticked, at least one row is required.
-export default function ResourceRowsField({ control, name, label, options, required, emptyLabel, noneName, rowFields, rowUnit, unitFromResource }) {
+// `showCategory` shows each resource's category under its name in the picker
+// and between the picked resource and its amount (typing matches it too).
+// `unitInLabel` makes the row's unit the amount's title ("Kg") instead of
+// showing it after the number.
+export default function ResourceRowsField({ control, name, label, options, required, emptyLabel, noneName, rowFields, rowUnit, unitFromResource, showCategory, unitInLabel }) {
     const t = useIdaText();
     const numberFields = rowFields ? NUMBER_FIELDS.filter((nf) => rowFields.includes(nf.name)) : NUMBER_FIELDS;
     const amountOnly = numberFields.length === 1 && numberFields[0].name === "amount";
@@ -159,7 +182,14 @@ export default function ResourceRowsField({ control, name, label, options, requi
                     rows.filter((_, i) => i !== index).map((r) => r?.resource?.id).filter(Boolean)
                 );
                 const rowOptions = options.filter((o) => !takenIds.has(o.id));
-                const unit = resourceRowUnit(rows[index]?.resource, { unitFromResource, rowUnit }, t);
+                const unit = resourceRowUnit(rows[index]?.resource, { unitFromResource, rowUnit, options }, t);
+                // From the current list (by id), like the unit.
+                const categoryOf = (resource) => (resource?.id && options.find((o) => o.id === resource.id))?.category || resource?.category;
+                const numberLabel = (nf) => {
+                    const title = nf.labelKey ? t(nf.labelKey, nf.label) : nf.label;
+                    // unitInLabel: the unit alone is the title ("Kg"); "Amount" until there is one.
+                    return unitInLabel && nf.unitFromResource && unit ? unit : title;
+                };
                 const renderNumber = (nf) => (
                     <Controller
                         key={nf.name}
@@ -170,7 +200,7 @@ export default function ResourceRowsField({ control, name, label, options, requi
                             <TextField
                                 {...field}
                                 value={field.value ?? ""}
-                                label={nf.labelKey ? t(nf.labelKey, nf.label) : nf.label}
+                                label={numberLabel(nf)}
                                 type="number"
                                 size="small"
                                 error={!!fieldState.error}
@@ -179,7 +209,7 @@ export default function ResourceRowsField({ control, name, label, options, requi
                                     htmlInput: { min: 0, step: "any", inputMode: "decimal" },
                                     input: {
                                         endAdornment:
-                                            nf.unitFromResource && unit ? (
+                                            nf.unitFromResource && unit && !unitInLabel ? (
                                                 <InputAdornment position="end">{unit}</InputAdornment>
                                             ) : null,
                                     },
@@ -210,6 +240,25 @@ export default function ResourceRowsField({ control, name, label, options, requi
                                         value={value?.id ? options.find((o) => o.id === value.id) || value : null}
                                         onChange={(_, next) => onChange(next)}
                                         blurOnSelect
+                                        {...(showCategory && {
+                                            // Typing matches the category too.
+                                            filterOptions: (opts, { inputValue }) => {
+                                                const q = inputValue.trim().toLowerCase();
+                                                return q ? opts.filter((o) => `${o?.name ?? ""} ${o?.category ?? ""}`.toLowerCase().includes(q)) : opts;
+                                            },
+                                            renderOption: ({ key, ...props }, option) => (
+                                                <li key={key} {...props}>
+                                                    <Box sx={{ minWidth: 0 }}>
+                                                        <Typography variant="body2">{option?.name || `#${option?.id}`}</Typography>
+                                                        {option?.category && (
+                                                            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                                                                {option.category}
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
+                                                </li>
+                                            ),
+                                        })}
                                         slotProps={{ paper: { elevation: 3 } }}
                                         renderInput={(params) => (
                                             <TextField
@@ -224,6 +273,18 @@ export default function ResourceRowsField({ control, name, label, options, requi
                                     />
                                 )}
                             />
+                            {showCategory && (
+                                // The picked resource's category, between the resource and the amount.
+                                <Tooltip title={categoryOf(rows[index]?.resource) || ""}>
+                                    <Typography
+                                        variant="body2"
+                                        noWrap
+                                        sx={{ width: { xs: 72, sm: 140 }, flexShrink: 0, lineHeight: "40px", color: "text.secondary" }}
+                                    >
+                                        {categoryOf(rows[index]?.resource) || ""}
+                                    </Typography>
+                                </Tooltip>
+                            )}
                             {amountOnly && <Box sx={{ width: { xs: 96, sm: 110 }, flexShrink: 0 }}>{renderNumber(numberFields[0])}</Box>}
                             <Tooltip title={t("removeRow", "Remove row")}>
                                 <IconButton size="small" color="secondary" aria-label={t("removeRowAria", "Remove row {n}", { n: index + 1 })} onClick={() => remove(index)}>

@@ -79,8 +79,15 @@ const StatusIndicator = ({ icon, label, isMobile, styles }) => (
 // On a phone the controls fill two full-width rows; from sm up the rows dissolve into one strip.
 const filterRowSx = { display: { xs: 'flex', sm: 'contents' }, gap: 1 };
 const filterItemSx = { flex: { xs: '1 1 0', sm: 'none' }, minWidth: 0 };
-const filterButtonWrapSx = { ...filterItemSx, display: { xs: 'flex', sm: 'inline' } };
-const exportButtonSx = { textTransform: 'none', fontWeight: 700, borderRadius: 1.5, px: { xs: 1, sm: 2 }, height: 40, width: { xs: '100%', sm: 'auto' } };
+// On phones the export buttons are icon-only squares beside the month pickers.
+const exportButtonWrapSx = { flex: 'none', display: { xs: 'flex', sm: 'inline' } };
+const exportButtonSx = {
+  textTransform: 'none', fontWeight: 700, borderRadius: 1.5, height: 40,
+  px: { xs: 0, sm: 2 }, minWidth: { xs: 40, sm: 64 },
+  // Phones only: no label, so no gap beside the icon (sm+ keeps MUI's default).
+  '@media (max-width: 599.95px)': { '& .MuiButton-startIcon': { m: 0 } },
+};
+const exportLabelSx = { display: { xs: 'none', sm: 'inline' } };
 const monthPickerSx = { width: { xs: 'auto', sm: 115 }, '& .MuiPickersOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
 const selectFilterSx = { '& .MuiOutlinedInput-root': { borderRadius: 1.5, height: 40 }, '& .MuiInputLabel-root': { fontSize: '0.85rem' } };
 const selectFilterMenu = { menu: { PaperProps: { style: { maxHeight: 200 } } } };
@@ -273,39 +280,9 @@ const IdaDash = () => {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: { sm: 'wrap' }, rowGap: 2, columnGap: 1.5, width: { xs: '100%', sm: 'auto' } }}>
+              {/* Filters first (sites, year, months), then the exports. On phones two
+                  rows: sites + year, then the months + icon-only PDF / Excel. */}
               <Box sx={filterRowSx}>
-              <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
-                <Box component="span" sx={filterButtonWrapSx}>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    disableElevation
-                    disabled={!ggData || reportGenerating}
-                    onClick={() => handleExport('pdf')}
-                    startIcon={<PictureAsPdf sx={{ fontSize: '1.4rem', color: '#B7261C' }} />}
-                    sx={exportButtonSx}
-                  >
-                    PDF
-                  </Button>
-                </Box>
-              </Tooltip>
-
-              <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
-                <Box component="span" sx={filterButtonWrapSx}>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    disableElevation
-                    disabled={!ggData || reportGenerating}
-                    onClick={() => handleExport('xlsx')}
-                    startIcon={<TableChart sx={{ fontSize: '1.4rem', color: '#175C35' }} />}
-                    sx={exportButtonSx}
-                  >
-                    Excel
-                  </Button>
-                </Box>
-              </Tooltip>
-
               <TextField
                 select
                 value={selectedSites}
@@ -334,8 +311,6 @@ const IdaDash = () => {
                   </MenuItem>
                 ))}
               </TextField>
-              </Box>
-              <Box sx={filterRowSx}>
               <TextField
                 select
                 value={selectedYear}
@@ -351,6 +326,8 @@ const IdaDash = () => {
                   </MenuItem>
                 ))}
               </TextField>
+              </Box>
+              <Box sx={filterRowSx}>
               <DatePicker
                 views={['year', 'month']}
                 openTo="month"
@@ -372,6 +349,39 @@ const IdaDash = () => {
                 closeOnSelect
                 slotProps={{ textField: { size: 'small', sx: { ...monthPickerSx, ...filterItemSx } } }}
               />
+              <Tooltip title={text?.exportAsPdf || "Export as PDF"}>
+                <Box component="span" sx={exportButtonWrapSx}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    disableElevation
+                    disabled={!ggData || reportGenerating}
+                    onClick={() => handleExport('pdf')}
+                    startIcon={<PictureAsPdf sx={{ fontSize: '1.4rem', color: '#B7261C' }} />}
+                    aria-label={text?.exportAsPdf || "Export as PDF"}
+                    sx={exportButtonSx}
+                  >
+                    <Box component="span" sx={exportLabelSx}>PDF</Box>
+                  </Button>
+                </Box>
+              </Tooltip>
+
+              <Tooltip title={text?.exportAsExcel || "Export as Excel"}>
+                <Box component="span" sx={exportButtonWrapSx}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    disableElevation
+                    disabled={!ggData || reportGenerating}
+                    onClick={() => handleExport('xlsx')}
+                    startIcon={<TableChart sx={{ fontSize: '1.4rem', color: '#175C35' }} />}
+                    aria-label={text?.exportAsExcel || "Export as Excel"}
+                    sx={exportButtonSx}
+                  >
+                    <Box component="span" sx={exportLabelSx}>Excel</Box>
+                  </Button>
+                </Box>
+              </Tooltip>
               </Box>
             </Box>
           </Box>

@@ -123,9 +123,10 @@ export default function MetricFieldArray({
             if (!value?.length) return f.emptyLabel || "—";
             return value
                 .map((r) => {
+                    // The current list's name first, so a renamed resource shows its new name.
                     const name =
-                        r.resource?.name ||
                         (f.options || []).find((o) => o.id === r.resource?.id)?.name ||
+                        r.resource?.name ||
                         `#${r.resource?.id}`;
                     const unit = resourceRowUnit(r.resource, f, t);
                     return r.amount === null || r.amount === undefined || r.amount === ""
