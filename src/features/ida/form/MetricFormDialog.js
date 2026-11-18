@@ -409,6 +409,10 @@ export default function MetricFormDialog({
                                                             ? autoSetHint
                                                             : fieldState.error?.message,
                                                     },
+                                                    // Open under the input, right edges aligned, so the picker
+                                                    // (wider with the time columns) stays over the dialog
+                                                    // instead of hanging past its edge.
+                                                    popper: { placement: "bottom-end" },
                                                 }}
                                             />
                                         )}
