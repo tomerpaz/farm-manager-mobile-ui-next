@@ -284,10 +284,11 @@ const ResourceForm = () => {
                                 </Box>
 
                                 {/* ROW 3: Chemical parameters (N, P, K). Always N-P-K left to right, as on
-                                    fertilizer labels, also in Hebrew: the row is laid out LTR while each
-                                    input keeps the page direction for its label and error text. */}
-                                <Box sx={(theme) => ({ display: "flex", flexDirection: "row", gap: 2, width: '100%', direction: 'ltr', '& > *': { direction: theme.direction } })}>
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    fertilizer labels, also in Hebrew: the whole row (inputs included) is LTR.
+                                    The dir attribute, not CSS direction: the RTL stylis plugin flips CSS
+                                    direction values, which would cancel this out. */}
+                                <Box dir="ltr" sx={{ display: "flex", flexDirection: "row", gap: 2, width: '100%', '& > *': { flex: 1, minWidth: 0 } }}>
+                                    <Box>
                                         <Controller
                                             name="n"
                                             control={control}
@@ -297,7 +298,7 @@ const ResourceForm = () => {
                                             )}
                                         />
                                     </Box>
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Box>
                                         <Controller
                                             name="p"
                                             control={control}
@@ -307,7 +308,7 @@ const ResourceForm = () => {
                                             )}
                                         />
                                     </Box>
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Box>
                                         <Controller
                                             name="k"
                                             control={control}
