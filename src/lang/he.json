@@ -382,5 +382,9 @@
     "noRootedFields": "אין חלקות שנעקרו באתר זה.",
     "back": "חזרה",
     "nameStartLetterOrDigit": "חייב להתחיל באות או בספרה",
-    "unitM3": "קוב"
+    "unitM3": "קוב",
+    "previousYear": "השנה הקודמת",
+    "nextYear": "השנה הבאה",
+    "wholeYear": "כל השנה",
+    "noFieldsInYear": "אין חלקות ב-{year}."
 }

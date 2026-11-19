@@ -382,5 +382,9 @@
   "noRootedFields": "No rooted fields on this site.",
   "back": "Back",
   "nameStartLetterOrDigit": "Must start with a letter or number",
-  "unitM3": "m³"
+  "unitM3": "m³",
+  "previousYear": "Previous year",
+  "nextYear": "Next year",
+  "wholeYear": "Whole year",
+  "noFieldsInYear": "No fields in {year}."
 }

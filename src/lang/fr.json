@@ -382,5 +382,9 @@
   "noRootedFields": "Aucune parcelle arrachée sur ce site.",
   "back": "Retour",
   "nameStartLetterOrDigit": "Doit commencer par une lettre ou un chiffre",
-  "unitM3": "m³"
+  "unitM3": "m³",
+  "previousYear": "Année précédente",
+  "nextYear": "Année suivante",
+  "wholeYear": "Toute l'année",
+  "noFieldsInYear": "Aucune parcelle en {year}."
 }

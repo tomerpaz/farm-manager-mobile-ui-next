@@ -66,7 +66,8 @@ export const useFieldViewMode = () => {
     return [view, choose];
 };
 
-const toggleSx = { textTransform: 'none', fontWeight: 700, gap: 0.75, px: { xs: 1.5, sm: 2 }, py: 0.5 };
+// 40px tall, like the small inputs beside it (year, status, search).
+const toggleSx = { textTransform: 'none', fontWeight: 700, gap: 0.75, px: { xs: 1.5, sm: 2 }, py: 0, height: 40 };
 
 export const FieldViewToggle = ({ view, onChange, text, sx }) => (
     <ToggleButtonGroup
@@ -117,6 +118,43 @@ export const filterByStatus = (fields, status) => {
     if (!fields || status === STATUS_ALL) return fields;
     return fields.filter((f) => (status === STATUS_ROOTED ? !!f.endDate : !f.endDate));
 };
+
+// ---------------------------------------------------------------------------
+// Year pager: shows the fields whose period (start to end, or still open) overlaps
+// the chosen year. Kept for this browser tab (sessionStorage), so opening a field
+// and coming back keeps the year.
+
+const YEAR_STORAGE_KEY = 'siteFields.year';
+
+const readStoredYear = () => {
+    try {
+        const stored = Number(sessionStorage.getItem(YEAR_STORAGE_KEY));
+        if (Number.isInteger(stored) && stored > 1900 && stored < 3000) return stored;
+    } catch { /* storage unavailable */ }
+    return new Date().getFullYear();
+};
+
+export const useFieldYear = () => {
+    const [year, setYear] = useState(readStoredYear);
+    const choose = useCallback((next) => {
+        setYear(next);
+        try { sessionStorage.setItem(YEAR_STORAGE_KEY, String(next)); } catch { /* not remembered, still filters */ }
+    }, []);
+    return [year, choose];
+};
+
+// Dates are ISO "YYYY-MM-DD", so their first 4 characters are the year. A field
+// with no start date counts as started; no end date means it's still open.
+export const filterByYear = (fields, year) => {
+    if (!fields) return fields;
+    return fields.filter((f) => {
+        const startYear = f.startDate ? Number(String(f.startDate).slice(0, 4)) : -Infinity;
+        const endYear = f.endDate ? Number(String(f.endDate).slice(0, 4)) : Infinity;
+        return startYear <= year && year <= endYear;
+    });
+};
+
+export { FieldYearPager } from '../../components/ui/YearPager';
 
 export const FieldStatusSelect = ({ value, onChange, text, sx }) => (
     <TextField
@@ -332,7 +370,7 @@ const ListCard = ({ field, details, text, selected, onOpen, onDuplicate }) => {
                 <ChevronRight sx={{ color: 'text.disabled', flexShrink: 0, transform: (theme) => (theme.direction === 'rtl' ? 'scaleX(-1)' : 'none') }} />
             </CardActionArea>
             {/* Beside the action area, not in it: a button can't sit inside a button. */}
-            {ended && <DuplicateButton field={field} text={text} onDuplicate={onDuplicate} sx={{ mx: 0.5 }} />}
+            <DuplicateButton field={field} text={text} onDuplicate={onDuplicate} sx={{ mx: 0.5 }} />
         </Card>
     );
 };
@@ -404,10 +442,8 @@ const GridCard = ({ field, details, text, thumbSize, selected, onOpen, onDuplica
                     {ended && <RootDateChip field={field} text={text} sx={{ mt: 0.75, maxWidth: '100%' }} />}
                 </Box>
             </CardActionArea>
-            {ended && (
-                <DuplicateButton field={field} text={text} onDuplicate={onDuplicate}
-                    sx={{ position: 'absolute', top: 6, insetInlineEnd: 6, bgcolor: 'background.paper', boxShadow: 1, '&:hover': { bgcolor: 'background.paper' } }} />
-            )}
+            <DuplicateButton field={field} text={text} onDuplicate={onDuplicate}
+                sx={{ position: 'absolute', top: 6, insetInlineEnd: 6, bgcolor: 'background.paper', boxShadow: 1, '&:hover': { bgcolor: 'background.paper' } }} />
         </Card>
     );
 };

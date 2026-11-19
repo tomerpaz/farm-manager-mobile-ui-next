@@ -382,5 +382,9 @@
   "noRootedFields": "Geen gerooide percelen op deze locatie.",
   "back": "Terug",
   "nameStartLetterOrDigit": "Moet beginnen met een letter of cijfer",
-  "unitM3": "m³"
+  "unitM3": "m³",
+  "previousYear": "Vorig jaar",
+  "nextYear": "Volgend jaar",
+  "wholeYear": "Heel het jaar",
+  "noFieldsInYear": "Geen percelen in {year}."
 }

@@ -58,14 +58,17 @@ const COLOR_PRESETS = [
     '#1e88e5', // blue — greenhouses, rice, irrigated plots
 ];
 const isHexColor = (v) => /^#[0-9a-f]{6}$/i.test(v || '');
-// A new field continuing an ended one: same data, starting the day after it ended.
-// ggId links a field to its own GlobalG.A.P. crop, so the copy doesn't keep it.
+// A copy of a field as a new one. An ended field's copy continues it: same data,
+// starting the day after it ended. A field still open (no end date) is copied with
+// its dates as they are. ggId links a field to its own GlobalG.A.P. crop, so the
+// copy doesn't keep it.
 const duplicateOf = (source) => ({
     ...source,
     id: null,
     ggId: null,
-    startDate: dayjs(source.endDate).add(1, 'day').toDate(),
-    endDate: null,
+    ...(source.endDate
+        ? { startDate: dayjs(source.endDate).add(1, 'day').toDate(), endDate: null }
+        : {}),
 });
 
 const IdaFieldForm = () => {
@@ -87,7 +90,7 @@ const IdaFieldForm = () => {
     // RTK Query hooks
     const isNewField = fieldId === '0';
     const { data: field, isSuccess: isFieldsSuccess, isLoading } = useGetFieldQuery(fieldId, { skip: isNewField });
-    // /site/:siteId/field/0?from=<id> opens a new field filled in from an ended one.
+    // /site/:siteId/field/0?from=<id> opens a new field filled in from another one.
     const [searchParams] = useSearchParams();
     const sourceId = isNewField ? searchParams.get('from') : null;
     const { data: sourceField } = useGetFieldQuery(sourceId, { skip: !sourceId });

@@ -17,7 +17,7 @@ import { FieldSearchBox, useFieldFilter } from './FieldSearch';
 import SiteSwitcher from './SiteSwitcher';
 import { readSelectedSiteId, storeSelectedSiteId } from './selectedSite';
 import {
-    FieldGridView, FieldListView, FieldMapView, FieldStatusSelect, FieldViewToggle, filterByStatus,
+    FieldGridView, FieldListView, FieldMapView, FieldStatusSelect, FieldViewToggle, FieldYearPager, filterByStatus, filterByYear, useFieldYear,
     STATUS_ROOTED, storeFieldView, useFieldStatus, useFieldViewMode, VIEW_GRID, VIEW_LIST, VIEW_MAP
 } from './SiteFieldViews';
 
@@ -74,8 +74,11 @@ const SiteFields = () => {
     // Switching site (SiteSwitcher) keeps this page mounted: start the new site unfiltered.
     useEffect(() => setQuery(''), [siteId]);
     // Planted / Rooted / All, remembered for the next visit; the search applies on top.
+    // The year (fields whose start-to-end period overlaps it), then Planted / Rooted / All.
+    const [year, setYear] = useFieldYear();
+    const yearFields = useMemo(() => filterByYear(fields, year), [fields, year]);
     const [status, setStatus] = useFieldStatus();
-    const statusFields = useMemo(() => filterByStatus(fields, status), [fields, status]);
+    const statusFields = useMemo(() => filterByStatus(yearFields, status), [yearFields, status]);
     const filteredFields = useFieldFilter(statusFields, query);
     // A field just created or edited is selected (highlighted), and shown even if the
     // Planted/Rooted filter or the search would hide it - first, in that case.
@@ -183,13 +186,13 @@ const SiteFields = () => {
                         mb: 2,
                         gridTemplateColumns: {
                             xs: 'minmax(0, 1fr) auto',
-                            sm: 'auto auto minmax(0, 1fr) auto',
-                            md: 'minmax(0, auto) auto auto minmax(200px, 1fr) auto',
+                            sm: 'auto auto auto minmax(0, 1fr) auto',
+                            md: 'minmax(0, auto) auto auto auto minmax(200px, 1fr) auto',
                         },
                         gridTemplateAreas: {
-                            xs: '"title actions" "view view" "search status"',
-                            sm: '"title title title actions" "view status search search"',
-                            md: '"title view status search actions"',
+                            xs: '"title actions" "view view" "year status" "search search"',
+                            sm: '"title title title title actions" "view year status search search"',
+                            md: '"title view year status search actions"',
                         },
                     }}
                 >
@@ -202,6 +205,7 @@ const SiteFields = () => {
                         <>
                             <FieldViewToggle view={view} onChange={setView} text={text}
                                 sx={{ gridArea: 'view', '& .MuiToggleButton-root': { flex: { xs: 1, sm: 'none' } } }} />
+                            <FieldYearPager year={year} onChange={setYear} text={text} sx={{ gridArea: 'year', justifySelf: { xs: 'stretch', sm: 'start' }, justifyContent: 'space-between' }} />
                             <FieldStatusSelect value={status} onChange={setStatus} text={text} sx={{ gridArea: 'status' }} />
                             <FieldSearchBox value={query} onChange={setQuery} text={text} sx={{ gridArea: 'search', minWidth: 0 }} />
                         </>
@@ -289,6 +293,8 @@ const SiteFields = () => {
                     <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4, py: 2 }}>
                         {query.trim()
                             ? (text?.noMatchingFields || 'No fields match "{query}".').replace('{query}', query.trim())
+                            : yearFields?.length === 0
+                            ? (text?.noFieldsInYear || 'No fields in {year}.').replace('{year}', year)
                             : (status === STATUS_ROOTED
                                 ? (text?.noRootedFields || 'No rooted fields on this site.')
                                 : (text?.noPlantedFields || 'No planted fields on this site.'))}

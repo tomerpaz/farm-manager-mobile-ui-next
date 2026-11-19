@@ -382,5 +382,9 @@
   "noRootedFields": "Keine gerodeten Felder an diesem Standort.",
   "back": "Zurück",
   "nameStartLetterOrDigit": "Muss mit einem Buchstaben oder einer Zahl beginnen",
-  "unitM3": "m³"
+  "unitM3": "m³",
+  "previousYear": "Vorheriges Jahr",
+  "nextYear": "Nächstes Jahr",
+  "wholeYear": "Ganzes Jahr",
+  "noFieldsInYear": "Keine Felder in {year}."
 }

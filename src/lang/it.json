@@ -382,5 +382,9 @@
   "noRootedFields": "Nessun campo estirpato in questo sito.",
   "back": "Indietro",
   "nameStartLetterOrDigit": "Deve iniziare con una lettera o un numero",
-  "unitM3": "m³"
+  "unitM3": "m³",
+  "previousYear": "Anno precedente",
+  "nextYear": "Anno successivo",
+  "wholeYear": "Tutto l'anno",
+  "noFieldsInYear": "Nessun campo nel {year}."
 }

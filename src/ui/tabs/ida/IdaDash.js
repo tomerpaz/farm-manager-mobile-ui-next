@@ -38,6 +38,7 @@ import { useGenerateReportMutation } from '../../../features/reports/reportApiSl
 import { downloadReportFile, reportFailed } from '../../../features/reports/reportFile';
 import { Navigate, useNavigate } from 'react-router';
 import { pageTintBg } from '../../../components/ui/pageTint';
+import { FieldYearPager } from '../../../components/ui/YearPager';
 
 // One tile per metric per month. On mobile there's no room for a
 // "Fertilizer" label next to three others plus the month button on a
@@ -132,11 +133,14 @@ const IdaDash = () => {
     setFrom(value);
     if (value.isAfter(to, 'month')) setTo(value);
   };
-  // Shortcut to a whole calendar year. Blank while the range is anything else.
-  const currentYear = dayjs().year();
+  // Year pager (same as on the site's fields page): a shortcut to a whole calendar
+  // year. While the months cover anything else it shows From Month's year greyed,
+  // and the arrows jump to the whole year before / after it. Clicking the year
+  // itself resets the months to that whole year.
   const selectedYear = from.year() === to.year() && from.month() === 0 && to.month() === 11 ? from.year() : '';
-  const handleYearChange = (e) => {
-    const yearStart = dayjs().year(e.target.value).startOf('year');
+  const pagerYear = selectedYear || from.year();
+  const handleYearChange = (year) => {
+    const yearStart = dayjs().year(year).startOf('year');
     setFrom(yearStart);
     setTo(yearStart.endOf('year'));
   };
@@ -340,21 +344,14 @@ const IdaDash = () => {
                   </MenuItem>
                 ))}
               </TextField>
-              <TextField
-                select
-                value={selectedYear}
-                label={text?.year || "Year"}
+              <FieldYearPager
+                year={pagerYear}
                 onChange={handleYearChange}
-                size="small"
-                slotProps={selectFilterMenu}
-                sx={{ ...selectFilterSx, ...filterItemSx, minWidth: { xs: 0, sm: 105 } }}
-              >
-                {[0, 1, 2, 3, 4, 5].map((offset) => (
-                  <MenuItem key={offset} value={currentYear - offset}>
-                    {currentYear - offset}
-                  </MenuItem>
-                ))}
-              </TextField>
+                onYearClick={() => handleYearChange(pagerYear)}
+                yearClickLabel={text?.wholeYear || 'Whole year'}
+                text={text}
+                sx={{ ...filterItemSx, justifyContent: 'space-between', borderRadius: 1.5, color: selectedYear ? 'text.primary' : 'text.secondary' }}
+              />
               </Box>
               <Box sx={filterRowSx}>
               <DatePicker

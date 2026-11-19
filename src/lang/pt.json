@@ -378,5 +378,9 @@
   "noRootedFields": "Nenhum campo arrancado neste site.",
   "back": "Voltar",
   "nameStartLetterOrDigit": "Deve começar com uma letra ou número",
-  "unitM3": "m³"
+  "unitM3": "m³",
+  "previousYear": "Ano anterior",
+  "nextYear": "Próximo ano",
+  "wholeYear": "Ano inteiro",
+  "noFieldsInYear": "Nenhum campo em {year}."
 }
