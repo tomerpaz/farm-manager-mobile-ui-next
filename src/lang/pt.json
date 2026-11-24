@@ -382,5 +382,7 @@
   "previousYear": "Ano anterior",
   "nextYear": "Próximo ano",
   "wholeYear": "Ano inteiro",
+  "addFieldToSite": "Adicionar o campo ao local:",
+  "totalArea": "Área total",
   "noFieldsInYear": "Nenhum campo em {year}."
 }

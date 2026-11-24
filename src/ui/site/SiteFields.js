@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from 'react-redux';
-import { Alert, Box, Button, Fab, Tooltip, Typography, Skeleton } from "@mui/material";
+import { Alert, Box, Button, Fab, ListItemText, Menu, MenuItem, Tooltip, Typography, Skeleton } from "@mui/material";
 import { Add, PictureAsPdf, TableChart } from '@mui/icons-material';
 
 import { selectLang, selectReportGenerating } from "../../features/app/appSlice";
-import { clearJustAddedFieldId, clearJustEditedFieldId, getJustAddedFieldId, getJustEditedFieldId, useGetFieldsBySiteQuery } from '../../features/fields/fieldsApiSlice';
+import { clearJustAddedFieldId, clearJustEditedFieldId, getJustAddedFieldId, getJustEditedFieldId, useGetFieldsBySitesQuery } from '../../features/fields/fieldsApiSlice';
 import { useGetSiteQuery, useGetSitesQuery } from '../../features/sites/sitesApiSlice';
+import { useGetUserDataQuery } from '../../features/auth/authApiSlice';
 import { useGetCropGeneraQuery, useGetProductCategoriesQuery } from '../../features/ida/idaApiSlice';
 import Loading from '../../components/Loading';
 import TintedPage from '../../components/ui/TintedPage';
@@ -15,7 +16,7 @@ import { useGenerateReportMutation } from '../../features/reports/reportApiSlice
 import { downloadReportFile, reportFailed } from '../../features/reports/reportFile';
 import { FieldSearchBox, useFieldFilter } from './FieldSearch';
 import SiteSwitcher from './SiteSwitcher';
-import { readSelectedSiteId, storeSelectedSiteId } from './selectedSite';
+import { ALL_SITES, readSelectedSiteIds, storeSelectedSiteId, storeSelectedSiteIds } from './selectedSite';
 import {
     FieldGridView, FieldListView, FieldMapView, FieldStatusSelect, FieldViewToggle, FieldYearPager, filterByStatus, filterByYear, useFieldYear,
     STATUS_ROOTED, storeFieldView, useFieldStatus, useFieldViewMode, VIEW_GRID, VIEW_LIST, VIEW_MAP
@@ -36,24 +37,35 @@ export const SiteMapRedirect = () => {
     return <Navigate to="/tabs/ida/sites" replace />;
 };
 
-// The IDA Sites tab: one site's fields at a time, with the site picked from the title.
+// The IDA Sites tab: the fields of the sites ticked in the title's menu, in one list.
 // Only GLOBALG.A.P.-registered sites (ggId) have fields.
 const SiteFields = () => {
     const navigate = useNavigate();
     const text = useSelector(selectLang);
 
     const { data: sites, isSuccess: isSitesSuccess, isLoading: isSitesLoading } = useGetSitesQuery();
-    const [chosenId, setChosenId] = useState(readSelectedSiteId);
+    const [chosenIds, setChosenIds] = useState(readSelectedSiteIds);
     const registered = useMemo(() => (sites || []).filter((s) => s.ggId), [sites]);
-    // The remembered site while it's still registered, else the first registered one.
-    const siteId = (registered.find((s) => String(s.id) === String(chosenId)) ?? registered[0])?.id;
-    const selectSite = (id) => {
-        setChosenId(String(id));
-        storeSelectedSiteId(id);
+    // The remembered sites that are still registered (in the menu's order), else the
+    // first registered one. "All Sites" is every registered site, including later ones.
+    const allSites = chosenIds.includes(ALL_SITES);
+    const selectedSites = useMemo(() => {
+        if (allSites) return registered;
+        const chosen = registered.filter((s) => chosenIds.includes(String(s.id)));
+        return chosen.length ? chosen : registered.slice(0, 1);
+    }, [registered, chosenIds, allSites]);
+    const siteIds = useMemo(() => selectedSites.map((s) => s.id), [selectedSites]);
+    // The first ticked site: the map centres on it when there's no field to show.
+    const siteId = siteIds[0];
+    // ids: the ticked site ids, or ALL_SITES.
+    const selectSites = (ids) => {
+        const next = ids === ALL_SITES ? [ALL_SITES] : ids.map(String);
+        setChosenIds(next);
+        storeSelectedSiteIds(next);
     };
 
     // Queries
-    const { data: siteFields, isSuccess: isFieldsSuccess, isLoading: isFieldsLoading } = useGetFieldsBySiteQuery(siteId, { skip: !siteId });
+    const { data: siteFields, isSuccess: isFieldsSuccess, isLoading: isFieldsLoading } = useGetFieldsBySitesQuery(siteIds, { skip: !siteIds.length });
     // A field just created is shown first for this visit only; the next visit
     // (or reload) lists it in the server's order again.
     const [justAddedId] = useState(getJustAddedFieldId);
@@ -71,8 +83,9 @@ const SiteFields = () => {
 
     // Free-text filter over what each card shows (see FieldSearch).
     const [query, setQuery] = useState('');
-    // Switching site (SiteSwitcher) keeps this page mounted: start the new site unfiltered.
-    useEffect(() => setQuery(''), [siteId]);
+    // Switching sites (SiteSwitcher) keeps this page mounted: start the new sites unfiltered.
+    const siteKey = siteIds.join(',');
+    useEffect(() => setQuery(''), [siteKey]);
     // Planted / Rooted / All, remembered for the next visit; the search applies on top.
     // The year (fields whose start-to-end period overlaps it), then Planted / Rooted / All.
     const [year, setYear] = useFieldYear();
@@ -89,6 +102,12 @@ const SiteFields = () => {
         return [selected, ...filteredFields];
     }, [fields, filteredFields, selectedId]);
 
+    // Each card shows its field's site.
+    const siteNames = useMemo(() => Object.fromEntries((sites || []).map((s) => [s.id, s.name])), [sites]);
+    // The shown fields' count and total area, in the user's area unit.
+    const { data: user } = useGetUserDataQuery();
+    const areaUnit = text?.[user?.areaUnit] || '';
+    const totalArea = useMemo(() => (visibleFields || []).reduce((sum, f) => sum + (Number(f.area) || 0), 0), [visibleFields]);
     // List / Grid / Map, remembered in localStorage for the next visit.
     const [view, setView] = useFieldViewMode();
     const viewProps = {
@@ -96,14 +115,28 @@ const SiteFields = () => {
         selectedId,
         cropGenera,
         productCategories,
+        siteNames,
         text,
-        onOpen: (field) => navigate(`/site/${siteId}/field/${field.id}`),
-        onDuplicate: (field) => navigate(`/site/${siteId}/field/0?from=${field.id}`),
+        onOpen: (field) => navigate(`/site/${field.siteId ?? siteId}/field/${field.id}`),
+        onDuplicate: (field) => navigate(`/site/${field.siteId ?? siteId}/field/0?from=${field.id}`),
     };
 
-    const siteName = isSiteSuccess && siteData ? siteData.name : "";
+    const siteName = allSites && registered.length > 1
+        ? (text?.allSites || 'All Sites')
+        : selectedSites.length > 1
+        ? selectedSites.map((s) => s.name).join(', ')
+        : (isSiteSuccess && siteData ? siteData.name : "");
 
-    const handleAddField = () => navigate(`/site/${siteId}/field/0`);
+    // With several sites ticked, Add Field first asks which site the field is on.
+    const [addMenuAnchor, setAddMenuAnchor] = useState(null);
+    const addFieldTo = (id) => {
+        setAddMenuAnchor(null);
+        navigate(`/site/${id}/field/0`);
+    };
+    const handleAddField = (e) => {
+        if (selectedSites.length > 1) setAddMenuAnchor(e.currentTarget);
+        else addFieldTo(siteId);
+    };
 
     // Exports what the list currently shows, search filter and order included.
     const [generateReport] = useGenerateReportMutation();
@@ -116,6 +149,8 @@ const SiteFields = () => {
             format,
             params: {
                 siteId: Number(siteId),
+                siteIds: siteIds.map(Number),
+                year: Number(year),
                 fieldIds: visibleFields.map((f) => f.id),
                 lang: text?.lang,
             },
@@ -170,7 +205,7 @@ const SiteFields = () => {
                     pt: { xs: 2, sm: 2.5 },
                     px: { xs: 2, sm: 3 },
                     // Map view: the map runs to the bottom of the screen, so only a small padding.
-                    pb: view === VIEW_MAP ? { xs: 2, sm: 3 } : { xs: 10, sm: 6 },
+                    pb: view === VIEW_MAP ? { xs: 2, sm: 3 } : 10,   // list/grid: room for the floating total and Add button
                     borderRadius: { xs: 0, sm: 2 }
                 }}
             >
@@ -196,9 +231,9 @@ const SiteFields = () => {
                         },
                     }}
                 >
-                    {/* Site name: a menu to switch site or add one, with Edit beside it. */}
+                    {/* Site name: a menu to tick sites, edit one or add one. */}
                     <Box sx={{ gridArea: 'title', minWidth: 0 }}>
-                        <SiteSwitcher siteId={siteId} siteName={siteName} sites={sites} onSelect={selectSite} text={text} />
+                        <SiteSwitcher siteIds={siteIds} allSites={allSites} siteName={siteName} sites={sites} onChange={selectSites} text={text} />
                     </Box>
 
                     {isFieldsSuccess && fields?.length > 0 && (
@@ -248,6 +283,35 @@ const SiteFields = () => {
                         </Button>
                     </Box>
                 </Box>
+
+                {/* What's shown: how many fields and their total area, floating at the bottom
+                    of the screen. Phones: bottom-left, clear of the Add Field button on the right. */}
+                {isFieldsSuccess && visibleFields?.length > 0 && (
+                    <Box
+                        role="status"
+                        sx={{
+                            position: 'fixed',
+                            bottom: { xs: 32, sm: 24 },
+                            left: { xs: 16, sm: '50%' },
+                            transform: { xs: 'none', sm: 'translateX(-50%)' },
+                            maxWidth: { xs: 'calc(100% - 112px)', sm: 'calc(100% - 32px)' },
+                            zIndex: 1100,
+                            px: 2.5, py: 1.25,
+                            borderRadius: 6,
+                            bgcolor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            boxShadow: 3,
+                        }}
+                    >
+                        <Typography variant="body1" noWrap sx={{ color: 'text.secondary', fontWeight: 700, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
+                            {`${visibleFields.length} ${text?.fields || 'Fields'} · ${text?.totalArea || 'Total area'}: `}
+                            <Box component="span" sx={{ fontWeight: 800, color: 'text.primary' }}>
+                                {`${totalArea.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${areaUnit}`.trim()}
+                            </Box>
+                        </Typography>
+                    </Box>
+                )}
 
                 {/* Main Fields List Box */}
                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
@@ -317,6 +381,14 @@ const SiteFields = () => {
                 >
                     <Add />
                 </Fab>
+                <Menu anchorEl={addMenuAnchor} open={!!addMenuAnchor} onClose={() => setAddMenuAnchor(null)}>
+                    <MenuItem disabled sx={{ '&.Mui-disabled': { opacity: 1 } }}>
+                        <ListItemText primary={text?.addFieldToSite || 'Add the field to site:'} slotProps={{ primary: { sx: { fontWeight: 700, fontSize: '0.85rem', color: 'text.secondary' } } }} />
+                    </MenuItem>
+                    {selectedSites.map((s) => (
+                        <MenuItem key={s.id} onClick={() => addFieldTo(s.id)}>{s.name}</MenuItem>
+                    ))}
+                </Menu>
             </Box>
         </TintedPage>
     );

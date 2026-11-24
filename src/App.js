@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import './App.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Routes, Route, Navigate } from "react-router";
@@ -83,14 +84,18 @@ function App() {
 
 
   document.body.dir = dir;
-  theme.direction = dir;
+  // A new theme per direction: MUI's ThemeProvider copies the theme it's given and keeps
+  // the copy while the object stays the same, so changing theme.direction in place left
+  // the old direction behind after a language switch (pickers, poppers and arrows that
+  // use MUI's RTL flag then pointed the wrong way).
+  const dirTheme = useMemo(() => createTheme(theme, { direction: dir }), [dir]);
   const { data: user } = useGetUserDataQuery()
 
   const isIda = user?.userConf?.filter(e => e.type === 'IDA').length > 0;
   const DEFAULT_ROUTE = isIda ? "/tabs/ida/dash" : "/tabs/map";
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={dirTheme}>
       <LocaleApplication>
         <Routes>
           <Route path="/" element={<Layout />}>

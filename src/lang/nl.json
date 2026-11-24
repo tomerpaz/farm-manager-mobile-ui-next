@@ -386,5 +386,7 @@
   "previousYear": "Vorig jaar",
   "nextYear": "Volgend jaar",
   "wholeYear": "Heel het jaar",
+  "addFieldToSite": "Veld toevoegen aan locatie:",
+  "totalArea": "Totale oppervlakte",
   "noFieldsInYear": "Geen percelen in {year}."
 }

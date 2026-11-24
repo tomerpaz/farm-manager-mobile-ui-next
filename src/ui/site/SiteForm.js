@@ -115,10 +115,11 @@ const SiteForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Back on the Sites tab, show the site just saved (once it's registered and has fields).
+      // Back on the Sites tab, also show a site just added or just registered. Editing a
+      // registered site leaves the ticked sites as they were.
       if (data.id) {
         await updateSite(data).unwrap();
-        storeSelectedSiteId(data.id);
+        if (!site?.ggId) storeSelectedSiteId(data.id);
       } else {
         const created = await createSite(data).unwrap();
         storeSelectedSiteId(created?.id);

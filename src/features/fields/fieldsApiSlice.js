@@ -60,6 +60,16 @@ export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG
             query: (siteId) => `/api/farm/site/${siteId}/fields`,
             providesTags: [SiteFields_TAG]
         }),
+        // Several sites' fields in one list, in the order of the site ids given.
+        getFieldsBySites: builder.query({
+            async queryFn(siteIds, _api, _extra, baseQuery) {
+                const results = await Promise.all(siteIds.map((siteId) => baseQuery(`/api/farm/site/${siteId}/fields`)));
+                const failed = results.find((r) => r.error);
+                if (failed) return { error: failed.error };
+                return { data: results.flatMap((r) => r.data ?? []) };
+            },
+            providesTags: [SiteFields_TAG]
+        }),
         getField: builder.query({
             query: (fieldId) => `/api/farm/field/${fieldId}`,
             providesTags: [Field_TAG]
@@ -112,6 +122,7 @@ export const fieldsApiSlice = apiSlice.enhanceEndpoints({ addTagTypes: [User_TAG
 export const {
     useGetFieldsByYearQuery,
     useGetFieldsBySiteQuery,
+    useGetFieldsBySitesQuery,
     useGetFieldQuery,
     useCreateFieldMutation,
     useUpdateFieldMutation,

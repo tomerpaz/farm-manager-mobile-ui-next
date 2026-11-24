@@ -386,5 +386,7 @@
     "previousYear": "השנה הקודמת",
     "nextYear": "השנה הבאה",
     "wholeYear": "כל השנה",
+    "addFieldToSite": "הוסף את השדה לאתר:",
+    "totalArea": "שטח כולל",
     "noFieldsInYear": "אין חלקות ב-{year}."
 }

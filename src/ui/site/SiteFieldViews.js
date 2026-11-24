@@ -16,7 +16,7 @@ import {
     Typography
 } from '@mui/material';
 import {
-    CalendarMonth, Category, ChevronRight, ContentCopy, GridView, Grass, Layers, Map as MapIcon, ViewList
+    CalendarMonth, Category, ChevronRight, ContentCopy, GridView, Grass, Layers, Map as MapIcon, Place, ViewList
 } from '@mui/icons-material';
 
 import { safeParseJson } from '../../features/fields/fieldsApiSlice';
@@ -277,16 +277,19 @@ const VirtualRows = ({ count, getKey, estimate, gap, renderRow, scrollToIndex })
 // What a List or Grid card shows: start date, product category and crop genus. Matched by id; IDA fields
 // without the ids keep the product category as their crop and the crop genus as their
 // variety, so those names are the fallback - the same as the Site Map's labels.
-const useFieldDetails = (cropGenera, productCategories) => useCallback((field) => {
+// siteNames: site id -> name, for the field's site (first, as the list can mix sites).
+const useFieldDetails = (cropGenera, productCategories, siteNames) => useCallback((field) => {
     const iconSx = { fontSize: '0.95rem' };
     const category = productCategories.find((c) => c.id === field.ggProductCategoryId)?.name ?? field.cropName;
     const genus = cropGenera.find((g) => g.id === field.ggCropGenusId)?.name ?? field.varietyName;
+    const siteName = siteNames?.[field.siteId];
     return [
+        siteName && { icon: <Place sx={iconSx} />, label: siteName },
         formatDate(field.startDate) && { icon: <CalendarMonth sx={iconSx} />, label: formatDate(field.startDate) },
         category && { icon: <Category sx={iconSx} />, label: category },
         genus && { icon: <Grass sx={iconSx} />, label: genus },
     ].filter(Boolean);
-}, [cropGenera, productCategories]);
+}, [cropGenera, productCategories, siteNames]);
 
 
 // Active fields are plain cards; ended ones are the exception and look it: a dashed
@@ -375,8 +378,8 @@ const ListCard = ({ field, details, text, selected, onOpen, onDuplicate }) => {
     );
 };
 
-export const FieldListView = ({ fields, selectedId, cropGenera, productCategories, text, onOpen, onDuplicate }) => {
-    const detailsOf = useFieldDetails(cropGenera, productCategories);
+export const FieldListView = ({ fields, selectedId, cropGenera, productCategories, siteNames, text, onOpen, onDuplicate }) => {
+    const detailsOf = useFieldDetails(cropGenera, productCategories, siteNames);
     return (
         <VirtualRows
             count={fields.length}
@@ -448,8 +451,8 @@ const GridCard = ({ field, details, text, thumbSize, selected, onOpen, onDuplica
     );
 };
 
-export const FieldGridView = ({ fields, selectedId, cropGenera, productCategories, text, onOpen, onDuplicate }) => {
-    const detailsOf = useFieldDetails(cropGenera, productCategories);
+export const FieldGridView = ({ fields, selectedId, cropGenera, productCategories, siteNames, text, onOpen, onDuplicate }) => {
+    const detailsOf = useFieldDetails(cropGenera, productCategories, siteNames);
     const [ref, width] = useWidth();
     const columns = gridColumns(width || 360);
     const thumbSize = Math.max(80, Math.floor(((width || 360) - GRID_GAP * (columns - 1)) / columns));

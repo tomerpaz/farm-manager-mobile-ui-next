@@ -386,5 +386,7 @@
   "previousYear": "Previous year",
   "nextYear": "Next year",
   "wholeYear": "Whole year",
+  "addFieldToSite": "Add the field to site:",
+  "totalArea": "Total area",
   "noFieldsInYear": "No fields in {year}."
 }

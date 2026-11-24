@@ -382,5 +382,7 @@
   "previousYear": "Año anterior",
   "nextYear": "Año siguiente",
   "wholeYear": "Todo el año",
+  "addFieldToSite": "Añadir el campo al sitio:",
+  "totalArea": "Superficie total",
   "noFieldsInYear": "No hay campos en {year}."
 }

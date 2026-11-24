@@ -146,6 +146,15 @@ export default function MetricFormDialog({
     // until expanded (same idea as ActivityFields' TRASHHOLD).
     const [fieldsExpanded, setFieldsExpanded] = useState(false);
     const t = useIdaText();
+    // The dialog's Paper: date pickers are kept inside it (see pickerPopper).
+    const [paperEl, setPaperEl] = useState(null);
+    // Date pickers open under their input, aligned with its end (by the calendar button:
+    // right in English, left in Hebrew - MUI flips "end" for RTL), and are slid sideways
+    // to stay within the dialog (8px in from its edges).
+    const pickerPopper = {
+        placement: "bottom-end",
+        modifiers: [{ name: "preventOverflow", options: { boundary: paperEl ?? "clippingParents", padding: 8 } }],
+    };
     const { data: user } = useGetUserDataQuery();
     const allOption = { id: ALL_ID, name: t("allSites", "All Sites") };
     const autoSetHint = t("setAutomatically", "Set automatically for “None” entries");
@@ -320,6 +329,7 @@ export default function MetricFormDialog({
             // resizing the window. Capped to the viewport minus MUI's 32px margins.
             slotProps={{
                 paper: {
+                    ref: setPaperEl,
                     elevation: 3,
                     sx: hasFieldsTable && !isMobile() ? { height: "min(800px, calc(100% - 64px))" } : undefined,
                 },
@@ -409,10 +419,9 @@ export default function MetricFormDialog({
                                                             ? autoSetHint
                                                             : fieldState.error?.message,
                                                     },
-                                                    // Open under the input, right edges aligned, so the picker
-                                                    // (wider with the time columns) stays over the dialog
-                                                    // instead of hanging past its edge.
-                                                    popper: { placement: "bottom-end" },
+                                                    // Kept over the dialog, not hanging past its edge
+                                                    // (wider with the time columns) - see pickerPopper.
+                                                    popper: pickerPopper,
                                                 }}
                                             />
                                         )}
