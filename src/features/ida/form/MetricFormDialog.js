@@ -447,11 +447,15 @@ export default function MetricFormDialog({
                                                 error={!!fieldState.error}
                                                 helperText={fieldState.error?.message ?? " "}
                                             >
-                                                {options.map((opt) => (
-                                                    <MenuItem key={opt.id} value={opt.id}>
-                                                        {opt.name || `#${opt.id}`}
-                                                    </MenuItem>
-                                                ))}
+                                                {/* selectableIds limits new picks (e.g. sites with fields
+                                                    planted this month); "All" and the saved value stay. */}
+                                                {options
+                                                    .filter((opt) => !f.selectableIds || opt.id === ALL_ID || opt.id === field.value || f.selectableIds.has(opt.id))
+                                                    .map((opt) => (
+                                                        <MenuItem key={opt.id} value={opt.id}>
+                                                            {opt.name || `#${opt.id}`}
+                                                        </MenuItem>
+                                                    ))}
                                             </TextField>
                                         )}
                                     />

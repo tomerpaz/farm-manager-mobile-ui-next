@@ -388,5 +388,7 @@
   "wholeYear": "Ganzes Jahr",
   "addFieldToSite": "Feld zum Standort hinzufügen:",
   "totalArea": "Gesamtfläche",
+  "noPlantedFieldsForMonth": "In diesem Monat sind keine Felder bepflanzt.",
+  "noPlantedFieldsWarning": "In diesem Monat sind keine Felder bepflanzt, daher können keine Daten eingegeben werden.",
   "noFieldsInYear": "Keine Felder in {year}."
 }

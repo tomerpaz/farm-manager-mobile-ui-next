@@ -388,5 +388,7 @@
   "wholeYear": "Toute l'année",
   "addFieldToSite": "Ajouter le champ au site :",
   "totalArea": "Surface totale",
+  "noPlantedFieldsForMonth": "Aucun champ n'est planté ce mois-ci.",
+  "noPlantedFieldsWarning": "Aucun champ n'est planté ce mois-ci, aucune donnée ne peut donc être saisie.",
   "noFieldsInYear": "Aucune parcelle en {year}."
 }

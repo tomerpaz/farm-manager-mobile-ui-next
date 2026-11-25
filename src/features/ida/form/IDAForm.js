@@ -249,7 +249,10 @@ const resolveSchema = (schema, dataSources, t) =>
         };
         if (!f.optionsFrom) return f;
         const options = dataSources[f.optionsFrom] || [];
-        if (f.type !== "resources") return { ...f, options };
+        // <name>Selectable (optional): the ids new picks are limited to. All options stay,
+        // so saved records still show their names.
+        const selectable = dataSources[`${f.optionsFrom}Selectable`];
+        if (f.type !== "resources") return { ...f, options, ...(selectable ? { selectableIds: selectable } : {}) };
         return {
             ...f,
             options: options.filter((o) => o.id !== 0),
@@ -276,6 +279,8 @@ const filterByMonth = (fields, firstDay, lastDay) =>
 // one bundled banner the user has to cross-reference.
 function validateMandatoryMetrics(formData, availableFields, zeroOptionLabels, t) {
     if (formData.draft) return {};
+    // No field planted this month: nothing can be entered, so nothing is required.
+    if (!availableFields?.length) return {};
 
     const needsOne = t("needsOneRecord", "Needs at least one record before this can be finalized.");
     const errors = {};
@@ -431,7 +436,13 @@ function IDAForm() {
     // Required panels are a hint (info) until a final Save is tried, then an error.
     const [saveAttempted, setSaveAttempted] = useState(false);
     const requiredColor = saveAttempted ? "error" : "info";
+    // No field planted this month: nothing can be saved for it (Save and Save Draft are off).
+    const noPlantedFields = availableFields.length === 0;
     const submitAs = (draft) => (event) => {
+        if (noPlantedFields) {
+            event?.preventDefault?.();
+            return undefined;
+        }
         if (!draft) setSaveAttempted(true);
         return handleSubmit((data) => handleFormSubmit({ ...data, draft }))(event);
     };
@@ -485,6 +496,8 @@ function IDAForm() {
 
     const dataSources = {
         sites: idaSystemData?.sites,
+        // A site is offered only if one of its fields is planted this month.
+        sitesSelectable: new Set(availableFields.map((f) => f.siteId).filter((id) => id != null)),
         waterTypes: idaSystemData?.waterTypes,
         // Id 15 is "No energy" (server ENERGY_SOURCE_NONE); it drives the
         // auto-zero/disable behavior below and stays first in the dropdown.
@@ -511,8 +524,8 @@ function IDAForm() {
     const renderPanel = (metric, indexInAll) => {
         // fertilizers and activeIngredients record their crop_id via a
         // selected field, so there's nothing valid to save without one.
-        const needsFields = metric.schema.some((f) => f.type === "fields");
-        const noFieldsAvailable = needsFields && availableFields.length === 0;
+        // No field planted this month: no records can be added to any metric.
+        const noFieldsAvailable = availableFields.length === 0;
 
         return (
             <MetricPanel
@@ -539,7 +552,7 @@ function IDAForm() {
                     maxDate={lastDayOfMonth}
                     availableFields={availableFields}
                     disabled={noFieldsAvailable}
-                    disabledReason={noFieldsAvailable ? t("noFieldsForMonth", "No fields available to select for this month.") : null}
+                    disabledReason={noFieldsAvailable ? t("noPlantedFieldsForMonth", "No fields are planted this month.") : null}
                     mandatoryError={metricErrors[metric.id]}
                     mandatoryColor={requiredColor}
                 />
@@ -626,8 +639,8 @@ function IDAForm() {
                     {availableFields.length === 0 && (
                         <Alert severity="warning" sx={{ mb: 3 }}>
                             {t(
-                                "noFieldsWarning",
-                                "No fields are available for this month — records that need a field can't be added. All other records can be saved."
+                                "noPlantedFieldsWarning",
+                                "No fields are planted this month, so no data can be entered for it."
                             )}
                         </Alert>
                     )}
@@ -709,7 +722,7 @@ function IDAForm() {
                             color="success"
                             size="large"
                             onClick={submitAs(true)}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || noPlantedFields}
                             sx={{
                                 textTransform: "none",
                                 borderRadius: 2,
@@ -731,7 +744,7 @@ function IDAForm() {
                             variant="contained"
                             color="success"
                             size="large"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || noPlantedFields}
                             sx={{
                                 textTransform: "none",
                                 borderRadius: 2,
