@@ -28,7 +28,7 @@ import { secondaryButtonSx } from "../../../components/ui/FormActionBar";
 import { useGetResourcesQuery } from "../../resources/resourcesApiSlice";
 import MetricFieldArray from "./MetricFieldArray";
 import MetricPanel from "./MetricPanel";
-import { fromRecord, getExistingRecord, toRecordPayload, yearRange } from "../ggRecordMapper";
+import { filterByMonth, fromRecord, getExistingRecord, toRecordPayload, yearRange } from "../ggRecordMapper";
 import useIdaText from "./useIdaText";
 
 const WORKER = "WORKER";
@@ -260,14 +260,6 @@ const resolveSchema = (schema, dataSources, t) =>
         };
     });
 
-// A field with a missing date shouldn't be hidden from selection — only
-// exclude it once we can actually tell it starts after this month or ended before it.
-const filterByMonth = (fields, firstDay, lastDay) =>
-    (fields ?? []).filter(
-        (f) =>
-            (!f.startDate || !dayjs(f.startDate).isAfter(lastDay, "day")) &&
-            (!f.endDate || !dayjs(f.endDate).isBefore(firstDay, "day"))
-    );
 
 // Drafts can be left incomplete — a real submission can't. waterUse,
 // precipitation and energyUsed just need one record each; activeIngredients/fertilizers are

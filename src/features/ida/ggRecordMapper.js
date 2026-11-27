@@ -163,3 +163,13 @@ export const yearRange = (year) => ({ from: `${year}-01-01`, to: `${year}-12-31`
 export function getExistingRecord(ggData, recordYear, recordMonth) {
     return ggData?.months?.[monthKey(recordYear, recordMonth + 1)]?.records?.[0] || null;
 }
+
+// The fields planted during a month (firstDay..lastDay): their start-to-end period overlaps it.
+// A field with a missing date shouldn't be hidden from selection — only
+// exclude it once we can actually tell it starts after this month or ended before it.
+export const filterByMonth = (fields, firstDay, lastDay) =>
+    (fields ?? []).filter(
+        (f) =>
+            (!f.startDate || !dayjs(f.startDate).isAfter(lastDay, "day")) &&
+            (!f.endDate || !dayjs(f.endDate).isBefore(firstDay, "day"))
+    );

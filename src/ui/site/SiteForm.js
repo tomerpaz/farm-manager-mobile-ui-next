@@ -327,7 +327,7 @@ const SiteForm = () => {
                   style={{ position: 'absolute', inset: 0 }}
                   center={siteLonLat}
                   zoom={zoom}
-                  scrollWheelZoom={false}
+                  scrollWheelZoom
                   ref={setMap}
                 >
                   <SatelliteMapProvider />

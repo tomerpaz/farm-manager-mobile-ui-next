@@ -33,7 +33,7 @@ import Loading from '../../../components/Loading';
 import GlobalGapSvg from '../../../icons/gg/GlobalGapSvg';
 import { selectLang, selectReportGenerating } from '../../../features/app/appSlice';
 import { useGetGGDataQuery, useGetIdaSystemDataQuery } from '../../../features/ida/idaApiSlice';
-import { monthKeyLabel, monthOfKey, yearOfKey } from '../../../features/ida/ggRecordMapper';
+import { filterByMonth, monthKeyLabel, monthOfKey, yearOfKey } from '../../../features/ida/ggRecordMapper';
 import { useGenerateReportMutation } from '../../../features/reports/reportApiSlice';
 import { downloadReportFile, reportFailed } from '../../../features/reports/reportFile';
 import { Navigate, useNavigate } from 'react-router';
@@ -46,20 +46,23 @@ import { FieldYearPager } from '../../../components/ui/YearPager';
 // away via the tooltip). The tile's color alone carries ok/pending — that keeps
 // every row compact enough that a whole month list fits without each row
 // eating the screen.
-const StatusIndicator = ({ icon, label, isMobile, styles }) => (
-  <Tooltip title={label}>
+// count: "reported/relevant" (e.g. "4/10" fields), shown beside the label on desktop
+// and under the icon on a phone.
+const StatusIndicator = ({ icon, label, count, isMobile, styles }) => (
+  <Tooltip title={count ? `${label}: ${count}` : label}>
     <Paper
       elevation={0}
       sx={{
         display: 'flex',
+        flexDirection: { xs: count ? 'column' : 'row', sm: 'row' },
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 0.5,
-        p: '6px 4px',
+        gap: { xs: 0, sm: 0.5 },
+        p: { xs: count ? '2px 2px' : '6px 4px', sm: '6px 4px' },
         boxSizing: 'border-box', // otherwise the padding adds on top of `height`, rendering taller than the month Button
         borderRadius: 1.25,
         flex: { xs: '0 0 auto', sm: 1 },
-        width: { xs: 32, sm: 'auto' },
+        width: { xs: count ? 40 : 32, sm: 'auto' },
         minWidth: 0,
         height: { xs: 32, sm: '36px' },
         transition: 'transform 0.1s ease',
@@ -71,6 +74,11 @@ const StatusIndicator = ({ icon, label, isMobile, styles }) => (
       {!isMobile && (
         <Typography noWrap variant="subtitle2" sx={{ fontSize: '0.78rem', fontWeight: 800, color: 'inherit' }}>
           {label}
+        </Typography>
+      )}
+      {count && (
+        <Typography noWrap variant="subtitle2" sx={{ fontSize: { xs: '0.62rem', sm: '0.78rem' }, lineHeight: { xs: 1.1, sm: 'inherit' }, fontWeight: 800, color: 'inherit', fontVariantNumeric: 'tabular-nums' }}>
+          {count}
         </Typography>
       )}
     </Paper>
@@ -262,7 +270,49 @@ const IdaDash = () => {
   // neutral — red for pending, solid (not pastel) green for OK so the two
   // don't read as close variants of the same muted tone. An empty month
   // stays neutral, matching its month button, instead of a wall of red.
-  const getIndicatorStyles = (statusOk, empty) => {
+  // How much of a month is reported per metric: pesticides and fertilizer by field
+  // (fields planted that month, on the filtered sites), water and energy by site (sites
+  // with a planted field; an "All Sites" entry covers them all).
+  const monthCoverage = (m) => {
+    const firstDay = dayjs(new Date(yearOfKey(m), monthOfKey(m) - 1, 1));
+    const siteFilter = siteIds ? new Set(siteIds) : null;
+    const planted = filterByMonth(
+      (idaSystemData?.fields || []).filter((f) => !siteFilter || siteFilter.has(f.siteId)),
+      firstDay, firstDay.endOf('month'));
+    const plantedFieldIds = new Set(planted.map((f) => f.id));
+    const plantedSiteIds = new Set(planted.map((f) => f.siteId).filter((id) => id != null));
+    const record = ggData?.months?.[m]?.records?.[0];
+    const byField = (key) => {
+      const reported = new Set();
+      (record?.[key] || []).forEach((el) => (el.fields || []).forEach((f) => plantedFieldIds.has(f.id) && reported.add(f.id)));
+      return { done: reported.size, total: plantedFieldIds.size };
+    };
+    const bySite = (key) => {
+      const elements = record?.[key] || [];
+      if (elements.some((el) => !el.site)) return { done: plantedSiteIds.size, total: plantedSiteIds.size };
+      const reported = new Set(elements.map((el) => el.site.id).filter((id) => plantedSiteIds.has(id)));
+      return { done: reported.size, total: plantedSiteIds.size };
+    };
+    return {
+      pesticides: byField('activeIngredients'),
+      fertilizer: byField('fertilizers'),
+      water: bySite('waterUse'),
+      energy: bySite('energyUsed'),
+    };
+  };
+  const coverageText = (c) => (c.total ? `${c.done}/${c.total}` : undefined);
+
+  // Coloured by coverage when there's something to cover: all reported green, some
+  // reported the drafts' yellow, none red. Otherwise by the server's flag.
+  const getIndicatorStyles = (statusOk, empty, coverage) => {
+    if (!empty && coverage?.total && coverage.done > 0 && coverage.done < coverage.total) {
+      return {
+        bgcolor: 'rgba(199, 119, 0, 0.14)',
+        color: '#8a5300',
+        border: '1px solid rgba(199, 119, 0, 0.32)',
+      };
+    }
+    if (coverage?.total) statusOk = coverage.done > 0;
     if (empty) {
       return {
         bgcolor: 'transparent',
@@ -417,6 +467,7 @@ const IdaDash = () => {
             {Object.keys(ggData.months || {}).map(Number).sort((a, b) => a - b).map(m => {
               const statusConfig = getStatusConfig(m);
               const empty = isMonthEmpty(m);
+              const coverage = monthCoverage(m);
               return (
                 <Card
                   key={m}
@@ -493,29 +544,33 @@ const IdaDash = () => {
                       icon={<Science sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.pesticides || "Pesticides"}
                       ok={ggData?.months?.[m]?.activeIngredientOk}
+                      count={empty ? undefined : coverageText(coverage.pesticides)}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggData?.months?.[m]?.activeIngredientOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.activeIngredientOk, empty, coverage.pesticides)}
                     />
                     <StatusIndicator
                       icon={<Grass sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.fertilizer || "Fertilizer"}
                       ok={ggData?.months?.[m]?.fertilizerOk}
+                      count={empty ? undefined : coverageText(coverage.fertilizer)}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggData?.months?.[m]?.fertilizerOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.fertilizerOk, empty, coverage.fertilizer)}
                     />
                     <StatusIndicator
                       icon={<WaterDrop sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.water || "Water"}
                       ok={ggData?.months?.[m]?.waterOk}
+                      count={empty ? undefined : coverageText(coverage.water)}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggData?.months?.[m]?.waterOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.waterOk, empty, coverage.water)}
                     />
                     <StatusIndicator
                       icon={<OfflineBolt sx={{ fontSize: '1.05rem', flexShrink: 0, color: 'inherit' }} />}
                       label={text?.energy || "Energy"}
                       ok={ggData?.months?.[m]?.energyOk}
+                      count={empty ? undefined : coverageText(coverage.energy)}
                       isMobile={isMobile}
-                      styles={getIndicatorStyles(ggData?.months?.[m]?.energyOk, empty)}
+                      styles={getIndicatorStyles(ggData?.months?.[m]?.energyOk, empty, coverage.energy)}
                     />
                   </Box>
 
